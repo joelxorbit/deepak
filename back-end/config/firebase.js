@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import admin from 'firebase-admin';
 import { ENV } from './env.js';
 import { logger } from '../utils/logger.js';
+import { MockDb } from './mockDb.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,6 +13,14 @@ let db = null;
 let storageBucket = null;
 
 export const initializeFirebase = () => {
+  if (process.env.JEST_WORKER_ID !== undefined || process.env.NODE_ENV === 'test') {
+    if (!db) {
+      db = new MockDb();
+      logger.info('[Firebase] Using MockDb for Jest testing environment to bypass missing credentials.');
+    }
+    return { db, admin };
+  }
+
   if (admin.apps.length > 0) {
     db = admin.firestore();
     return { db, admin };
