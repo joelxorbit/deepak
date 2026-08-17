@@ -1,0 +1,75 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Elite Pitch Football Turf Management API",
+    "version": "1.0.0",
+    "description": "Production-Grade REST API for Elite Pitch Turf Management System powered by Express.js & Firebase Cloud Firestore"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Development Server"
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Health Monitoring Endpoint",
+        "responses": {
+          "200": {
+            "description": "API & Firestore status metrics"
+          }
+        }
+      }
+    },
+    "/api/admin/login": {
+      "post": {
+        "summary": "Admin Login Authentication",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Successfully authenticated" },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/api/bookings": {
+      "get": {
+        "summary": "Get All Bookings (Admin)",
+        "responses": { "200": { "description": "Bookings list" } }
+      },
+      "post": {
+        "summary": "Create Turf Booking (Atomic Transaction)",
+        "responses": { "201": { "description": "Booking created" } }
+      }
+    },
+    "/api/bookings/slots": {
+      "get": {
+        "summary": "Get Booked Slots by Date",
+        "parameters": [
+          { "name": "date", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "List of booked slots" } }
+      }
+    },
+    "/api/events": {
+      "get": {
+        "summary": "Get Completed Events",
+        "responses": { "200": { "description": "Events list" } }
+      }
+    }
+  }
+}

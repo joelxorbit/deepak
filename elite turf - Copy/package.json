@@ -1,0 +1,28 @@
+{
+  "name": "elite-pitch-platform",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "cd front-end && npm install && npm run build",
+    "start": "cd back-end && npm start",
+    "dev": "cd back-end && npm run dev",
+    "test": "cd back-end && npm test"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
+    "express-validator": "^7.1.0",
+    "firebase-admin": "^12.1.0",
+    "helmet": "^7.1.0",
+    "joi": "^17.13.1",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "swagger-ui-express": "^5.0.0",
+    "winston": "^3.13.0"
+  }
+}

@@ -1,0 +1,75 @@
+export const BOOKING_STATUS = {
+  PENDING: 'Pending',
+  CONFIRMED: 'Confirmed',
+  CANCELLED: 'Cancelled',
+  REJECTED: 'Rejected'
+};
+
+export const PAYMENT_METHODS = {
+  PAY_NOW: 'Pay Now',
+  PAY_AT_SPOT: 'Pay at Spot'
+};
+
+export const PAYMENT_STATUS = {
+  PENDING: 'Pending',
+  PAID: 'Paid'
+};
+
+export const TIME_SLOTS_ORDER = [
+  "06:00 AM - 07:00 AM",
+  "07:00 AM - 08:00 AM",
+  "08:00 AM - 09:00 AM",
+  "09:00 AM - 10:00 AM",
+  "10:00 AM - 11:00 AM",
+  "11:00 AM - 12:00 PM",
+  "12:00 PM - 01:00 PM",
+  "01:00 PM - 02:00 PM",
+  "02:00 PM - 03:00 PM",
+  "03:00 PM - 04:00 PM",
+  "04:00 PM - 05:00 PM",
+  "05:00 PM - 06:00 PM",
+  "06:00 PM - 07:00 PM",
+  "07:00 PM - 08:00 PM",
+  "08:00 PM - 09:00 PM",
+  "09:00 PM - 10:00 PM",
+  "10:00 PM - 11:00 PM",
+  "11:00 PM - 12:00 AM"
+];
+
+export const FIRESTORE_COLLECTIONS = {
+  ADMINS: 'admins',
+  BOOKINGS: 'bookings',
+  CUSTOMERS: 'customers',
+  EVENTS: 'events',
+  COUNTERS: 'counters',
+  AUDIT_LOGS: 'audit_logs',
+  IDEMPOTENCY_KEYS: 'idempotency_keys',
+  ENQUIRIES: 'enquiries'
+};
+
+export const AUDIT_ACTIONS = {
+  ADMIN_LOGIN: 'ADMIN_LOGIN',
+  BOOKING_CREATE: 'BOOKING_CREATE',
+  BOOKING_APPROVE: 'BOOKING_APPROVE',
+  BOOKING_REJECT: 'BOOKING_REJECT',
+  BOOKING_CANCEL: 'BOOKING_CANCEL',
+  PAYMENT_MARK_PAID: 'PAYMENT_MARK_PAID',
+  EVENT_CREATE: 'EVENT_CREATE',
+  EVENT_UPDATE: 'EVENT_UPDATE',
+  EVENT_DELETE: 'EVENT_DELETE',
+  CUSTOMER_UPDATE: 'CUSTOMER_UPDATE',
+  ENQUIRY_CREATE: 'ENQUIRY_CREATE',
+  ENQUIRY_STATUS_UPDATE: 'ENQUIRY_STATUS_UPDATE',
+  ENQUIRY_DELETE: 'ENQUIRY_DELETE'
+};
+
+export const SLOT_PRICE_PER_HOUR = 300;
+export const GST_PERCENTAGE = 0.18;
+
+export const ENQUIRY_STATUS = {
+  UNREAD: 'Unread',
+  READ: 'Read',
+  REPLIED: 'Replied'
+};
+
+export const CACHE_TTL_MS = 60 * 1000;

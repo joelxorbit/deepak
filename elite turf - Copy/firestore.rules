@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // SECURITY PRINCIPLE OF LEAST PRIVILEGE:
+    // Block all direct client read and write requests from web/mobile SDKs.
+    // All access must pass strictly through the authenticated Express Backend Service Account.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

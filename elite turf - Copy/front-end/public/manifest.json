@@ -1,0 +1,15 @@
+{
+  "short_name": "Elite Pitch",
+  "name": "Elite Pitch - Football Turf Booking Management System",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#faf8ff",
+  "theme_color": "#006e2f",
+  "display": "standalone"
+}
