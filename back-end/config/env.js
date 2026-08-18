@@ -20,7 +20,7 @@ export const ENV = {
   FIREBASE_TYPE: process.env.FIREBASE_TYPE || 'service_account',
   FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID || 'elite-turf-64ba8',
   FIREBASE_PRIVATE_KEY_ID: process.env.FIREBASE_PRIVATE_KEY_ID,
-  FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined,
+  FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/^"|"$/g, '') : undefined,
   FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
   FIREBASE_CLIENT_ID: process.env.FIREBASE_CLIENT_ID,
   FIREBASE_AUTH_URI: process.env.FIREBASE_AUTH_URI || 'https://accounts.google.com/o/oauth2/auth',
