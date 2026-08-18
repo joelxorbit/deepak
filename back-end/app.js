@@ -17,6 +17,7 @@ import eventRoutes from './routes/eventRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import enquiryRoutes from './routes/enquiryRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 import v1Routes from './routes/v1/index.js';
 
 const app = express();
@@ -98,6 +99,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/enquiries', enquiryRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Register Versioned Routes (/api/v1)
 app.use('/api/v1', v1Routes);

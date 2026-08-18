@@ -5,6 +5,7 @@ import { TIME_SLOTS, areSlotsConsecutive, calculateBookingPricing } from '../../
 import { getTodayString } from '../../utils/dateUtils';
 import { ROUTES } from '../../constants/routes';
 import { TimeSlotPicker } from './TimeSlotPicker';
+import { createRazorpayOrder, verifyRazorpayPayment } from '../../services/paymentService';
 
 export const BookingForm = ({ navigate: navigateProp }) => {
   const navigateRouter = useNavigate();
@@ -130,7 +131,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
 
     try {
       setIsSubmitting(true);
-      const booking = await createBooking({
+      const bookingDetails = {
         customerName: fullName.trim(),
         mobileNumber: cleanedMobile,
         date: bookingDate,
@@ -141,14 +142,56 @@ export const BookingForm = ({ navigate: navigateProp }) => {
         subtotal: pricing.subtotal,
         gstAmount: pricing.gstAmount,
         totalAmount: pricing.totalAmount
-      });
+      };
 
-      if (booking) {
-        navigate(ROUTES.BOOKING_SUCCESS);
+      if (paymentMethod === 'Pay Now') {
+        const orderData = await createRazorpayOrder(pricing.totalAmount, `receipt_${Date.now()}`);
+        
+        const options = {
+          key: 'rzp_test_SyHdQL7pK1tlnG',
+          amount: orderData.amount,
+          currency: orderData.currency,
+          name: 'Elite Pitch',
+          description: 'Turf Booking Payment',
+          order_id: orderData.id,
+          handler: async (response) => {
+            try {
+              setIsSubmitting(true);
+              await verifyRazorpayPayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              });
+              
+              const booking = await createBooking({ ...bookingDetails, paymentStatus: 'Paid', razorpay_payment_id: response.razorpay_payment_id });
+              if (booking) navigate(ROUTES.BOOKING_SUCCESS);
+            } catch (verificationError) {
+              setErrorMsg('Payment verification failed. If amount was deducted, please contact support.');
+              setIsSubmitting(false);
+            }
+          },
+          prefill: {
+            name: fullName.trim(),
+            contact: cleanedMobile
+          },
+          theme: { color: '#059669' },
+          modal: {
+            ondismiss: () => setIsSubmitting(false)
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+          setErrorMsg('Payment failed: ' + response.error.description);
+          setIsSubmitting(false);
+        });
+        rzp.open();
+      } else {
+        const booking = await createBooking(bookingDetails);
+        if (booking) navigate(ROUTES.BOOKING_SUCCESS);
       }
     } catch (err) {
       setErrorMsg('Failed to process booking. Please try again.');
-    } finally {
       setIsSubmitting(false);
     }
   };
