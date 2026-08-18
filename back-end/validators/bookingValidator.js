@@ -56,7 +56,9 @@ export const createBookingSchema = Joi.object({
   slotCount: Joi.number().optional(),
   subtotal: Joi.number().optional(),
   gstAmount: Joi.number().optional(),
-  totalAmount: Joi.number().optional()
+  totalAmount: Joi.number().optional(),
+  paymentStatus: Joi.string().valid('Pending', 'Paid', 'Failed').optional(),
+  razorpay_payment_id: Joi.string().optional()
 });
 
 export const validateCreateBooking = (req, res, next) => {
