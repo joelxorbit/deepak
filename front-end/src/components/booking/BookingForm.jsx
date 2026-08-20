@@ -209,7 +209,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
         {/* LEFT PANEL: Player Details & Match Date */}
-        <div className="lg:col-span-5 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 flex flex-col h-fit">
           <div className="space-y-4">
             <div className="border-b border-slate-100 pb-3">
               <span className="text-[11px] font-medium uppercase tracking-wider text-emerald-600">PLAYER DETAILS</span>

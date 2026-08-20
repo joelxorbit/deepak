@@ -35,8 +35,8 @@ export const TimeSlotPicker = memo(({ bookedSlots = [], selectedSlots = [], hand
         </div>
       </div>
 
-      {/* Controlled Internal Slot List Scroll Only (max-h-52) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-52 overflow-y-auto p-2 border border-black/10 rounded-2xl bg-surface-container-lowest">
+      {/* Fixed Layout Slot List (No Scroll) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-2 border border-black/10 rounded-2xl bg-surface-container-lowest">
         {TIME_SLOTS.map((slot) => {
           const isBooked = bookedSlots.includes(slot);
           const isPast = isPastSlotForToday(slot, bookingDate);
