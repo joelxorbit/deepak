@@ -12,8 +12,8 @@ export const InvoiceModal = ({ booking, onClose }) => {
   const slotCount = booking.slotCount || slotsList.length || 1;
   const slotPrice = booking.slotPrice || 300;
   const subtotal = booking.subtotal || (slotCount * slotPrice);
-  const gstAmount = booking.gstAmount || Math.round(subtotal * 0.18);
-  const totalAmount = booking.totalAmount || (subtotal + gstAmount);
+  const gstAmount = 0;
+  const totalAmount = booking.totalAmount || subtotal;
   const paymentStatus = booking.paymentStatus || (booking.paymentMethod === 'Pay Now' ? 'Paid' : 'Pending');
 
   const handlePrint = () => {
@@ -112,16 +112,8 @@ export const InvoiceModal = ({ booking, onClose }) => {
               <p>Payment Status: <strong className="text-primary">{paymentStatus}</strong></p>
             </div>
             <div className="w-48 space-y-1.5 text-right">
-              <div className="flex justify-between">
-                <span>Subtotal:</span>
-                <span className="font-medium">₹{subtotal}</span>
-              </div>
-              <div className="flex justify-between text-on-surface-variant">
-                <span>GST (18%):</span>
-                <span>₹{gstAmount}</span>
-              </div>
               <div className="flex justify-between font-bold text-base pt-2 border-t border-black/10 text-primary">
-                <span>Grand Total:</span>
+                <span>Total Amount:</span>
                 <span>₹{totalAmount}</span>
               </div>
             </div>

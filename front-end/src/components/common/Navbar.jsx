@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes';
+import { useAuth } from '../../context/AuthContext';
 
 export const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { customer, logoutCustomer } = useAuth();
 
   // Close mobile drawer on route change
   useEffect(() => {
@@ -83,7 +85,31 @@ export const Navbar = () => {
         </div>
 
         {/* Action Controls & Mobile Menu Toggle */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          
+          {customer ? (
+            <div className="hidden md:flex items-center gap-3">
+              <span className="text-emerald-400 font-semibold text-xs tracking-wider uppercase">
+                {customer.name}
+              </span>
+              <button 
+                onClick={logoutCustomer}
+                className="text-slate-300 hover:text-rose-400 font-medium text-xs tracking-wide uppercase transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center gap-4">
+              <Link to={ROUTES.LOGIN} className="text-slate-300 hover:text-emerald-400 font-medium text-xs tracking-wide uppercase transition-colors">
+                Login
+              </Link>
+              <Link to={ROUTES.SIGNUP} className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 font-medium text-xs tracking-wide uppercase px-3 py-1.5 rounded-lg transition-colors">
+                Sign Up
+              </Link>
+            </div>
+          )}
+
           <button 
             onClick={() => navigate(ROUTES.BOOKING)}
             className="hidden sm:inline-flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-semibold text-xs uppercase tracking-wider px-5 py-2.5 rounded-full shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-300"

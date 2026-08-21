@@ -6,6 +6,7 @@ import { getTodayString } from '../../utils/dateUtils';
 import { ROUTES } from '../../constants/routes';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { createRazorpayOrder, verifyRazorpayPayment } from '../../services/paymentService';
+import { useAuth } from '../../context/AuthContext';
 
 export const BookingForm = ({ navigate: navigateProp }) => {
   const navigateRouter = useNavigate();
@@ -13,10 +14,18 @@ export const BookingForm = ({ navigate: navigateProp }) => {
 
   const { createBooking, getBookedSlotsForDate, setIsTrackModalOpen, setIsCancelModalOpen } = useBooking();
 
+  const { customer } = useAuth();
   const todayStr = getTodayString();
 
-  const [fullName, setFullName] = useState('');
-  const [mobileNumber, setMobileNumber] = useState('');
+  const [fullName, setFullName] = useState(customer?.name || '');
+  const [mobileNumber, setMobileNumber] = useState(customer?.phone || '');
+
+  useEffect(() => {
+    if (customer) {
+      setFullName(customer.name);
+      // customer profile no longer stores phone, so we don't autofill it
+    }
+  }, [customer]);
   const [bookingDate, setBookingDate] = useState(todayStr);
   const [bookedSlots, setBookedSlots] = useState([]);
   const [selectedSlots, setSelectedSlots] = useState([]);
@@ -69,6 +78,10 @@ export const BookingForm = ({ navigate: navigateProp }) => {
           return [slot];
         }
       } else {
+        if (prevSelected.length >= 3) {
+          setErrorMsg('You can select a maximum of 3 consecutive time slots.');
+          return prevSelected;
+        }
         const newSelected = [...prevSelected, slot];
         const sorted = newSelected.sort((a, b) => TIME_SLOTS.indexOf(a) - TIME_SLOTS.indexOf(b));
 
@@ -293,7 +306,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
                   <span>{pricing.slotCount} hour(s)</span>
                 </div>
                 <div className="flex justify-between text-slate-300">
-                  <span>Subtotal (₹300/hr + 18% GST)</span>
+                  <span>Amount</span>
                   <span className="font-semibold text-white">₹{pricing.totalAmount}</span>
                 </div>
               </div>

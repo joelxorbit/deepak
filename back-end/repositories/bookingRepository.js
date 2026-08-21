@@ -1,5 +1,5 @@
 import { getBookingsCollection } from '../config/firestoreCollections.js';
-import { findCustomerById, findCustomerByPhone } from './customerRepository.js';
+import { findCustomerById, findCustomerByUsername } from './customerRepository.js';
 import { findAdminById } from './adminRepository.js';
 import { BOOKING_STATUS } from '../utils/constants.js';
 import { normalizePhone } from '../utils/slotNormalizer.js';
@@ -36,7 +36,7 @@ export const populateBookingRelations = async (bookingDoc) => {
     ...data,
     id,
     _id: id,
-    customer: customer ? { _id: customer.id || customer._id, id: customer.id || customer._id, name: customer.name, phone: customer.phone } : null,
+    customer: customer ? { _id: customer.id || customer._id, id: customer.id || customer._id, name: customer.name, username: customer.username } : null,
     approvedBy
   };
 };
@@ -104,8 +104,8 @@ export const findBookingsByQuery = async (queryStr) => {
       rawPhoneSnap.docs.forEach(doc => matchedDocsMap.set(doc.id, doc));
     }
 
-    // Step 3: Customer profile lookup
-    const customer = await findCustomerByPhone(normalizedPhone);
+    // Step 3: Customer profile lookup by username
+    const customer = await findCustomerByUsername(trimmed);
     if (customer) {
       const customerBookingSnap = await getBookingsCollection()
         .where('customerId', '==', customer.id)

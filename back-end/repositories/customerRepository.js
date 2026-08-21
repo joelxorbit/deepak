@@ -1,35 +1,16 @@
 import { getCustomersCollection } from '../config/firestoreCollections.js';
 import { generateSearchTokens, normalizePhone } from '../utils/slotNormalizer.js';
 
-export const findCustomerByPhone = async (phone) => {
-  if (!phone) return null;
-  const raw = phone.trim();
-  const normalized = normalizePhone(raw);
+export const findCustomerByUsername = async (username) => {
+  if (!username) return null;
+  const raw = username.trim().toLowerCase();
   
-  // Try exact normalized 10-digit match first
-  if (normalized) {
-    const snap1 = await getCustomersCollection()
-      .where('phone', '==', normalized)
-      .limit(1)
-      .get();
-    if (!snap1.empty) return { id: snap1.docs[0].id, ...snap1.docs[0].data() };
-  }
-
-  // Try raw string match
-  const snap2 = await getCustomersCollection()
-    .where('phone', '==', raw)
+  const snap = await getCustomersCollection()
+    .where('username', '==', raw)
     .limit(1)
     .get();
-  if (!snap2.empty) return { id: snap2.docs[0].id, ...snap2.docs[0].data() };
-
-  // Try +91 formatted string match
-  if (normalized) {
-    const snap3 = await getCustomersCollection()
-      .where('phone', '==', `+91 ${normalized}`)
-      .limit(1)
-      .get();
-    if (!snap3.empty) return { id: snap3.docs[0].id, ...snap3.docs[0].data() };
-  }
+    
+  if (!snap.empty) return { id: snap.docs[0].id, ...snap.docs[0].data() };
 
   return null;
 };
@@ -41,14 +22,31 @@ export const findCustomerById = async (id) => {
   return { id: doc.id, ...doc.data() };
 };
 
+export const findCustomerByEmail = async (email) => {
+  if (!email) return null;
+  const raw = email.trim().toLowerCase();
+
+  const snap = await getCustomersCollection()
+    .where('email', '==', raw)
+    .limit(1)
+    .get();
+
+  if (!snap.empty) return { id: snap.docs[0].id, ...snap.docs[0].data() };
+
+  return null;
+};
+
 export const createCustomerRecord = async (customerData) => {
   const now = new Date().toISOString();
-  const normalizedPhone = normalizePhone(customerData.phone) || customerData.phone.trim();
-  const searchTokens = generateSearchTokens(customerData.name, normalizedPhone);
+  const username = customerData.username.trim().toLowerCase();
+  const searchTokens = generateSearchTokens(customerData.name, username);
 
   const payload = {
     name: customerData.name,
-    phone: normalizedPhone,
+    username,
+    phone: customerData.phone || null,
+    email: customerData.email ? customerData.email.trim().toLowerCase() : null,
+    googleId: customerData.googleId || null,
     bookingHistory: customerData.bookingHistory || [],
     searchTokens,
     createdAt: now,
@@ -64,12 +62,12 @@ export const updateCustomerRecord = async (id, updateData) => {
   const docRef = getCustomersCollection().doc(id);
   const now = new Date().toISOString();
   
-  if (updateData.name || updateData.phone) {
+  if (updateData.name || updateData.username || updateData.phone) {
     const currentDoc = await docRef.get();
     const currentData = currentDoc.data() || {};
     const name = updateData.name || currentData.name;
-    const phone = updateData.phone ? normalizePhone(updateData.phone) : currentData.phone;
-    updateData.searchTokens = generateSearchTokens(name, phone);
+    const username = updateData.username ? updateData.username.trim().toLowerCase() : currentData.username;
+    updateData.searchTokens = generateSearchTokens(name, username);
   }
 
   updateData.updatedAt = now;

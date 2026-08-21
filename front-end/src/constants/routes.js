@@ -5,6 +5,8 @@ export const ROUTES = {
   BOOKING_SUCCESS: '/booking-success',
   EVENTS: '/events',
   CONTACT: '/contact',
+  LOGIN: '/login',
+  SIGNUP: '/signup',
   
   ADMIN: '/admin',
   ADMIN_LOGIN: '/admin',

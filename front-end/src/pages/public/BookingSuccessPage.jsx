@@ -25,8 +25,8 @@ export const BookingSuccessPage = () => {
 
   const slotsList = latestBooking.slots || latestBooking.timeSlots || [];
   const subtotal = latestBooking.subtotal || (slotsList.length * 300);
-  const gstAmount = latestBooking.gstAmount || Math.round(subtotal * 0.18);
-  const totalAmount = latestBooking.totalAmount || (subtotal + gstAmount);
+  const gstAmount = 0;
+  const totalAmount = latestBooking.totalAmount || subtotal;
 
   return (
     <div className="max-w-2xl mx-auto px-container-padding-mobile md:px-container-padding-desktop py-12">
@@ -72,16 +72,8 @@ export const BookingSuccessPage = () => {
               <span className="text-on-surface-variant">Rate per Slot</span>
               <span>₹300</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-on-surface-variant">Subtotal</span>
-              <span>₹{subtotal}</span>
-            </div>
-            <div className="flex justify-between text-xs text-on-surface-variant">
-              <span>GST (18%)</span>
-              <span>₹{gstAmount}</span>
-            </div>
             <div className="flex justify-between font-bold text-base text-primary pt-2 border-t border-black/10">
-              <span>Grand Total</span>
+              <span>Total Amount</span>
               <span>₹{totalAmount}</span>
             </div>
           </div>

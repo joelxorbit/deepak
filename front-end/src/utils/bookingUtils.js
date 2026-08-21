@@ -22,14 +22,14 @@ export const TIME_SLOTS = [
 ];
 
 export const SLOT_PRICE_PER_HOUR = 300;
-export const GST_PERCENTAGE = 0.18;
+export const GST_PERCENTAGE = 0;
 
 export const calculateBookingPricing = (slotsCount = 0) => {
   const count = Number(slotsCount) || 0;
   const slotPrice = SLOT_PRICE_PER_HOUR;
   const subtotal = count * slotPrice;
-  const gstAmount = Math.round(subtotal * GST_PERCENTAGE);
-  const totalAmount = subtotal + gstAmount;
+  const gstAmount = 0;
+  const totalAmount = subtotal;
 
   return {
     slotPrice,
