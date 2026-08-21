@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes';
+import bgVideo from '../../assets/video/bg.mp4';
 
 export const HomePage = () => {
   const navigate = useNavigate();
@@ -77,26 +78,25 @@ export const HomePage = () => {
     <div className="space-y-24 pb-20">
       
       {/* 1. FULL-BLEED CINEMATIC HERO SECTION */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-slate-950 -mt-20 pt-20">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-slate-950 -mt-20 pt-20">
         
-        {/* Full-bleed background image with cinematic gradient vignette */}
+        {/* Full-bleed background video */}
         <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=2000&q=80" 
-            alt="Multi-Sport Turf Arena" 
-            className="w-full h-full object-cover object-center brightness-[0.35] scale-105 animate-pulse-slow"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-slate-950/80" />
+          <video 
+            autoPlay 
+            loop 
+            muted 
+            playsInline
+            className="w-full h-full object-cover object-center brightness-[0.65]"
+          >
+            <source src={bgVideo} type="video/mp4" />
+          </video>
         </div>
 
         {/* Hero Editorial Content */}
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8 py-20 animate-fade-in">
           
-          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-label-bold text-xs uppercase tracking-widest backdrop-blur-md shadow-lg shadow-emerald-500/10">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            ELITE PITCH SPORTS ARENA
-          </div>
+
           
           <h1 className="font-extrabold text-4xl sm:text-6xl md:text-7xl lg:text-[80px] leading-[1.05] text-white tracking-tight uppercase drop-shadow-2xl">
             THE ULTIMATE <br className="hidden sm:inline" />
