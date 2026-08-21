@@ -209,7 +209,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
         {/* LEFT PANEL: Player Details & Match Date */}
-        <div className="lg:col-span-5 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 flex flex-col h-fit">
           <div className="space-y-4">
             <div className="border-b border-slate-100 pb-3">
               <span className="text-[11px] font-medium uppercase tracking-wider text-emerald-600">PLAYER DETAILS</span>
@@ -283,51 +283,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
               bookingDate={bookingDate}
             />
 
-            {/* Payment Method Cards */}
-            <div className="space-y-2">
-              <label className="block text-xs font-medium uppercase tracking-wider text-slate-700">
-                Payment Option *
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <label className={`flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
-                  paymentMethod === 'Pay Now'
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-900 font-medium'
-                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                }`}>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="Pay Now"
-                    checked={paymentMethod === 'Pay Now'}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="accent-emerald-600 h-3.5 w-3.5"
-                  />
-                  <div>
-                    <span className="block text-xs font-medium">Pay Now</span>
-                    <span className="text-[10px] text-slate-500 font-normal">Online Payment</span>
-                  </div>
-                </label>
 
-                <label className={`flex items-center gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
-                  paymentMethod === 'Pay at Spot'
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-900 font-medium'
-                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                }`}>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="Pay at Spot"
-                    checked={paymentMethod === 'Pay at Spot'}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="accent-emerald-600 h-3.5 w-3.5"
-                  />
-                  <div>
-                    <span className="block text-xs font-medium">Pay at Spot</span>
-                    <span className="text-[10px] text-slate-500 font-normal">Pay at Turf Venue</span>
-                  </div>
-                </label>
-              </div>
-            </div>
 
             {/* Compact Pricing Summary */}
             {selectedSlots.length > 0 && (
@@ -355,7 +311,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
               <span className="material-symbols-outlined text-base">
                 {isSubmitting ? 'sync' : 'check_circle'}
               </span>
-              {isSubmitting ? 'Processing Reservation...' : `Confirm Booking (${selectedSlots.length > 0 ? `₹${pricing.totalAmount}` : 'Select Slot'})`}
+              {isSubmitting ? 'Processing Reservation...' : `Pay & Confirm Booking (${selectedSlots.length > 0 ? `₹${pricing.totalAmount}` : 'Select Slot'})`}
             </button>
 
             {/* Secondary, Tertiary, & Danger Controls */}
