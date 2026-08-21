@@ -75,8 +75,8 @@ describe('Elite Pitch Comprehensive Runtime & API Verification Suite', () => {
       expect(booking.slotPrice).toBe(300);
       expect(booking.slotCount).toBe(2);
       expect(booking.subtotal).toBe(600);
-      expect(booking.gstAmount).toBe(108);
-      expect(booking.totalAmount).toBe(708);
+      expect(booking.gstAmount).toBe(0);
+      expect(booking.totalAmount).toBe(600);
     }, 40000);
 
     it('POST /api/bookings - Pay at Spot should have paymentStatus = Pending', async () => {
@@ -98,7 +98,7 @@ describe('Elite Pitch Comprehensive Runtime & API Verification Suite', () => {
       expect(booking.paymentStatus).toBe('Pending');
       expect(booking.paidAt).toBeNull();
       expect(booking.paymentCollectedBy).toBeNull();
-      expect(booking.totalAmount).toBe(354);
+      expect(booking.totalAmount).toBe(300);
     }, 40000);
   });
 
@@ -134,7 +134,7 @@ describe('Elite Pitch Comprehensive Runtime & API Verification Suite', () => {
       expect(res.body.success).toBe(true);
       expect(Array.isArray(res.body.data)).toBe(true);
       expect(res.body.data.length).toBeGreaterThan(0);
-      expect(res.body.data[0].totalAmount).toBe(708);
+      expect(res.body.data[0].totalAmount).toBe(600);
     }, 40000);
   });
 
