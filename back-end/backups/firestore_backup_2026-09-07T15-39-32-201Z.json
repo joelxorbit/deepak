@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "exportedAt": "2026-09-07T15:39:24.572Z",
+    "isDryRun": false,
+    "collections": [
+      "bookings",
+      "customers",
+      "admins",
+      "events",
+      "enquiries",
+      "counters",
+      "audit_logs",
+      "idempotency_keys"
+    ]
+  },
+  "collections": {
+    "bookings": [],
+    "customers": [],
+    "admins": [],
+    "events": [],
+    "enquiries": [],
+    "counters": [],
+    "audit_logs": [],
+    "idempotency_keys": []
+  }
+}
