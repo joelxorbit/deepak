@@ -385,6 +385,28 @@ export const BookingForm = ({ navigate: navigateProp }) => {
               </div>
             )}
 
+            {/* Payment Option Selector */}
+            {selectedSlots.length > 0 && !pricingConfigError && (
+              <div className="bg-slate-100 p-1 rounded-xl flex items-center animate-fade-in border border-slate-200/60">
+                <button
+                  type="button"
+                  onClick={() => setPaymentOption('ADVANCE')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${paymentOption === 'ADVANCE' ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  <span className="material-symbols-outlined text-[15px]">payments</span>
+                  Pay Advance
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentOption('FULL')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${paymentOption === 'FULL' ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/50' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  <span className="material-symbols-outlined text-[15px]">account_balance_wallet</span>
+                  Pay Full Amount
+                </button>
+              </div>
+            )}
+
             {/* Compact Pricing Summary */}
             {selectedSlots.length > 0 && !pricingConfigError && (
               <div className="p-3.5 rounded-2xl bg-slate-950 text-white border border-white/10 space-y-1.5 animate-fade-in text-xs">
