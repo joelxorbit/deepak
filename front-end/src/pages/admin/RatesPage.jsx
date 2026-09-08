@@ -152,17 +152,17 @@ export const RatesPage = () => {
     try {
       setSubmitting(true);
       const payload = {
-        ruleName: formData.ruleName.trim() || undefined,
-        sportId: formData.sportId,
+        ruleName: `Price Rule - ₹${formData.ratePerHour}`,
+        sportId: 'all',
         ratePerHour: Number(formData.ratePerHour),
-        daysOfWeek: formData.daysOfWeek,
-        timeSlots: formData.timeSlots,
+        daysOfWeek: ['ALL'],
+        timeSlots: ['ALL'],
         effectiveFrom: formData.effectiveFrom || undefined,
         effectiveTo: formData.effectiveTo || undefined,
-        status: formData.status,
-        isPeak: formData.isPeak,
-        priority: Number(formData.priority) || 0,
-        notes: formData.notes.trim() || undefined
+        status: 'active',
+        isPeak: false,
+        priority: (formData.effectiveFrom || formData.effectiveTo) ? 50 : 10,
+        notes: `Admin price update on ${new Date().toISOString().split('T')[0]}`
       };
 
       if (editingId) {
@@ -318,11 +318,9 @@ export const RatesPage = () => {
             <table className="w-full text-left border-collapse text-xs font-body-md">
               <thead>
                 <tr className="bg-surface-container-low border-b border-black/5 text-slate-600 font-label-bold uppercase text-[11px] tracking-wider">
-                  <th className="p-4 pl-6">Rule / Precedence</th>
-                  <th className="p-4">Sport</th>
+                  <th className="p-4 pl-6">Price Rule</th>
                   <th className="p-4">Rate / Hour</th>
-                  <th className="p-4">Days / Slots</th>
-                  <th className="p-4">Effective Window</th>
+                  <th className="p-4">Booking Dates</th>
                   <th className="p-4">Status</th>
                   <th className="p-4 pr-6 text-right">Actions</th>
                 </tr>
@@ -335,21 +333,9 @@ export const RatesPage = () => {
                     <tr key={id} className="hover:bg-slate-50 transition-colors">
                       <td className="p-4 pl-6 space-y-1">
                         <div className="font-bold text-slate-900 text-sm">
-                          {rule.ruleName || `Rule #${id.substring(0, 8)}`}
+                          {rule.ruleName || `Price Update`}
                         </div>
-                        <div>{getPrecedenceBadge(rule)}</div>
                         {rule.notes && <p className="text-[11px] text-slate-400 italic line-clamp-1">{rule.notes}</p>}
-                      </td>
-
-                      <td className="p-4">
-                        <span className="bg-slate-100 text-slate-800 font-bold px-2.5 py-1 rounded-lg uppercase text-[11px]">
-                          {rule.sportId}
-                        </span>
-                        {rule.isPeak && (
-                          <span className="ml-1.5 bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-md text-[10px]">
-                            PEAK
-                          </span>
-                        )}
                       </td>
 
                       <td className="p-4">
@@ -357,15 +343,6 @@ export const RatesPage = () => {
                           ₹{rule.ratePerHour}
                         </div>
                         <span className="text-[10px] text-slate-400">per hour (GST-free)</span>
-                      </td>
-
-                      <td className="p-4 space-y-1">
-                        <div className="text-[11px] font-semibold text-slate-700">
-                          Days: <span className="font-mono text-slate-900">{Array.isArray(rule.daysOfWeek) ? rule.daysOfWeek.join(', ') : rule.daysOfWeek}</span>
-                        </div>
-                        <div className="text-[11px] text-slate-500">
-                          Slots: <span className="font-mono">{Array.isArray(rule.timeSlots) ? (rule.timeSlots.includes('ALL') ? 'All Slots' : `${rule.timeSlots.length} slots`) : rule.timeSlots}</span>
-                        </div>
                       </td>
 
                       <td className="p-4 text-[11px] text-slate-600">
@@ -440,35 +417,9 @@ export const RatesPage = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Rule Name</label>
-                  <input
-                    type="text"
-                    value={formData.ruleName}
-                    onChange={(e) => setFormData({ ...formData, ruleName: e.target.value })}
-                    placeholder="e.g. Weekend Evening Peak"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-primary"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Sport / Arena *</label>
-                  <select
-                    value={formData.sportId}
-                    onChange={(e) => setFormData({ ...formData, sportId: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-primary font-bold"
-                  >
-                    {SPORT_OPTIONS.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Rate / Hour (₹) *</label>
+                  <label className="block font-bold text-slate-700 mb-1">Price / Hour (₹) *</label>
                   <input
                     type="number"
                     required
@@ -482,7 +433,7 @@ export const RatesPage = () => {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Effective From</label>
+                  <label className="block font-bold text-slate-700 mb-1">Start Date (Optional)</label>
                   <input
                     type="date"
                     value={formData.effectiveFrom}
@@ -492,7 +443,7 @@ export const RatesPage = () => {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Effective To</label>
+                  <label className="block font-bold text-slate-700 mb-1">End Date (Optional)</label>
                   <input
                     type="date"
                     value={formData.effectiveTo}
@@ -502,112 +453,6 @@ export const RatesPage = () => {
                 </div>
               </div>
 
-              {/* Days of Week Multi-select */}
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Applicable Days</label>
-                <div className="flex flex-wrap gap-2">
-                  {DAY_OPTIONS.map(day => {
-                    const isSelected = formData.daysOfWeek.includes(day.value);
-                    return (
-                      <button
-                        type="button"
-                        key={day.value}
-                        onClick={() => handleDayToggle(day.value)}
-                        className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all ${
-                          isSelected
-                            ? 'bg-primary text-on-primary shadow-sm'
-                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                        }`}
-                      >
-                        {day.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Time Slots Multi-select */}
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="block font-bold text-slate-700">Applicable Time Slots</label>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, timeSlots: ['ALL'] })}
-                    className="text-[11px] font-bold text-primary hover:underline"
-                  >
-                    Select All Slots
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-h-36 overflow-y-auto p-2 bg-slate-50 rounded-xl border border-slate-200">
-                  <button
-                    type="button"
-                    onClick={() => handleSlotToggle('ALL')}
-                    className={`col-span-2 sm:col-span-4 py-1.5 rounded-lg font-bold text-xs ${
-                      formData.timeSlots.includes('ALL')
-                        ? 'bg-primary text-white'
-                        : 'bg-white border border-slate-200 text-slate-700'
-                    }`}
-                  >
-                    ALL SLOTS (Entire Day)
-                  </button>
-                  {TIME_SLOTS.map(slot => {
-                    const slotStr = typeof slot === 'string' ? slot : slot.time;
-                    const isSelected = formData.timeSlots.includes(slotStr);
-                    return (
-                      <button
-                        type="button"
-                        key={slotStr}
-                        onClick={() => handleSlotToggle(slotStr)}
-                        className={`py-1.5 px-2 rounded-lg font-mono text-[11px] font-semibold transition-all ${
-                          isSelected
-                            ? 'bg-emerald-600 text-white'
-                            : 'bg-white border border-slate-200 text-slate-700 hover:border-emerald-500'
-                        }`}
-                      >
-                        {slotStr}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="isPeakCheckbox"
-                    checked={formData.isPeak}
-                    onChange={(e) => setFormData({ ...formData, isPeak: e.target.checked })}
-                    className="w-4 h-4 text-primary rounded"
-                  />
-                  <label htmlFor="isPeakCheckbox" className="font-bold text-slate-700 cursor-pointer">
-                    Flag as Peak Hour Rule
-                  </label>
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Status</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold"
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Notes / Internal Context</label>
-                <textarea
-                  rows="2"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="e.g. Special holiday rate for upcoming festival season"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary"
-                ></textarea>
-              </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-black/5">
                 <button
