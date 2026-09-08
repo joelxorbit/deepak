@@ -9,7 +9,8 @@ import {
 } from '../repositories/rateRepository.js';
 import {
   PAYMENT_OPTIONS,
-  AUDIT_ACTIONS
+  AUDIT_ACTIONS,
+  DEFAULT_FALLBACK_SLOT_PRICE
 } from '../utils/constants.js';
 import {
   roundToCurrency,
@@ -259,23 +260,27 @@ export const calculateBookingPrice = async ({
 
   for (const slot of normalizedSlotsList) {
     const evalResult = await evaluateRateRule({ sportId, date, slot });
-    if (!evalResult || !isValidAmount(evalResult.ratePerHour)) {
-      const error = new Error(`No active rate rule is configured in the database for slot "${slot}" on date "${cleanDateStr}". Pricing calculation cannot proceed without database rate configuration.`);
-      error.statusCode = 422;
-      throw error;
+    
+    let ratePerHour = evalResult?.ratePerHour;
+    let isPeak = evalResult?.isPeak || false;
+    let ruleType = evalResult?.ruleType || 'FALLBACK';
+
+    if (!isValidAmount(ratePerHour)) {
+      ratePerHour = DEFAULT_FALLBACK_SLOT_PRICE;
+      logger.warn(`No active rate rule configured for slot "${slot}" on date "${cleanDateStr}". Falling back to default rate ₹${DEFAULT_FALLBACK_SLOT_PRICE}.`);
     }
 
-    subtotal += evalResult.ratePerHour;
-    if (evalResult.isPeak) hasPeak = true;
-    if (evalResult.rateRuleId && !primaryRuleId) {
+    subtotal += ratePerHour;
+    if (isPeak) hasPeak = true;
+    if (evalResult?.rateRuleId && !primaryRuleId) {
       primaryRuleId = evalResult.rateRuleId;
     }
 
     slotBreakdowns.push({
       slot,
-      ratePerHour: evalResult.ratePerHour,
-      isPeak: evalResult.isPeak,
-      ruleType: evalResult.ruleType
+      ratePerHour,
+      isPeak,
+      ruleType
     });
   }
 
@@ -286,13 +291,13 @@ export const calculateBookingPrice = async ({
 
   // Authoritative Fixed Advance Resolution strictly from Firestore settings (settings/paymentSettings.fixedAdvanceAmount), fallback to 200
   const rawFixedAdvance = pricingSettings?.fixedAdvanceAmount !== undefined ? pricingSettings.fixedAdvanceAmount : 200;
-  if (rawFixedAdvance === undefined || rawFixedAdvance === null || !isValidAmount(rawFixedAdvance) || Number(rawFixedAdvance) <= 0) {
-    const error = new Error('Payment configuration error: Authoritative fixed advance amount is missing or invalid in server settings (settings/paymentSettings.fixedAdvanceAmount).');
-    error.statusCode = 422;
-    throw error;
+  let fixedAdvanceAmount = 200;
+  
+  if (rawFixedAdvance !== undefined && rawFixedAdvance !== null && isValidAmount(rawFixedAdvance) && Number(rawFixedAdvance) > 0) {
+    fixedAdvanceAmount = roundToCurrency(Number(rawFixedAdvance));
+  } else {
+    logger.warn(`Invalid or missing fixedAdvanceAmount in settings. Falling back to ₹200.`);
   }
-
-  const fixedAdvanceAmount = roundToCurrency(Number(rawFixedAdvance));
   const { advanceRequired } = calculateFixedAdvanceAndBalance(totalAmount, fixedAdvanceAmount);
 
   let payableNow = 0;
