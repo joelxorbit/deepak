@@ -41,7 +41,10 @@ export const createEventSchema = Joi.object({
   currentParticipants: Joi.number().integer().min(0).default(0).optional(),
   contactPhone: Joi.string().trim().allow('', null).optional(),
   contactEmail: Joi.string().trim().email().allow('', null).optional(),
-  rules: Joi.string().trim().max(5000).allow('', null).optional(),
+  rules: Joi.alternatives().try(
+    Joi.array().items(Joi.string().trim().max(5000)).optional(),
+    Joi.string().trim().max(5000).allow('', null).optional()
+  ),
   status: Joi.string().valid('Upcoming', 'Published', 'Draft', 'Completed', 'Archived').optional(),
   isPublished: Joi.boolean().optional()
 }).custom(dateOrderValidator).unknown(true);
@@ -62,7 +65,10 @@ export const updateEventSchema = Joi.object({
   currentParticipants: Joi.number().integer().min(0).optional(),
   contactPhone: Joi.string().trim().allow('', null).optional(),
   contactEmail: Joi.string().trim().email().allow('', null).optional(),
-  rules: Joi.string().trim().max(5000).allow('', null).optional(),
+  rules: Joi.alternatives().try(
+    Joi.array().items(Joi.string().trim().max(5000)).optional(),
+    Joi.string().trim().max(5000).allow('', null).optional()
+  ),
   status: Joi.string().valid('Upcoming', 'Published', 'Draft', 'Completed', 'Archived').optional(),
   isPublished: Joi.boolean().optional(),
   isArchived: Joi.boolean().optional()
