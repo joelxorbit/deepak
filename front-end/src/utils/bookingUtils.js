@@ -21,22 +21,23 @@ export const TIME_SLOTS = [
   "11:00 PM - 12:00 AM"
 ];
 
-export const SLOT_PRICE_PER_HOUR = 300;
-export const GST_PERCENTAGE = 0;
-
-export const calculateBookingPricing = (slotsCount = 0) => {
+export const calculateBookingPricing = (slotsCount = 0, ratePerHour = null, serverFixedAdvance = null) => {
   const count = Number(slotsCount) || 0;
-  const slotPrice = SLOT_PRICE_PER_HOUR;
-  const subtotal = count * slotPrice;
-  const gstAmount = 0;
+  const slotPrice = ratePerHour !== null && ratePerHour !== undefined ? Number(ratePerHour) : null;
+  const subtotal = slotPrice !== null ? count * slotPrice : null;
   const totalAmount = subtotal;
+  const fixedAdvanceAmount = serverFixedAdvance !== null && serverFixedAdvance !== undefined ? Number(serverFixedAdvance) : null;
+  const advanceRequired = (fixedAdvanceAmount !== null && totalAmount !== null) ? Math.min(fixedAdvanceAmount, totalAmount) : null;
+  const balanceDue = (advanceRequired !== null && totalAmount !== null) ? Math.max(0, totalAmount - advanceRequired) : null;
 
   return {
     slotPrice,
     slotCount: count,
     subtotal,
-    gstAmount,
-    totalAmount
+    totalAmount,
+    fixedAdvanceAmount,
+    advanceRequired,
+    balanceDue
   };
 };
 

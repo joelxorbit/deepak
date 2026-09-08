@@ -10,6 +10,7 @@ const ManageBookings = lazy(() => import('../pages/admin/ManageBookings').then(m
 const BookingHistory = lazy(() => import('../pages/admin/BookingHistory').then(m => ({ default: m.BookingHistory })));
 const CustomersPage = lazy(() => import('../pages/admin/CustomersPage').then(m => ({ default: m.CustomersPage })));
 const AdminEventsPage = lazy(() => import('../pages/admin/AdminEventsPage').then(m => ({ default: m.AdminEventsPage })));
+const RatesPage = lazy(() => import('../pages/admin/RatesPage').then(m => ({ default: m.RatesPage })));
 const EnquiriesPage = lazy(() => import('../pages/admin/EnquiriesPage').then(m => ({ default: m.EnquiriesPage })));
 const ReportsPage = lazy(() => import('../pages/admin/ReportsPage').then(m => ({ default: m.ReportsPage })));
 
@@ -45,6 +46,7 @@ export const AdminRoutes = () => {
             <Route path="history" element={<BookingHistory />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="customers" element={<CustomersPage />} />
+            <Route path="rates" element={<RatesPage />} />
             <Route path="enquiries" element={<EnquiriesPage />} />
             <Route path="events" element={<AdminEventsPage />} />
           </Route>

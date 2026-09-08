@@ -3,7 +3,7 @@ import {
   fetchEnquiriesService,
   updateEnquiryStatusService,
   deleteEnquiryService
-} from '../../services/adminService';
+} from '../../services/enquiryService';
 import { useToast } from '../../context/ToastContext';
 
 export const EnquiriesPage = () => {
@@ -13,6 +13,11 @@ export const EnquiriesPage = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Status update modal / notes dialog state
+  const [activeEnquiryForNote, setActiveEnquiryForNote] = useState(null);
+  const [selectedNewStatus, setSelectedNewStatus] = useState('');
+  const [statusNote, setStatusNote] = useState('');
 
   const loadEnquiries = async () => {
     try {
@@ -37,11 +42,23 @@ export const EnquiriesPage = () => {
     loadEnquiries();
   };
 
-  const handleUpdateStatus = async (id, newStatus) => {
+  const handleOpenStatusModal = (enquiry, targetStatus) => {
+    setActiveEnquiryForNote(enquiry);
+    setSelectedNewStatus(targetStatus);
+    setStatusNote(enquiry.notes || '');
+  };
+
+  const handleConfirmStatusUpdate = async () => {
+    if (!activeEnquiryForNote || !selectedNewStatus) return;
+    const enquiryId = activeEnquiryForNote.id || activeEnquiryForNote._id;
+
     try {
-      await updateEnquiryStatusService(id, newStatus);
-      setEnquiries(prev => prev.map(e => (e.id === id || e._id === id) ? { ...e, status: newStatus } : e));
-      addToast(`Enquiry status updated to ${newStatus}.`, 'success');
+      await updateEnquiryStatusService(enquiryId, selectedNewStatus, statusNote.trim());
+      setEnquiries(prev => prev.map(e => (e.id === enquiryId || e._id === enquiryId) ? { ...e, status: selectedNewStatus, notes: statusNote.trim() } : e));
+      addToast(`Enquiry status updated to ${selectedNewStatus}.`, 'success');
+      setActiveEnquiryForNote(null);
+      setSelectedNewStatus('');
+      setStatusNote('');
     } catch (err) {
       addToast('Failed to update enquiry status.', 'error');
     }
@@ -58,12 +75,14 @@ export const EnquiriesPage = () => {
     }
   };
 
+  const filterOptions = ['All', 'New', 'Contacted', 'In Progress', 'Converted', 'Closed'];
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-headline-lg text-headline-lg text-3xl font-extrabold text-on-surface">Contact Enquiries</h1>
+        <h1 className="font-headline-lg text-headline-lg text-3xl font-extrabold text-on-surface">Enquiries & Leads</h1>
         <p className="text-on-surface-variant font-body-md text-sm mt-1">
-          Review and respond to customer messages submitted through the Contact Us page.
+          Review and respond to general contact messages and event booking enquiries.
         </p>
       </div>
 
@@ -77,7 +96,7 @@ export const EnquiriesPage = () => {
         <form onSubmit={handleSearchSubmit} className="w-full md:w-80 relative">
           <input
             type="text"
-            placeholder="Search by Name, Phone, Email..."
+            placeholder="Search by Name, Phone, Event..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-surface-container-low border border-outline-variant rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
@@ -86,11 +105,11 @@ export const EnquiriesPage = () => {
         </form>
 
         <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
-          {['All', 'Unread', 'Read', 'Replied'].map((status) => (
+          {filterOptions.map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
-              className={`min-h-[44px] px-5 py-2.5 rounded-2xl text-xs font-label-bold transition-all flex-shrink-0 flex items-center justify-center ${
+              className={`min-h-[44px] px-4 py-2 rounded-2xl text-xs font-label-bold transition-all flex-shrink-0 flex items-center justify-center ${
                 statusFilter === status
                   ? 'bg-primary text-white shadow-md shadow-primary/20 font-bold'
                   : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-variant'
@@ -113,6 +132,11 @@ export const EnquiriesPage = () => {
               const displayId = enquiry.id || enquiry._id;
               const dateStr = typeof enquiry.createdAt === 'string' ? enquiry.createdAt.split('T')[0] : 'N/A';
 
+              const isNew = enquiry.status === 'New' || enquiry.status === 'Unread';
+              const isContacted = enquiry.status === 'Contacted' || enquiry.status === 'Read';
+              const isConverted = enquiry.status === 'Converted' || enquiry.status === 'Replied';
+              const isClosed = enquiry.status === 'Closed';
+
               return (
                 <div key={displayId} className="py-5 space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
@@ -126,11 +150,18 @@ export const EnquiriesPage = () => {
                           {enquiry.email}
                         </span>
                       )}
+                      {enquiry.eventTitle && (
+                        <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full flex items-center gap-1">
+                          <span className="material-symbols-outlined text-sm">event</span>
+                          {enquiry.eventTitle}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`text-xs font-label-bold px-3 py-1 rounded-full ${
-                        enquiry.status === 'Unread' ? 'bg-error-container text-on-error-container font-bold' :
-                        enquiry.status === 'Replied' ? 'bg-primary-container/20 text-on-primary-container' :
+                        isNew ? 'bg-error-container text-on-error-container font-bold' :
+                        isConverted ? 'bg-primary-container/30 text-on-primary-container font-bold' :
+                        isClosed ? 'bg-surface-container-highest text-on-surface-variant' :
                         'bg-secondary-container text-on-secondary-container'
                       }`}>
                         {enquiry.status}
@@ -139,30 +170,64 @@ export const EnquiriesPage = () => {
                     </div>
                   </div>
 
+                  {/* Event Specific Lead Details */}
+                  {(enquiry.preferredDate || enquiry.participantCount || enquiry.contactPreference) && (
+                    <div className="flex flex-wrap gap-4 text-xs font-mono bg-slate-50 p-2.5 rounded-xl border border-slate-200/60 text-slate-700">
+                      {enquiry.preferredDate && <div><strong>Preferred Date:</strong> {enquiry.preferredDate}</div>}
+                      {enquiry.participantCount && <div><strong>Participants:</strong> {enquiry.participantCount}</div>}
+                      {enquiry.contactPreference && <div><strong>Preference:</strong> {enquiry.contactPreference}</div>}
+                    </div>
+                  )}
+
                   <p className="text-sm text-on-surface-variant bg-surface-container-low p-4 rounded-2xl border border-black/5 leading-relaxed">
                     {enquiry.message}
                   </p>
 
-                  <div className="flex items-center justify-end gap-2 pt-1">
-                    {enquiry.status === 'Unread' && (
+                  {enquiry.notes && (
+                    <div className="text-xs bg-amber-50 border border-amber-200 text-amber-900 p-3 rounded-xl flex items-start gap-2">
+                      <span className="material-symbols-outlined text-base text-amber-700">note</span>
+                      <div>
+                        <strong>Internal Admin Notes:</strong> {enquiry.notes}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+                    {isNew && (
                       <button
-                        onClick={() => handleUpdateStatus(displayId, 'Read')}
-                        className="min-h-[44px] px-4 py-2 bg-secondary-container text-on-secondary-container text-xs font-label-bold rounded-xl hover:shadow-sm"
+                        onClick={() => handleOpenStatusModal(enquiry, 'Contacted')}
+                        className="min-h-[38px] px-3.5 py-1.5 bg-secondary-container text-on-secondary-container text-xs font-label-bold rounded-xl hover:shadow-sm"
                       >
-                        Mark as Read
+                        Mark Contacted
                       </button>
                     )}
-                    {enquiry.status !== 'Replied' && (
+                    {enquiry.status !== 'In Progress' && (
                       <button
-                        onClick={() => handleUpdateStatus(displayId, 'Replied')}
-                        className="min-h-[44px] px-4 py-2 bg-primary text-white text-xs font-label-bold rounded-xl hover:shadow-md"
+                        onClick={() => handleOpenStatusModal(enquiry, 'In Progress')}
+                        className="min-h-[38px] px-3.5 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 text-xs font-label-bold rounded-xl hover:bg-blue-100"
                       >
-                        Mark as Replied
+                        In Progress
+                      </button>
+                    )}
+                    {enquiry.status !== 'Converted' && (
+                      <button
+                        onClick={() => handleOpenStatusModal(enquiry, 'Converted')}
+                        className="min-h-[38px] px-3.5 py-1.5 bg-primary text-white text-xs font-label-bold rounded-xl hover:shadow-md"
+                      >
+                        Mark Converted
+                      </button>
+                    )}
+                    {enquiry.status !== 'Closed' && (
+                      <button
+                        onClick={() => handleOpenStatusModal(enquiry, 'Closed')}
+                        className="min-h-[38px] px-3.5 py-1.5 bg-slate-100 text-slate-700 text-xs font-label-bold rounded-xl hover:bg-slate-200"
+                      >
+                        Close
                       </button>
                     )}
                     <button
                       onClick={() => handleDelete(displayId)}
-                      className="min-h-[44px] px-4 py-2 bg-error/10 text-error text-xs font-label-bold rounded-xl hover:bg-error/20"
+                      className="min-h-[38px] px-3.5 py-1.5 bg-error/10 text-error text-xs font-label-bold rounded-xl hover:bg-error/20"
                     >
                       Delete
                     </button>
@@ -178,6 +243,41 @@ export const EnquiriesPage = () => {
           </div>
         )}
       </div>
+
+      {/* Status Update with Optional Notes Dialog */}
+      {activeEnquiryForNote && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl border border-black/10">
+            <h3 className="font-extrabold text-lg text-slate-900">
+              Update Status to "{selectedNewStatus}"
+            </h3>
+            <p className="text-xs text-slate-600">
+              You can optionally append notes or remarks for this lead.
+            </p>
+            <textarea
+              rows="3"
+              value={statusNote}
+              onChange={(e) => setStatusNote(e.target.value)}
+              placeholder="e.g. Discussed pricing for 30 players tournament on Saturday..."
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-primary"
+            />
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => { setActiveEnquiryForNote(null); setSelectedNewStatus(''); setStatusNote(''); }}
+                className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmStatusUpdate}
+                className="px-5 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:shadow-md"
+              >
+                Confirm Update
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

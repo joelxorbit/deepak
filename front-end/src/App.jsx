@@ -1,19 +1,19 @@
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { ToastProvider } from './context/ToastContext';
+import { CustomerAuthProvider } from './context/CustomerAuthContext';
 import { BookingProvider } from './context/BookingContext';
-import { AuthProvider } from './context/AuthContext';
 import { AppRoutes } from './routes/AppRoutes';
 
 export function App() {
   return (
     <BrowserRouter>
       <ToastProvider>
-        <BookingProvider>
-          <AuthProvider>
+        <CustomerAuthProvider>
+          <BookingProvider>
             <AppRoutes />
-          </AuthProvider>
-        </BookingProvider>
+          </BookingProvider>
+        </CustomerAuthProvider>
       </ToastProvider>
     </BrowserRouter>
   );

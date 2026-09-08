@@ -7,9 +7,27 @@ import {
   approveBookingService,
   rejectBookingService,
   getBookedSlotsService,
-  getBookingHistoryService
+  getBookingHistoryService,
+  reviewBookingService,
+  adminCancelBookingService
 } from '../services/bookingService.js';
+import { calculateBookingPrice } from '../services/rateService.js';
 import { sendSuccess } from '../utils/response.js';
+
+export const previewBookingPrice = async (req, res, next) => {
+  try {
+    const { date, slots, sportId, paymentOption } = req.body;
+    const pricing = await calculateBookingPrice({
+      date,
+      slots,
+      sportId,
+      paymentOption
+    });
+    return sendSuccess(res, 'Price preview calculated successfully', pricing);
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const createBooking = async (req, res, next) => {
   try {
@@ -53,9 +71,32 @@ export const markBookingAsPaid = async (req, res, next) => {
 
 export const getAllBookings = async (req, res, next) => {
   try {
-    const { status, search } = req.query;
-    const bookings = await getAllBookingsService(status, search);
+    const { status, search, filter } = req.query;
+    const bookings = await getAllBookingsService(status, search, filter);
     return sendSuccess(res, 'All bookings retrieved successfully', bookings);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const reviewBooking = async (req, res, next) => {
+  try {
+    const bookingId = req.params.id || req.params.bookingId || req.body.bookingId;
+    const adminUser = req.admin || 'admin';
+    const booking = await reviewBookingService(bookingId, adminUser);
+    return sendSuccess(res, `Booking ${booking.bookingId} marked as reviewed`, booking);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const adminCancelBooking = async (req, res, next) => {
+  try {
+    const bookingId = req.params.id || req.params.bookingId || req.body.bookingId;
+    const { reason } = req.body;
+    const adminUser = req.admin || 'admin';
+    const booking = await adminCancelBookingService(bookingId, adminUser, reason);
+    return sendSuccess(res, `Booking ${booking.bookingId} cancelled by admin`, booking);
   } catch (error) {
     next(error);
   }
@@ -99,3 +140,4 @@ export const bookingHistory = async (req, res, next) => {
     next(error);
   }
 };
+

@@ -10,6 +10,20 @@ export const api = axios.create({
   withCredentials: true
 });
 
+// Request Interceptor to attach Bearer token if present in localStorage
+api.interceptors.request.use(
+  (config) => {
+    const customerToken = localStorage.getItem('elite_pitch_customer_token');
+    const adminToken = localStorage.getItem('elite_pitch_admin_token');
+    const token = customerToken || adminToken;
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Response Interceptor for global error handling and auto-logout on HTTP 401
 api.interceptors.response.use(
   (response) => response,

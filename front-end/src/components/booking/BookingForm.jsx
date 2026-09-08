@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBooking } from '../../context/BookingContext';
-import { TIME_SLOTS, areSlotsConsecutive, calculateBookingPricing } from '../../utils/bookingUtils';
+import { TIME_SLOTS, areSlotsConsecutive } from '../../utils/bookingUtils';
 import { getTodayString } from '../../utils/dateUtils';
 import { ROUTES } from '../../constants/routes';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { createRazorpayOrder, verifyRazorpayPayment } from '../../services/paymentService';
-import { useAuth } from '../../context/AuthContext';
+import { previewBookingPriceService } from '../../services/bookingService';
 
 export const BookingForm = ({ navigate: navigateProp }) => {
   const navigateRouter = useNavigate();
@@ -14,27 +14,86 @@ export const BookingForm = ({ navigate: navigateProp }) => {
 
   const { createBooking, getBookedSlotsForDate, setIsTrackModalOpen, setIsCancelModalOpen } = useBooking();
 
-  const { customer } = useAuth();
   const todayStr = getTodayString();
 
-  const [fullName, setFullName] = useState(customer?.name || '');
-  const [mobileNumber, setMobileNumber] = useState(customer?.phone || '');
-
-  useEffect(() => {
-    if (customer) {
-      setFullName(customer.name);
-      // customer profile no longer stores phone, so we don't autofill it
-    }
-  }, [customer]);
+  const [fullName, setFullName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [bookingDate, setBookingDate] = useState(todayStr);
   const [bookedSlots, setBookedSlots] = useState([]);
   const [selectedSlots, setSelectedSlots] = useState([]);
-  const [paymentMethod, setPaymentMethod] = useState('Pay Now');
+  const [paymentOption, setPaymentOption] = useState('ADVANCE'); // 'ADVANCE', 'FULL', 'CASH'
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Live pricing calculation
-  const pricing = useMemo(() => calculateBookingPricing(selectedSlots.length), [selectedSlots.length]);
+  // Server-authoritative live pricing state
+  const [serverPricing, setServerPricing] = useState(null);
+  const [isPricingLoading, setIsPricingLoading] = useState(false);
+  const [pricingConfigError, setPricingConfigError] = useState('');
+
+  // Fetch server pricing breakdown dynamically whenever slots, date, or payment option change
+  useEffect(() => {
+    let isMounted = true;
+    if (!bookingDate || selectedSlots.length === 0) {
+      setServerPricing(null);
+      setPricingConfigError('');
+      setIsPricingLoading(false);
+      return;
+    }
+
+    const fetchPrice = async () => {
+      try {
+        setIsPricingLoading(true);
+        setPricingConfigError('');
+        const priceData = await previewBookingPriceService({
+          date: bookingDate,
+          slots: selectedSlots,
+          sportId: 'football-5v5',
+          paymentOption
+        });
+        if (isMounted) {
+          setServerPricing(priceData);
+          setPricingConfigError('');
+        }
+      } catch (err) {
+        if (isMounted) {
+          const msg = err.response?.data?.message || 'Unable to calculate server pricing.';
+          setPricingConfigError(msg);
+          setServerPricing(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsPricingLoading(false);
+        }
+      }
+    };
+
+    fetchPrice();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [bookingDate, selectedSlots, paymentOption]);
+
+  const pricing = useMemo(() => {
+    if (serverPricing) {
+      return {
+        ...serverPricing,
+        slotPrice: serverPricing.effectiveRatePerHour || 0,
+        payableNow: serverPricing.payableNow || 0,
+        balanceDue: serverPricing.balanceDue || 0
+      };
+    }
+    return {
+      slotPrice: 0,
+      slotCount: selectedSlots.length,
+      subtotal: 0,
+      totalAmount: 0,
+      fixedAdvanceAmount: 0,
+      advanceRequired: 0,
+      balanceDue: 0,
+      payableNow: 0
+    };
+  }, [serverPricing, selectedSlots.length]);
 
   // Fetch booked slots asynchronously whenever bookingDate changes
   useEffect(() => {
@@ -78,10 +137,6 @@ export const BookingForm = ({ navigate: navigateProp }) => {
           return [slot];
         }
       } else {
-        if (prevSelected.length >= 3) {
-          setErrorMsg('You can select a maximum of 3 consecutive time slots.');
-          return prevSelected;
-        }
         const newSelected = [...prevSelected, slot];
         const sorted = newSelected.sort((a, b) => TIME_SLOTS.indexOf(a) - TIME_SLOTS.indexOf(b));
 
@@ -100,7 +155,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
     setMobileNumber('');
     setBookingDate(todayStr);
     setSelectedSlots([]);
-    setPaymentMethod('Pay Now');
+    setPaymentOption('ADVANCE');
     setErrorMsg('');
     setIsSubmitting(false);
   }, [todayStr]);
@@ -142,6 +197,19 @@ export const BookingForm = ({ navigate: navigateProp }) => {
       return;
     }
 
+    if (pricingConfigError) {
+      setErrorMsg(pricingConfigError);
+      return;
+    }
+
+    if (!serverPricing || isPricingLoading) {
+      setErrorMsg('Please wait for server pricing calculation to complete.');
+      return;
+    }
+
+    const isOnline = paymentOption === 'ADVANCE' || paymentOption === 'FULL';
+    const effectivePaymentMethod = isOnline ? 'Pay Now' : 'Pay at Spot';
+
     try {
       setIsSubmitting(true);
       const bookingDetails = {
@@ -149,23 +217,30 @@ export const BookingForm = ({ navigate: navigateProp }) => {
         mobileNumber: cleanedMobile,
         date: bookingDate,
         slots: selectedSlots,
-        paymentMethod,
-        slotPrice: pricing.slotPrice,
-        slotCount: pricing.slotCount,
-        subtotal: pricing.subtotal,
-        gstAmount: pricing.gstAmount,
-        totalAmount: pricing.totalAmount
+        paymentOption,
+        paymentMethod: effectivePaymentMethod,
+        slotPrice: serverPricing.effectiveRatePerHour,
+        slotCount: serverPricing.slotCount,
+        subtotal: serverPricing.subtotal,
+        totalAmount: serverPricing.totalAmount
       };
 
-      if (paymentMethod === 'Pay Now') {
-        const orderData = await createRazorpayOrder(pricing.totalAmount, `receipt_${Date.now()}`);
+      if (isOnline) {
+        const orderData = await createRazorpayOrder({
+          amount: serverPricing.payableNow,
+          receipt: `rcpt_${Date.now()}`,
+          date: bookingDate,
+          slots: selectedSlots,
+          sportId: 'football-5v5',
+          paymentOption
+        });
         
         const options = {
           key: 'rzp_test_SyHdQL7pK1tlnG',
           amount: orderData.amount,
-          currency: orderData.currency,
+          currency: orderData.currency || 'INR',
           name: 'Elite Pitch',
-          description: 'Turf Booking Payment',
+          description: paymentOption === 'ADVANCE' ? `Fixed ₹${serverPricing.fixedAdvanceAmount} Advance Turf Booking` : 'Full Turf Booking Payment',
           order_id: orderData.id,
           handler: async (response) => {
             try {
@@ -176,7 +251,11 @@ export const BookingForm = ({ navigate: navigateProp }) => {
                 razorpay_signature: response.razorpay_signature
               });
               
-              const booking = await createBooking({ ...bookingDetails, paymentStatus: 'Paid', razorpay_payment_id: response.razorpay_payment_id });
+              const booking = await createBooking({
+                ...bookingDetails,
+                paymentStatus: 'Paid',
+                razorpay_payment_id: response.razorpay_payment_id
+              });
               if (booking) navigate(ROUTES.BOOKING_SUCCESS);
             } catch (verificationError) {
               setErrorMsg('Payment verification failed. If amount was deducted, please contact support.');
@@ -298,17 +377,64 @@ export const BookingForm = ({ navigate: navigateProp }) => {
 
 
 
+            {/* Pricing Configuration Error Alert */}
+            {pricingConfigError && (
+              <div className="p-3 bg-rose-900/30 border border-rose-500/50 rounded-2xl text-rose-200 text-xs flex items-center gap-2 animate-fade-in">
+                <span className="material-symbols-outlined text-rose-400 text-base">error</span>
+                <span>{pricingConfigError}</span>
+              </div>
+            )}
+
             {/* Compact Pricing Summary */}
-            {selectedSlots.length > 0 && (
+            {selectedSlots.length > 0 && !pricingConfigError && (
               <div className="p-3.5 rounded-2xl bg-slate-950 text-white border border-white/10 space-y-1.5 animate-fade-in text-xs">
-                <div className="flex justify-between items-center text-[11px] font-medium text-emerald-400">
-                  <span>BOOKING SUMMARY</span>
-                  <span>{pricing.slotCount} hour(s)</span>
-                </div>
-                <div className="flex justify-between text-slate-300">
-                  <span>Amount</span>
-                  <span className="font-semibold text-white">₹{pricing.totalAmount}</span>
-                </div>
+                {isPricingLoading ? (
+                  <div className="flex items-center justify-center py-2 text-slate-400 gap-2">
+                    <span className="material-symbols-outlined animate-spin text-sm">sync</span>
+                    <span>Calculating server rates...</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center text-[11px] font-medium text-emerald-400">
+                      <span>BOOKING SUMMARY</span>
+                      <span>{pricing.slotCount} hour(s)</span>
+                    </div>
+                    <div className="flex justify-between text-slate-300">
+                      <span>Total Amount</span>
+                      <span className="font-semibold text-white">₹{pricing.totalAmount}</span>
+                    </div>
+                    {paymentOption === 'ADVANCE' && (
+                      <>
+                        <div className="flex justify-between text-slate-300">
+                          <span>Fixed Advance ({pricing.fixedAdvanceAmount ? `₹${pricing.fixedAdvanceAmount}` : 'Server'})</span>
+                          <span className="font-semibold text-emerald-400">₹{pricing.payableNow}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-400">
+                          <span>Balance due at turf</span>
+                          <span>₹{pricing.balanceDue}</span>
+                        </div>
+                      </>
+                    )}
+                    {paymentOption === 'FULL' && (
+                      <div className="flex justify-between text-slate-300">
+                        <span>Pay full amount</span>
+                        <span className="font-semibold text-emerald-400">₹{pricing.totalAmount}</span>
+                      </div>
+                    )}
+                    {paymentOption === 'CASH' && (
+                      <>
+                        <div className="flex justify-between text-slate-300">
+                          <span>Pay at venue</span>
+                          <span className="font-semibold text-white">₹{pricing.totalAmount}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-400">
+                          <span>Online advance</span>
+                          <span>₹0</span>
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -318,13 +444,17 @@ export const BookingForm = ({ navigate: navigateProp }) => {
             {/* Primary Action */}
             <button 
               type="submit" 
-              disabled={isSubmitting}
+              disabled={isSubmitting || isPricingLoading || !!pricingConfigError || (selectedSlots.length > 0 && !serverPricing)}
               className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-xs uppercase tracking-wider py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
               <span className="material-symbols-outlined text-base">
-                {isSubmitting ? 'sync' : 'check_circle'}
+                {isSubmitting || isPricingLoading ? 'sync' : 'check_circle'}
               </span>
-              {isSubmitting ? 'Processing Reservation...' : `Pay & Confirm Booking (${selectedSlots.length > 0 ? `₹${pricing.totalAmount}` : 'Select Slot'})`}
+              {isSubmitting 
+                ? 'Processing Reservation...' 
+                : (isPricingLoading 
+                    ? 'Evaluating Pricing...' 
+                    : `Pay & Confirm Booking (${selectedSlots.length > 0 && serverPricing ? `₹${pricing.payableNow || pricing.totalAmount}` : 'Select Slot'})`)}
             </button>
 
             {/* Secondary, Tertiary, & Danger Controls */}

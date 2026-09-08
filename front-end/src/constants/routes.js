@@ -3,10 +3,9 @@ export const ROUTES = {
   ABOUT: '/about',
   BOOKING: '/booking',
   BOOKING_SUCCESS: '/booking-success',
+  ACCOUNT: '/account',
   EVENTS: '/events',
   CONTACT: '/contact',
-  LOGIN: '/login',
-  SIGNUP: '/signup',
   
   ADMIN: '/admin',
   ADMIN_LOGIN: '/admin',
@@ -15,6 +14,7 @@ export const ROUTES = {
   ADMIN_HISTORY: '/admin/history',
   ADMIN_CUSTOMERS: '/admin/customers',
   ADMIN_EVENTS: '/admin/events',
+  ADMIN_RATES: '/admin/rates',
   ADMIN_ENQUIRIES: '/admin/enquiries',
   ADMIN_REPORTS: '/admin/reports',
 

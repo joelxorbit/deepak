@@ -18,6 +18,10 @@ import customerRoutes from './routes/customerRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import enquiryRoutes from './routes/enquiryRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import availabilityRoutes from './routes/availabilityRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import rateRoutes from './routes/rateRoutes.js';
 import v1Routes from './routes/v1/index.js';
 
 const app = express();
@@ -95,11 +99,15 @@ app.get('/api/v1/health', healthCheckHandler);
 
 // Register Application Routes (/api)
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/availability', availabilityRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/rates', rateRoutes);
 
 // Register Versioned Routes (/api/v1)
 app.use('/api/v1', v1Routes);

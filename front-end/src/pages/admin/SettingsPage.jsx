@@ -11,7 +11,6 @@ export const SettingsPage = () => {
   const [address, setAddress] = useState('123 Sports Complex Way, Stadium District, Metro City, 400001');
 
   const [slotRate, setSlotRate] = useState(300);
-  const [gstRate, setGstRate] = useState(18);
   const [cancelWindowHours, setCancelWindowHours] = useState(2);
 
   const handleSaveSettings = (e) => {
@@ -21,9 +20,9 @@ export const SettingsPage = () => {
 
   const mockAuditLogs = [
     { id: 1, action: 'ADMIN_LOGIN', user: 'admin', timestamp: '2026-08-14 10:15 AM', details: 'Successful JWT authentication' },
-    { id: 2, action: 'MARK_PAID', user: 'admin', timestamp: '2026-08-14 11:30 AM', details: 'Updated payment status to Paid for BK-20260814-0002' },
+    { id: 2, action: 'MARK_PAID', user: 'admin', timestamp: '2026-08-14 11:30 AM', details: 'Updated payment status to Cash Received for BK-20260814-0002' },
     { id: 3, action: 'APPROVE_BOOKING', user: 'admin', timestamp: '2026-08-14 01:20 PM', details: 'Approved reservation BK-20260814-0003' },
-    { id: 4, action: 'SETTINGS_UPDATE', user: 'admin', timestamp: '2026-08-14 03:45 PM', details: 'Updated Slot Rate to ₹300/hr and GST to 18%' }
+    { id: 4, action: 'SETTINGS_UPDATE', user: 'admin', timestamp: '2026-08-14 03:45 PM', details: 'Updated Slot Rate to ₹300/hr' }
   ];
 
   return (
@@ -111,27 +110,15 @@ export const SettingsPage = () => {
         {activeTab === 'Booking & Pricing' && (
           <form onSubmit={handleSaveSettings} className="space-y-6 max-w-2xl">
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-label-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Base Rate Per Hour (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    value={slotRate}
-                    onChange={(e) => setSlotRate(Number(e.target.value))}
-                    className="w-full bg-surface-container-low border border-outline-variant rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-primary"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-label-bold uppercase tracking-wider text-on-surface-variant mb-1.5">GST Rate (%) *</label>
-                  <input
-                    type="number"
-                    required
-                    value={gstRate}
-                    onChange={(e) => setGstRate(Number(e.target.value))}
-                    className="w-full bg-surface-container-low border border-outline-variant rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-primary"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-label-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Base Rate Per Hour (₹) *</label>
+                <input
+                  type="number"
+                  required
+                  value={slotRate}
+                  onChange={(e) => setSlotRate(Number(e.target.value))}
+                  className="w-full bg-surface-container-low border border-outline-variant rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-primary"
+                />
               </div>
 
               <div>

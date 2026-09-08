@@ -1,79 +1,60 @@
-import Razorpay from 'razorpay';
-import crypto from 'crypto';
-import { ENV } from '../config/env.js';
+import {
+  createPaymentOrderService,
+  verifyPaymentSignatureService
+} from '../services/paymentService.js';
+import { calculateBookingPrice } from '../services/rateService.js';
 import { sendSuccess } from '../utils/response.js';
-import { logger } from '../utils/logger.js';
-
-let razorpayInstance = null;
-
-const getRazorpayInstance = () => {
-  if (!razorpayInstance) {
-    if (!ENV.RAZORPAY_KEY_ID || !ENV.RAZORPAY_KEY_SECRET) {
-      throw new Error('Razorpay keys are not configured in environment variables.');
-    }
-    razorpayInstance = new Razorpay({
-      key_id: ENV.RAZORPAY_KEY_ID,
-      key_secret: ENV.RAZORPAY_KEY_SECRET,
-    });
-  }
-  return razorpayInstance;
-};
 
 export const createOrder = async (req, res, next) => {
   try {
-    const { amount, receipt } = req.body;
+    const { amount, receipt, date, slots, sportId, paymentOption, bookingId } = req.body;
 
-    if (!amount) {
-      const error = new Error('Amount is required to create a payment order');
-      error.statusCode = 400;
-      throw error;
-    }
+    const orderData = await createPaymentOrderService({
+      date,
+      slots,
+      sportId,
+      paymentOption,
+      rawAmount: amount,
+      receipt,
+      bookingId
+    });
 
-    const rzp = getRazorpayInstance();
-    const options = {
-      amount: Math.round(amount * 100), // Razorpay expects amount in paise
-      currency: 'INR',
-      receipt: receipt || `receipt_${Date.now()}`
-    };
-
-    const order = await rzp.orders.create(options);
-    
-    logger.info(`[PaymentController] Created Razorpay order: ${order.id}`);
-    
-    return sendSuccess(res, 'Payment order created successfully', order, 201);
+    return sendSuccess(res, 'Payment order created successfully', orderData, 201);
   } catch (error) {
-    logger.error(`[PaymentController Error] ${error.message}`);
     next(error);
   }
 };
 
 export const verifyPayment = async (req, res, next) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, expectedAmount } = req.body;
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      const error = new Error('Incomplete payment details provided');
-      error.statusCode = 400;
-      throw error;
-    }
+    const result = await verifyPaymentSignatureService({
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      expectedAmount
+    });
 
-    const text = `${razorpay_order_id}|${razorpay_payment_id}`;
-    
-    const expectedSignature = crypto
-      .createHmac('sha256', ENV.RAZORPAY_KEY_SECRET)
-      .update(text)
-      .digest('hex');
-
-    if (expectedSignature === razorpay_signature) {
-      logger.info(`[PaymentController] Successfully verified payment: ${razorpay_payment_id}`);
-      return sendSuccess(res, 'Payment verified successfully', { verified: true });
-    } else {
-      const error = new Error('Invalid payment signature');
-      error.statusCode = 400;
-      throw error;
-    }
+    return sendSuccess(res, 'Payment verified successfully', result);
   } catch (error) {
-    logger.error(`[PaymentController Error] ${error.message}`);
+    next(error);
+  }
+};
+
+export const previewPricingController = async (req, res, next) => {
+  try {
+    const { date, slots, sportId, paymentOption } = req.body;
+
+    const pricing = await calculateBookingPrice({
+      date,
+      slots,
+      sportId,
+      paymentOption
+    });
+
+    return sendSuccess(res, 'Pricing breakdown calculated successfully', pricing);
+  } catch (error) {
     next(error);
   }
 };

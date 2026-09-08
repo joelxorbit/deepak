@@ -1,6 +1,22 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
+import { downloadTicketPdfService } from '../../services/bookingService';
 
-export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel, onMarkPaid, onRowClick, showActions = true }) => {
+export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel, onMarkPaid, onReview, onRowClick, showActions = true }) => {
+  const [downloadingId, setDownloadingId] = useState(null);
+
+  const handleDownloadPdf = async (e, bookingId) => {
+    e.stopPropagation();
+    if (!bookingId) return;
+    try {
+      setDownloadingId(bookingId);
+      await downloadTicketPdfService(bookingId);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to download ticket PDF.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   if (bookings.length === 0) {
     return (
       <div className="p-12 text-center bg-white rounded-3xl border border-black/5 shadow-sm space-y-3">
@@ -24,7 +40,8 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
           const slotsList = Array.isArray(b.slots) ? b.slots : (Array.isArray(b.timeSlots) ? b.timeSlots : []);
           const totalAmt = b.totalAmount || b.subtotal || (slotsList.length * 354);
           const paymentStatus = b.paymentStatus || (b.paymentMethod === 'Pay Now' ? 'Paid' : 'Pending');
-          const isPendingPayment = paymentStatus === 'Pending';
+          const isPendingPayment = paymentStatus === 'Pending' || paymentStatus === 'Advance Paid' || paymentStatus === 'Cash Pending';
+          const isReviewed = Boolean(b.isReviewed);
 
           return (
             <div 
@@ -36,8 +53,21 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <span className="font-bold text-primary text-base block">{displayId}</span>
-                  <p className="font-label-bold text-on-surface text-sm">{customerName}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-primary text-base">{displayId}</span>
+                    {isReviewed ? (
+                      <span className="inline-flex items-center gap-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-label-bold px-2 py-0.5 rounded-full">
+                        <span className="material-symbols-outlined text-xs">check_circle</span>
+                        Reviewed
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-0.5 bg-amber-100 text-amber-800 text-[10px] font-label-bold px-2 py-0.5 rounded-full">
+                        <span className="material-symbols-outlined text-xs">pending</span>
+                        Unreviewed
+                      </span>
+                    )}
+                  </div>
+                  <p className="font-label-bold text-on-surface text-sm mt-1">{customerName}</p>
                   <p className="text-xs text-on-surface-variant">{mobileNumber}</p>
                 </div>
                 <div className="text-right space-y-1">
@@ -70,11 +100,18 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Payment ({b.paymentMethod}):</span>
                   <span className={`text-[11px] font-label-bold px-2.5 py-0.5 rounded-full ${
-                    paymentStatus === 'Paid' ? 'bg-primary-container/20 text-on-primary-container' : 'bg-error-container/60 text-on-error-container'
+                    paymentStatus === 'Paid' || paymentStatus === 'Fully Paid' || paymentStatus === 'Cash Received'
+                      ? 'bg-primary-container/20 text-on-primary-container' 
+                      : 'bg-error-container/60 text-on-error-container'
                   }`}>
                     {paymentStatus}
                   </span>
                 </div>
+                {b.cancellation?.reason && (
+                  <div className="pt-1 text-[11px] text-error font-medium">
+                    <span>Cancelled: {b.cancellation.reason}</span>
+                  </div>
+                )}
               </div>
 
               {showActions && (
@@ -82,6 +119,26 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
                   onClick={(e) => e.stopPropagation()}
                   className="pt-3 border-t border-black/5 flex flex-wrap gap-2 justify-end"
                 >
+                  <button
+                    onClick={(e) => handleDownloadPdf(e, displayId)}
+                    disabled={downloadingId === displayId}
+                    className="min-h-[44px] px-3 py-2 bg-slate-100 border border-slate-300 text-slate-700 text-xs font-label-bold rounded-xl hover:bg-slate-200 transition-all flex items-center gap-1 disabled:opacity-50"
+                    title="Download Official Ticket (PDF)"
+                  >
+                    <span className="material-symbols-outlined text-sm text-emerald-600">
+                      {downloadingId === displayId ? 'progress_activity' : 'picture_as_pdf'}
+                    </span>
+                    {downloadingId === displayId ? 'PDF...' : 'PDF'}
+                  </button>
+                  {!isReviewed && onReview && (
+                    <button
+                      onClick={() => onReview(displayId)}
+                      className="min-h-[44px] px-3 py-2 bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-label-bold rounded-xl hover:bg-indigo-100 transition-all flex items-center gap-1"
+                    >
+                      <span className="material-symbols-outlined text-sm">done_all</span>
+                      Review
+                    </button>
+                  )}
                   {isPendingPayment && b.status !== 'Cancelled' && onMarkPaid && (
                     <button
                       onClick={() => onMarkPaid(displayId)}
@@ -109,7 +166,7 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
                   )}
                   {b.status !== 'Cancelled' && onCancel && (
                     <button
-                      onClick={() => onCancel(displayId)}
+                      onClick={() => onCancel(b)}
                       className="min-h-[44px] px-3 py-2 bg-surface-container border border-error/30 text-error text-xs font-label-bold rounded-xl hover:bg-error/10 transition-all"
                     >
                       Cancel
@@ -132,8 +189,8 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
               <th className="p-4">Date</th>
               <th className="p-4">Time Slots</th>
               <th className="p-4">Amount</th>
-              <th className="p-4">Payment Method</th>
-              <th className="p-4">Payment Status</th>
+              <th className="p-4">Payment</th>
+              <th className="p-4">Review Status</th>
               <th className="p-4">Booking Status</th>
               {showActions && <th className="p-4 text-center">Actions</th>}
             </tr>
@@ -147,7 +204,8 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
               const slotsList = Array.isArray(b.slots) ? b.slots : (Array.isArray(b.timeSlots) ? b.timeSlots : []);
               const totalAmt = b.totalAmount || b.subtotal || (slotsList.length * 354);
               const paymentStatus = b.paymentStatus || (b.paymentMethod === 'Pay Now' ? 'Paid' : 'Pending');
-              const isPendingPayment = paymentStatus === 'Pending';
+              const isPendingPayment = paymentStatus === 'Pending' || paymentStatus === 'Advance Paid' || paymentStatus === 'Cash Pending';
+              const isReviewed = Boolean(b.isReviewed);
 
               return (
                 <tr 
@@ -173,18 +231,28 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
                     </div>
                   </td>
                   <td className="p-4 font-bold text-primary">₹{totalAmt}</td>
-                  <td className="p-4 font-medium">{b.paymentMethod}</td>
                   <td className="p-4">
                     <span className={`text-xs font-label-bold px-3 py-1 rounded-full ${
-                      paymentStatus === 'Paid'
+                      paymentStatus === 'Paid' || paymentStatus === 'Fully Paid' || paymentStatus === 'Cash Received'
                         ? 'bg-primary-container/20 text-on-primary-container'
                         : 'bg-error-container/60 text-on-error-container'
                     }`}>
                       {paymentStatus}
                     </span>
-                    {b.paidAt && (
-                      <span className="block text-[10px] text-on-surface-variant mt-1">
-                        Paid: {new Date(b.paidAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <span className="block text-[11px] text-on-surface-variant mt-1">
+                      {b.paymentMethod}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    {isReviewed ? (
+                      <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-xs font-label-bold px-2.5 py-1 rounded-full">
+                        <span className="material-symbols-outlined text-sm">check_circle</span>
+                        Reviewed
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-xs font-label-bold px-2.5 py-1 rounded-full">
+                        <span className="material-symbols-outlined text-sm">pending</span>
+                        Unreviewed
                       </span>
                     )}
                   </td>
@@ -196,6 +264,11 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
                     }`}>
                       {b.status}
                     </span>
+                    {b.cancellation?.reason && (
+                      <span className="block text-[11px] text-error font-medium mt-1 truncate max-w-[150px]" title={b.cancellation.reason}>
+                        Reason: {b.cancellation.reason}
+                      </span>
+                    )}
                   </td>
                   {showActions && (
                     <td 
@@ -203,13 +276,34 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
                       className="p-4"
                     >
                       <div className="flex flex-wrap items-center justify-center gap-1.5">
+                        <button
+                          onClick={(e) => handleDownloadPdf(e, displayId)}
+                          disabled={downloadingId === displayId}
+                          className="bg-slate-100 border border-slate-300 text-slate-700 text-xs px-2.5 py-1.5 rounded-lg font-label-bold hover:bg-slate-200 transition-all flex items-center gap-1 disabled:opacity-50"
+                          title="Download Official Ticket (PDF)"
+                        >
+                          <span className="material-symbols-outlined text-sm text-emerald-600">
+                            {downloadingId === displayId ? 'progress_activity' : 'picture_as_pdf'}
+                          </span>
+                          {downloadingId === displayId ? 'PDF...' : 'PDF'}
+                        </button>
+                        {!isReviewed && onReview && (
+                          <button
+                            onClick={() => onReview(displayId)}
+                            className="bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs px-2.5 py-1.5 rounded-lg font-label-bold hover:bg-indigo-100 transition-all flex items-center gap-1"
+                            title="Acknowledge / Review Booking"
+                          >
+                            <span className="material-symbols-outlined text-sm">done_all</span>
+                            Review
+                          </button>
+                        )}
                         {isPendingPayment && b.status !== 'Cancelled' && onMarkPaid && (
                           <button
                             onClick={() => onMarkPaid(displayId)}
                             className="bg-emerald-600 text-white text-xs px-2.5 py-1.5 rounded-lg font-label-bold hover:bg-emerald-700 transition-all shadow-sm flex items-center gap-1"
                           >
                             <span className="material-symbols-outlined text-sm">payments</span>
-                            Mark as Paid
+                            Mark Paid
                           </button>
                         )}
                         {(b.status === 'Pending Approval' || b.status === 'Pending') && onApprove && onReject && (
@@ -230,7 +324,7 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
                         )}
                         {b.status !== 'Cancelled' && onCancel && (
                           <button
-                            onClick={() => onCancel(displayId)}
+                            onClick={() => onCancel(b)}
                             className="bg-surface-container border border-error/30 text-error text-xs px-2.5 py-1.5 rounded-lg font-label-bold hover:bg-error/10 transition-all"
                           >
                             Cancel
@@ -250,3 +344,4 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
 });
 
 BookingTable.displayName = 'BookingTable';
+

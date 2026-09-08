@@ -12,7 +12,6 @@ export const InvoiceModal = ({ booking, onClose }) => {
   const slotCount = booking.slotCount || slotsList.length || 1;
   const slotPrice = booking.slotPrice || 300;
   const subtotal = booking.subtotal || (slotCount * slotPrice);
-  const gstAmount = 0;
   const totalAmount = booking.totalAmount || subtotal;
   const paymentStatus = booking.paymentStatus || (booking.paymentMethod === 'Pay Now' ? 'Paid' : 'Pending');
 
@@ -28,7 +27,7 @@ export const InvoiceModal = ({ booking, onClose }) => {
         <div className="flex justify-between items-center print:hidden border-b border-black/5 pb-4">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-primary text-2xl">receipt_long</span>
-            <h3 className="font-bold text-lg text-on-surface">Tax Invoice & Receipt</h3>
+            <h3 className="font-bold text-lg text-on-surface">Invoice & Receipt</h3>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -47,14 +46,13 @@ export const InvoiceModal = ({ booking, onClose }) => {
           </div>
         </div>
 
-        {/* Printable Tax Invoice Content */}
+        {/* Printable Invoice Content */}
         <div className="space-y-6 text-on-surface">
           {/* Company & Invoice Header */}
           <div className="flex justify-between items-start border-b border-black/10 pb-6">
             <div>
               <h1 className="font-display-lg text-xl font-extrabold text-primary">ELITE PITCH ARENA</h1>
               <p className="text-xs text-on-surface-variant mt-0.5">123 Sports Complex Way, Metro City, 400001</p>
-              <p className="text-xs text-on-surface-variant">GSTIN: 27AAAAA0000A1Z5</p>
               <p className="text-xs text-on-surface-variant">Phone: +91 98765 43210</p>
             </div>
             <div className="text-right">
@@ -112,8 +110,12 @@ export const InvoiceModal = ({ booking, onClose }) => {
               <p>Payment Status: <strong className="text-primary">{paymentStatus}</strong></p>
             </div>
             <div className="w-48 space-y-1.5 text-right">
+              <div className="flex justify-between">
+                <span>Subtotal:</span>
+                <span className="font-medium">₹{subtotal}</span>
+              </div>
               <div className="flex justify-between font-bold text-base pt-2 border-t border-black/10 text-primary">
-                <span>Total Amount:</span>
+                <span>Grand Total:</span>
                 <span>₹{totalAmount}</span>
               </div>
             </div>

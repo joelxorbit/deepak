@@ -7,7 +7,15 @@ import {
   rejectBookingService,
   markBookingAsPaidService,
   getBookedSlotsService,
-  getBookingsService
+  getBookingsService,
+  getAvailabilityService,
+  createHoldService,
+  releaseHoldService,
+  reviewBookingService,
+  adminCancelBookingService,
+  getBlockedSlotsService,
+  blockSlotService,
+  unblockSlotService
 } from '../services/bookingService';
 import {
   getCompletedEventsService,
@@ -30,6 +38,7 @@ export const BookingProvider = ({ children }) => {
   const [events, setEvents] = useState(INITIAL_COMPLETED_EVENTS);
   const [customers, setCustomers] = useState([]);
   const [dashboardStats, setDashboardStats] = useState(null);
+  const [blockedSlots, setBlockedSlots] = useState([]);
 
   // Feature-Specific Isolated Loading States (Zero Cross-Feature Leakage)
   const [isCreatingBooking, setIsCreatingBooking] = useState(false);
@@ -76,7 +85,7 @@ export const BookingProvider = ({ children }) => {
     localStorage.setItem('elite_pitch_admin_auth', isAdminLoggedIn ? 'true' : 'false');
   }, [isAdminLoggedIn]);
 
-  // Centralized helper to fetch all admin data (dashboard stats, bookings, customers)
+  // Centralized helper to fetch all admin data (dashboard stats, bookings, customers, blocked slots)
   const refreshAdminData = useCallback(async (force = false) => {
     if (isRefreshingRef.current && !force) {
       return; // Lock guard: skip duplicate concurrent requests
@@ -88,10 +97,11 @@ export const BookingProvider = ({ children }) => {
     try {
       setIsDashboardLoading(true);
 
-      const [stats, allBookings, allCustomers] = await Promise.all([
+      const [stats, allBookings, allCustomers, allBlocked] = await Promise.all([
         fetchAdminDashboardStatsService(),
         getBookingsService(),
-        fetchCustomersService()
+        fetchCustomersService(),
+        getBlockedSlotsService().catch(() => [])
       ]);
 
       // Unmount / Stale response check: only update state if this is the latest request
@@ -99,6 +109,7 @@ export const BookingProvider = ({ children }) => {
         if (stats) setDashboardStats(stats);
         if (allBookings) setBookings(allBookings);
         if (allCustomers) setCustomers(allCustomers);
+        if (allBlocked) setBlockedSlots(allBlocked);
         setAdminDataLoaded(true);
       }
     } catch (err) {
@@ -118,12 +129,27 @@ export const BookingProvider = ({ children }) => {
     }
   }, [isAdminLoggedIn, adminDataLoaded, refreshAdminData]);
 
+  // Unique session-based holder identifier for temporary checkout slot holds
+  const getHolderId = useCallback(() => {
+    try {
+      let id = sessionStorage.getItem('elite_pitch_holder_id');
+      if (!id) {
+        id = 'h_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString(36);
+        sessionStorage.setItem('elite_pitch_holder_id', id);
+      }
+      return id;
+    } catch (e) {
+      return 'h_' + Date.now();
+    }
+  }, []);
+
   // Create a new booking (POST /api/bookings)
   const createBooking = useCallback(async (bookingData) => {
     try {
       setIsCreatingBooking(true);
       setError(null);
-      const newBooking = await createBookingService(bookingData);
+      const holderId = getHolderId();
+      const newBooking = await createBookingService({ ...bookingData, holderId });
       setLatestBooking(newBooking);
 
       if (isAdminLoggedIn) {
@@ -149,7 +175,7 @@ export const BookingProvider = ({ children }) => {
     } finally {
       setIsCreatingBooking(false);
     }
-  }, [isAdminLoggedIn]);
+  }, [isAdminLoggedIn, getHolderId]);
 
   // Find bookings by ID or Phone (POST /api/bookings/track)
   const findBookingsByIdOrPhone = useCallback(async (query) => {
@@ -249,6 +275,83 @@ export const BookingProvider = ({ children }) => {
     }
   }, []);
 
+  // Phase 5: Mark booking as reviewed / acknowledged
+  const reviewBooking = useCallback(async (bookingId) => {
+    const now = new Date().toISOString();
+    let previousState = null;
+
+    setBookings(prev => {
+      previousState = prev;
+      return prev.map(b => (b.bookingId === bookingId || b.id === bookingId || b._id === bookingId) ? { ...b, isReviewed: true, reviewedAt: now, reviewedBy: 'admin' } : b);
+    });
+
+    try {
+      const updated = await reviewBookingService(bookingId);
+      if (updated) {
+        setBookings(prev => prev.map(b => (b.bookingId === bookingId || b.id === bookingId || b._id === bookingId) ? { ...b, ...updated } : b));
+      }
+      return updated;
+    } catch (err) {
+      if (previousState) setBookings(previousState);
+      const msg = err.response?.data?.message || 'Failed to acknowledge booking.';
+      setError(msg);
+      throw new Error(msg);
+    }
+  }, []);
+
+  // Phase 5: Admin cancellation with mandatory reason
+  const adminCancelBooking = useCallback(async (bookingId, reason) => {
+    const now = new Date().toISOString();
+    let previousState = null;
+
+    setBookings(prev => {
+      previousState = prev;
+      return prev.map(b => (b.bookingId === bookingId || b.id === bookingId || b._id === bookingId) ? {
+        ...b,
+        status: 'Cancelled',
+        cancellation: { isCancelled: true, cancelledBy: 'admin', reason, cancelledAt: now }
+      } : b);
+    });
+
+    try {
+      const updated = await adminCancelBookingService(bookingId, reason);
+      if (updated) {
+        setBookings(prev => prev.map(b => (b.bookingId === bookingId || b.id === bookingId || b._id === bookingId) ? { ...b, ...updated } : b));
+      }
+      return updated;
+    } catch (err) {
+      if (previousState) setBookings(previousState);
+      const msg = err.response?.data?.message || 'Failed to cancel booking.';
+      setError(msg);
+      throw new Error(msg);
+    }
+  }, []);
+
+  // Phase 5: Block slots or whole day
+  const blockSlot = useCallback(async (params) => {
+    try {
+      const newBlock = await blockSlotService(params);
+      setBlockedSlots(prev => [newBlock, ...prev]);
+      return newBlock;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to block slot(s).';
+      setError(msg);
+      throw err;
+    }
+  }, []);
+
+  // Phase 5: Unblock slots
+  const unblockSlot = useCallback(async (blockId) => {
+    try {
+      await unblockSlotService(blockId);
+      setBlockedSlots(prev => prev.filter(b => b.id !== blockId && b._id !== blockId));
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to unblock slot.';
+      setError(msg);
+      throw err;
+    }
+  }, []);
+
   const addEvent = useCallback(async (newEventData) => {
     try {
       const created = await addEventService(newEventData);
@@ -307,18 +410,54 @@ export const BookingProvider = ({ children }) => {
       setBookings([]);
       setCustomers([]);
       setDashboardStats(null);
+      setBlockedSlots([]);
     }
   }, []);
 
   const getBookedSlotsForDate = useCallback(async (dateString) => {
     if (!dateString) return [];
     try {
-      const slots = await getBookedSlotsService(dateString);
+      const holderId = getHolderId();
+      const slots = await getBookedSlotsService(dateString, holderId);
       return slots;
     } catch (err) {
       return [];
     }
-  }, []);
+  }, [getHolderId]);
+
+  const getAvailabilityForDate = useCallback(async (dateString, sportId = 'football-5v5') => {
+    if (!dateString) return null;
+    try {
+      const holderId = getHolderId();
+      const data = await getAvailabilityService(dateString, holderId, sportId);
+      return data;
+    } catch (err) {
+      return null;
+    }
+  }, [getHolderId]);
+
+  const holdSlots = useCallback(async (dateStr, slots, sportId = 'football-5v5') => {
+    try {
+      const holderId = getHolderId();
+      const data = await createHoldService({ dateStr, slots, holderId, sportId });
+      return data;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Selected slot is no longer available.';
+      setError(msg);
+      throw new Error(msg);
+    }
+  }, [getHolderId]);
+
+  const releaseSlots = useCallback(async (dateStr, slots) => {
+    try {
+      const holderId = getHolderId();
+      const data = await releaseHoldService({ holderId, dateStr, slots });
+      return data;
+    } catch (err) {
+      console.warn('Failed to release slot hold:', err);
+      return null;
+    }
+  }, [getHolderId]);
 
   // Memoize Context Value object to eliminate unnecessary context re-renders
   const contextValue = useMemo(() => ({
@@ -326,6 +465,7 @@ export const BookingProvider = ({ children }) => {
     events,
     customers,
     dashboardStats,
+    blockedSlots,
     isCreatingBooking,
     isTrackingBooking,
     isCancellingBooking,
@@ -347,18 +487,27 @@ export const BookingProvider = ({ children }) => {
     approveBooking,
     rejectBooking,
     markBookingAsPaid,
+    reviewBooking,
+    adminCancelBooking,
+    blockSlot,
+    unblockSlot,
     addEvent,
     editEvent,
     deleteEvent,
     loginAdmin,
     logoutAdmin,
     refreshAdminData,
-    getBookedSlotsForDate
+    getBookedSlotsForDate,
+    getAvailabilityForDate,
+    holdSlots,
+    releaseSlots,
+    getHolderId
   }), [
     bookings,
     events,
     customers,
     dashboardStats,
+    blockedSlots,
     isCreatingBooking,
     isTrackingBooking,
     isCancellingBooking,
@@ -376,13 +525,21 @@ export const BookingProvider = ({ children }) => {
     approveBooking,
     rejectBooking,
     markBookingAsPaid,
+    reviewBooking,
+    adminCancelBooking,
+    blockSlot,
+    unblockSlot,
     addEvent,
     editEvent,
     deleteEvent,
     loginAdmin,
     logoutAdmin,
     refreshAdminData,
-    getBookedSlotsForDate
+    getBookedSlotsForDate,
+    getAvailabilityForDate,
+    holdSlots,
+    releaseSlots,
+    getHolderId
   ]);
 
   return (
@@ -399,3 +556,4 @@ export const useBooking = () => {
   }
   return context;
 };
+

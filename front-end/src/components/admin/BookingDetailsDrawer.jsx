@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useBooking } from '../../context/BookingContext';
 import { useToast } from '../../context/ToastContext';
+import { downloadTicketPdfService } from '../../services/bookingService';
 
 export const BookingDetailsDrawer = ({ booking, onClose, onPrintInvoice }) => {
   const { approveBooking, rejectBooking, markBookingAsPaid } = useBooking();
@@ -27,6 +28,20 @@ export const BookingDetailsDrawer = ({ booking, onClose, onPrintInvoice }) => {
     if (!window.confirm(`Are you sure you want to reject booking ${displayId}?`)) return;
     await rejectBooking(displayId);
     addToast(`Booking ${displayId} rejected.`, 'info');
+  };
+
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    try {
+      setIsDownloadingPdf(true);
+      await downloadTicketPdfService(displayId);
+      addToast(`Ticket PDF downloaded for ${displayId}.`, 'success');
+    } catch (err) {
+      addToast(err.response?.data?.message || 'Failed to download ticket PDF.', 'error');
+    } finally {
+      setIsDownloadingPdf(false);
+    }
   };
 
   const handleMarkPaid = async () => {
@@ -140,6 +155,17 @@ export const BookingDetailsDrawer = ({ booking, onClose, onPrintInvoice }) => {
               Mark Payment as Paid
             </button>
           )}
+
+          <button
+            onClick={handleDownloadPdf}
+            disabled={isDownloadingPdf}
+            className="w-full min-h-[44px] py-3 bg-emerald-600 text-white font-label-bold text-xs rounded-xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+          >
+            <span className="material-symbols-outlined text-base">
+              {isDownloadingPdf ? 'progress_activity' : 'picture_as_pdf'}
+            </span>
+            {isDownloadingPdf ? 'Generating Ticket PDF...' : 'Download Official Ticket (PDF)'}
+          </button>
 
           {onPrintInvoice && (
             <button

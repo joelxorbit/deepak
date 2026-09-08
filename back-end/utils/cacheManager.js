@@ -29,6 +29,10 @@ class MemoryCache {
   clear() {
     this.cache.clear();
   }
+
+  flush() {
+    this.cache.clear();
+  }
 }
 
 export const cacheManager = new MemoryCache();

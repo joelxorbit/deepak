@@ -1,5 +1,5 @@
 import { getBookingsCollection } from '../config/firestoreCollections.js';
-import { findCustomerById, findCustomerByUsername } from './customerRepository.js';
+import { findCustomerById, findCustomerByPhone } from './customerRepository.js';
 import { findAdminById } from './adminRepository.js';
 import { BOOKING_STATUS } from '../utils/constants.js';
 import { normalizePhone } from '../utils/slotNormalizer.js';
@@ -36,9 +36,25 @@ export const populateBookingRelations = async (bookingDoc) => {
     ...data,
     id,
     _id: id,
-    customer: customer ? { _id: customer.id || customer._id, id: customer.id || customer._id, name: customer.name, username: customer.username } : null,
+    customer: customer ? { _id: customer.id || customer._id, id: customer.id || customer._id, name: customer.name, phone: customer.phone } : null,
     approvedBy
   };
+};
+
+export const findBookingByPublicIdDoc = async (publicBookingId) => {
+  if (!publicBookingId || typeof publicBookingId !== 'string') return null;
+  const cleanId = publicBookingId.trim().toUpperCase();
+
+  const querySnap = await getBookingsCollection()
+    .where('bookingId', '==', cleanId)
+    .limit(1)
+    .get();
+
+  if (!querySnap.empty) {
+    return await populateBookingRelations(querySnap.docs[0]);
+  }
+
+  return null;
 };
 
 export const findBookingById = async (id) => {
@@ -104,8 +120,8 @@ export const findBookingsByQuery = async (queryStr) => {
       rawPhoneSnap.docs.forEach(doc => matchedDocsMap.set(doc.id, doc));
     }
 
-    // Step 3: Customer profile lookup by username
-    const customer = await findCustomerByUsername(trimmed);
+    // Step 3: Customer profile lookup
+    const customer = await findCustomerByPhone(normalizedPhone);
     if (customer) {
       const customerBookingSnap = await getBookingsCollection()
         .where('customerId', '==', customer.id)
@@ -135,26 +151,81 @@ export const findBookingsByQuery = async (queryStr) => {
   return results.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
 };
 
-export const getBookingsWithFilters = async ({ status, search, limit = 50, cursor = null }) => {
-  let query = getBookingsCollection().where('isDeleted', '!=', true);
+import { normalizeBookingDocument } from '../utils/bookingNormalizer.js';
 
-  if (status && status !== 'All') {
-    query = getBookingsCollection()
-      .where('status', '==', status)
-      .where('isDeleted', '!=', true);
+export const getBookingsWithFilters = async ({ status = 'All', filter = null, search = '', limit = 50, cursor = null }) => {
+  const activeFilter = filter || status || 'All';
+  let snapshot = await getBookingsCollection().get();
+  let docs = snapshot.docs.filter(doc => !doc.data().isDeleted);
+
+  // Normalize each booking
+  let populated = await Promise.all(docs.map(async (doc) => {
+    const raw = { id: doc.id, _id: doc.id, ...doc.data() };
+    const normalized = normalizeBookingDocument(raw);
+    return await populateBookingRelations(normalized);
+  }));
+
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
+  // Apply search
+  if (search && search.trim() !== '') {
+    const term = search.toLowerCase().trim();
+    populated = populated.filter(b => {
+      const bId = (b.bookingId || b.id || '').toLowerCase();
+      const cName = (b.customerName || b.customer?.name || '').toLowerCase();
+      const cPhone = (b.customerPhone || b.mobileNumber || b.customer?.phone || '');
+      return bId.includes(term) || cName.includes(term) || cPhone.includes(term);
+    });
   }
 
-  if (search) {
-    const searchToken = search.toLowerCase().trim();
-    query = getBookingsCollection()
-      .where('searchTokens', 'array-contains', searchToken);
+  // Apply Phase 5 filter criteria
+  if (activeFilter && activeFilter !== 'All') {
+    const lowerFilter = activeFilter.toLowerCase().replace(/[\s_-]/g, '');
+
+    populated = populated.filter(b => {
+      const bDateStr = b.dateStr || (b.date ? b.date.split('T')[0] : '');
+      const isCancelled = b.status === BOOKING_STATUS.CANCELLED || b.cancellation?.isCancelled === true;
+
+      switch (lowerFilter) {
+        case 'unreviewed':
+        case 'pendingreview':
+          return !b.isReviewed && !isCancelled;
+        case 'reviewed':
+          return b.isReviewed === true;
+        case 'today':
+          return bDateStr === todayStr && !isCancelled;
+        case 'upcoming':
+          return bDateStr >= todayStr && !isCancelled;
+        case 'cancelled':
+          return isCancelled;
+        case 'advancepaid':
+          return b.paymentStatus === 'Advance Paid';
+        case 'balancepending':
+          return (b.balanceDue || 0) > 0 && !isCancelled;
+        case 'fullypaid':
+          return b.paymentStatus === 'Fully Paid' || b.paymentStatus === 'Cash Received' || b.paymentStatus === 'Paid';
+        case 'cashpending':
+        case 'payatspot':
+          return b.paymentStatus === 'Cash Pending';
+        case 'confirmed':
+          return b.status === BOOKING_STATUS.CONFIRMED;
+        case 'pending':
+          return b.status === BOOKING_STATUS.PENDING;
+        case 'rejected':
+          return b.status === BOOKING_STATUS.REJECTED;
+        default:
+          return b.status === activeFilter || b.paymentStatus === activeFilter;
+      }
+    });
   }
 
-  const snapshot = await query.get();
-  const docs = snapshot.docs.filter(doc => !doc.data().isDeleted);
-
-  const populated = await Promise.all(docs.map(doc => populateBookingRelations(doc)));
-  populated.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
+  // Sort newest first
+  populated.sort((a, b) => {
+    const dateA = a.date || a.createdAt || '';
+    const dateB = b.date || b.createdAt || '';
+    return dateB.localeCompare(dateA);
+  });
 
   return populated;
 };

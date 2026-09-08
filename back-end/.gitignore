@@ -1,8 +1,17 @@
 # Dependencies
 node_modules/
 
-# Environment files
+# Environment files & Secrets
 .env
+*.env
+*.env.*
+*service-account*.json
+*.pem
+*.key
+
+# Backups
+backups/
+backup/
 
 # Logs
 logs/
@@ -11,3 +20,5 @@ logs/
 # Editor & System
 .DS_Store
 Thumbs.db
+.vscode/
+.idea/

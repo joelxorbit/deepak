@@ -8,11 +8,20 @@ dist/
 build/
 front-end/dist/
 
-# Environment files
+# Environment files & Secrets
 .env
 *.env
+*.env.*
 front-end/.env
 back-end/.env
+*service-account*.json
+*.pem
+*.key
+
+# Backups
+backups/
+backup/
+.checkpoints/
 
 # Logs
 logs/

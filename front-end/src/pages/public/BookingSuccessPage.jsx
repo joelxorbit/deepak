@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBooking } from '../../context/BookingContext';
+import { useToast } from '../../context/ToastContext';
 import { ROUTES } from '../../constants/routes';
+import { downloadTicketPdfService } from '../../services/bookingService';
 
 export const BookingSuccessPage = () => {
   const { latestBooking } = useBooking();
+  const { addToast } = useToast();
   const navigate = useNavigate();
+  const [downloading, setDownloading] = useState(false);
 
   if (!latestBooking) {
     return (
@@ -23,10 +27,26 @@ export const BookingSuccessPage = () => {
     );
   }
 
+  const publicBookingId = latestBooking.bookingId || latestBooking.id;
   const slotsList = latestBooking.slots || latestBooking.timeSlots || [];
   const subtotal = latestBooking.subtotal || (slotsList.length * 300);
-  const gstAmount = 0;
   const totalAmount = latestBooking.totalAmount || subtotal;
+
+  const handleDownloadPdf = async () => {
+    if (!publicBookingId) {
+      addToast('Booking reference is missing.', 'error');
+      return;
+    }
+    try {
+      setDownloading(true);
+      await downloadTicketPdfService(publicBookingId);
+      addToast('Ticket PDF downloaded successfully!', 'success');
+    } catch (err) {
+      addToast(err.response?.data?.message || 'Failed to download ticket PDF. Please log in or verify booking ID.', 'error');
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto px-container-padding-mobile md:px-container-padding-desktop py-12">
@@ -43,7 +63,7 @@ export const BookingSuccessPage = () => {
         <div className="bg-surface-variant/40 rounded-2xl p-6 text-left space-y-4 font-body-md text-on-surface border border-black/5">
           <div className="flex justify-between items-center pb-3 border-b border-black/10">
             <span className="text-on-surface-variant font-label-bold">Booking Reference ID</span>
-            <span className="font-mono font-bold text-primary text-lg">{latestBooking.bookingId || latestBooking.id}</span>
+            <span className="font-mono font-bold text-primary text-lg">{publicBookingId}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-on-surface-variant">Full Name</span>
@@ -70,10 +90,14 @@ export const BookingSuccessPage = () => {
           <div className="pt-3 border-t border-black/10 space-y-1.5 text-sm">
             <div className="flex justify-between">
               <span className="text-on-surface-variant">Rate per Slot</span>
-              <span>₹300</span>
+              <span>₹{latestBooking.slotPrice || (slotsList.length > 0 ? Math.round(subtotal / slotsList.length) : 300)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-on-surface-variant">Subtotal (GST-Free)</span>
+              <span>₹{subtotal}</span>
             </div>
             <div className="flex justify-between font-bold text-base text-primary pt-2 border-t border-black/10">
-              <span>Total Amount</span>
+              <span>Grand Total</span>
               <span>₹{totalAmount}</span>
             </div>
           </div>
@@ -86,19 +110,31 @@ export const BookingSuccessPage = () => {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+        {/* Action Buttons */}
+        <div className="space-y-3 pt-2">
           <button
-            onClick={() => navigate(ROUTES.HOME)}
-            className="w-full sm:w-auto bg-primary text-on-primary font-label-bold px-8 py-3.5 rounded-2xl shadow-lg hover:scale-105 transition-all"
+            onClick={handleDownloadPdf}
+            disabled={downloading}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-label-bold px-8 py-3.5 rounded-2xl shadow-lg hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
           >
-            Back to Home
+            <span className="material-symbols-outlined text-xl">{downloading ? 'progress_activity' : 'picture_as_pdf'}</span>
+            <span>{downloading ? 'Generating Ticket PDF...' : 'Download Official Ticket (PDF)'}</span>
           </button>
-          <button
-            onClick={() => navigate(ROUTES.BOOKING)}
-            className="w-full sm:w-auto bg-surface-variant text-on-surface-variant font-label-bold px-8 py-3.5 rounded-2xl border border-black/10 hover:bg-black/5 transition-all"
-          >
-            Book Another Slot
-          </button>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              onClick={() => navigate(ROUTES.HOME)}
+              className="w-full sm:w-auto bg-slate-900 text-white font-label-bold px-6 py-3 rounded-2xl shadow hover:bg-slate-800 transition-all"
+            >
+              Back to Home
+            </button>
+            <button
+              onClick={() => navigate(ROUTES.BOOKING)}
+              className="w-full sm:w-auto bg-surface-variant text-on-surface-variant font-label-bold px-6 py-3 rounded-2xl border border-black/10 hover:bg-black/5 transition-all"
+            >
+              Book Another Slot
+            </button>
+          </div>
         </div>
       </div>
     </div>

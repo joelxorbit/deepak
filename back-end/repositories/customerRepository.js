@@ -1,16 +1,35 @@
 import { getCustomersCollection } from '../config/firestoreCollections.js';
 import { generateSearchTokens, normalizePhone } from '../utils/slotNormalizer.js';
 
-export const findCustomerByUsername = async (username) => {
-  if (!username) return null;
-  const raw = username.trim().toLowerCase();
+export const findCustomerByPhone = async (phone) => {
+  if (!phone) return null;
+  const raw = phone.trim();
+  const normalized = normalizePhone(raw);
   
-  const snap = await getCustomersCollection()
-    .where('username', '==', raw)
+  // Try exact normalized 10-digit match first
+  if (normalized) {
+    const snap1 = await getCustomersCollection()
+      .where('phone', '==', normalized)
+      .limit(1)
+      .get();
+    if (!snap1.empty) return { id: snap1.docs[0].id, ...snap1.docs[0].data() };
+  }
+
+  // Try raw string match
+  const snap2 = await getCustomersCollection()
+    .where('phone', '==', raw)
     .limit(1)
     .get();
-    
-  if (!snap.empty) return { id: snap.docs[0].id, ...snap.docs[0].data() };
+  if (!snap2.empty) return { id: snap2.docs[0].id, ...snap2.docs[0].data() };
+
+  // Try +91 formatted string match
+  if (normalized) {
+    const snap3 = await getCustomersCollection()
+      .where('phone', '==', `+91 ${normalized}`)
+      .limit(1)
+      .get();
+    if (!snap3.empty) return { id: snap3.docs[0].id, ...snap3.docs[0].data() };
+  }
 
   return null;
 };
@@ -25,28 +44,38 @@ export const findCustomerById = async (id) => {
 export const findCustomerByEmail = async (email) => {
   if (!email) return null;
   const raw = email.trim().toLowerCase();
-
   const snap = await getCustomersCollection()
     .where('email', '==', raw)
     .limit(1)
     .get();
-
   if (!snap.empty) return { id: snap.docs[0].id, ...snap.docs[0].data() };
+  return null;
+};
 
+export const findCustomerByGoogleId = async (googleId) => {
+  if (!googleId) return null;
+  const raw = String(googleId).trim();
+  const snap = await getCustomersCollection()
+    .where('googleId', '==', raw)
+    .limit(1)
+    .get();
+  if (!snap.empty) return { id: snap.docs[0].id, ...snap.docs[0].data() };
   return null;
 };
 
 export const createCustomerRecord = async (customerData) => {
   const now = new Date().toISOString();
-  const username = customerData.username.trim().toLowerCase();
-  const searchTokens = generateSearchTokens(customerData.name, username);
+  const rawPhone = customerData.phone ? customerData.phone.trim() : '';
+  const normalizedPhone = rawPhone ? (normalizePhone(rawPhone) || rawPhone) : '';
+  const customerName = customerData.name || 'Player';
+  const searchTokens = generateSearchTokens(customerName, normalizedPhone);
 
   const payload = {
-    name: customerData.name,
-    username,
-    phone: customerData.phone || null,
-    email: customerData.email ? customerData.email.trim().toLowerCase() : null,
+    name: customerName,
+    phone: normalizedPhone,
+    email: customerData.email ? customerData.email.trim().toLowerCase() : '',
     googleId: customerData.googleId || null,
+    avatar: customerData.avatar || customerData.profileImage || null,
     bookingHistory: customerData.bookingHistory || [],
     searchTokens,
     createdAt: now,
@@ -62,12 +91,12 @@ export const updateCustomerRecord = async (id, updateData) => {
   const docRef = getCustomersCollection().doc(id);
   const now = new Date().toISOString();
   
-  if (updateData.name || updateData.username || updateData.phone) {
+  if (updateData.name || updateData.phone) {
     const currentDoc = await docRef.get();
     const currentData = currentDoc.data() || {};
     const name = updateData.name || currentData.name;
-    const username = updateData.username ? updateData.username.trim().toLowerCase() : currentData.username;
-    updateData.searchTokens = generateSearchTokens(name, username);
+    const phone = updateData.phone ? normalizePhone(updateData.phone) : currentData.phone;
+    updateData.searchTokens = generateSearchTokens(name, phone);
   }
 
   updateData.updatedAt = now;
