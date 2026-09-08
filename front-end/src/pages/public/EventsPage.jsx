@@ -169,6 +169,7 @@ export const EventsPage = () => {
                         src={event.image || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'} 
                         alt={event.title} 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-95"
+                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'; }}
                       />
                       <div className="absolute top-4 left-4 bg-emerald-600 text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-lg">
                         {event.category || 'Tournament'}
@@ -202,31 +203,6 @@ export const EventsPage = () => {
                           {event.description}
                         </p>
 
-                        <div className="pt-3 border-t border-black/5 grid grid-cols-2 gap-2 text-[11px] text-slate-500">
-                          <div>
-                            Capacity: <span className="font-bold text-slate-800">{event.currentParticipants || 0}/{event.maxParticipants || 16} slots</span>
-                          </div>
-                          <div>
-                            Deadline: <span className="font-bold text-slate-800">{event.registrationDeadline ? event.registrationDeadline.split('T')[0] : 'Open'}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t border-black/5 flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-500 uppercase">{event.venue || 'Elite Arena'}</span>
-                        <button
-                          onClick={() => handleOpenModal(event)}
-                          disabled={isRegDisabled}
-                          className={`inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow transition-all ${
-                            isRegDisabled
-                              ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                              : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                          }`}
-                        >
-                          <span className="material-symbols-outlined text-base">how_to_reg</span>
-                          {isRegDisabled ? 'Closed' : 'Register / Enquire'}
-                        </button>
-                      </div>
                     </div>
                   </div>
                 );
@@ -248,6 +224,7 @@ export const EventsPage = () => {
                   src={featuredCompleted.image} 
                   alt={featuredCompleted.title} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-95"
+                  onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'; }}
                 />
                 <div className="absolute top-4 left-4 bg-emerald-600 text-white text-xs font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full shadow-lg">
                   Showcase Match
@@ -302,6 +279,7 @@ export const EventsPage = () => {
                     src={event.image} 
                     alt={event.title} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 brightness-95"
+                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'; }}
                   />
                   <div className="absolute top-4 right-4 bg-slate-950/80 backdrop-blur-md text-emerald-400 text-[11px] font-bold px-3 py-1 rounded-full border border-emerald-500/30 uppercase tracking-wider">
                     Completed

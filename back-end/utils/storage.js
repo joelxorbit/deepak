@@ -7,13 +7,20 @@ export const uploadFileToStorage = async (filePath, destinationFileName, mimeTyp
     throw new Error('Firebase Storage bucket not configured.');
   }
 
-  const [file] = await bucket.upload(filePath, {
-    destination: destinationFileName,
-    metadata: {
-      contentType: mimeType
-    },
-    public: true
-  });
+  const file = bucket.file(destinationFileName);
+  
+  if (Buffer.isBuffer(filePath)) {
+    await file.save(filePath, {
+      metadata: { contentType: mimeType },
+      public: true
+    });
+  } else {
+    await bucket.upload(filePath, {
+      destination: destinationFileName,
+      metadata: { contentType: mimeType },
+      public: true
+    });
+  }
 
   const publicUrl = `https://storage.googleapis.com/${bucket.name}/${file.name}`;
   logger.info(`[Storage] File uploaded successfully to ${publicUrl}`);

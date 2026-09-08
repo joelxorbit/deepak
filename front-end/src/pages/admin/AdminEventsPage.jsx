@@ -335,7 +335,12 @@ export const AdminEventsPage = () => {
               <div key={id} className="bg-white rounded-3xl border border-black/5 shadow-sm overflow-hidden flex flex-col justify-between group">
                 <div>
                   <div className="aspect-[16/9] overflow-hidden relative">
-                    <img src={evt.image} alt={evt.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img 
+                      src={evt.image || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'} 
+                      alt={evt.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'; }}
+                    />
                     <div className="absolute top-3 left-3 flex items-center gap-1.5">
                       <span className="bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase">
                         {evt.category || 'Tournament'}
@@ -527,7 +532,12 @@ export const AdminEventsPage = () => {
                 {uploadingImage && <p className="text-[11px] text-primary animate-pulse font-bold">Uploading banner...</p>}
                 {formData.image && (
                   <div className="h-32 rounded-xl overflow-hidden border border-black/10 mt-2">
-                    <img src={formData.image} alt="Banner Preview" className="w-full h-full object-cover" />
+                    <img 
+                      src={formData.image} 
+                      alt="Banner Preview" 
+                      className="w-full h-full object-cover" 
+                      onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'; }}
+                    />
                   </div>
                 )}
               </div>
