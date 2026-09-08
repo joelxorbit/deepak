@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes';
+import headerBgVideo from '../../assets/header bg video.mp4';
 
 export const HomePage = () => {
   const navigate = useNavigate();
@@ -79,15 +80,19 @@ export const HomePage = () => {
       {/* 1. FULL-BLEED CINEMATIC HERO SECTION */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-slate-950 -mt-20 pt-20">
         
-        {/* Full-bleed background image with cinematic gradient vignette */}
+        {/* Full-bleed background video with cinematic gradient vignette */}
         <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=2000&q=80" 
-            alt="Multi-Sport Turf Arena" 
-            className="w-full h-full object-cover object-center brightness-[0.35] scale-105 animate-pulse-slow"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-transparent to-slate-950/80" />
+          <video 
+            autoPlay 
+            loop 
+            muted 
+            playsInline
+            className="w-full h-full object-cover object-center brightness-[0.65] scale-105"
+          >
+            <source src={headerBgVideo} type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/60 via-transparent to-slate-950/40" />
         </div>
 
         {/* Hero Editorial Content */}

@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Outlet } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 import { PublicLayout } from '../layouts/PublicLayout';
+import { CustomerProtectedRoute } from './CustomerProtectedRoute';
 
 const HomePage = lazy(() => import('../pages/public/HomePage').then(m => ({ default: m.HomePage })));
 const AboutPage = lazy(() => import('../pages/public/AboutPage').then(m => ({ default: m.AboutPage })));
@@ -35,8 +36,13 @@ export const PublicRoutes = () => {
         <Route element={<PublicLayoutWrapper />}>
           <Route path={ROUTES.HOME} element={<HomePage />} />
           <Route path={ROUTES.ABOUT} element={<AboutPage />} />
-          <Route path={ROUTES.BOOKING} element={<BookingPage />} />
-          <Route path={ROUTES.BOOKING_SUCCESS} element={<BookingSuccessPage />} />
+          
+          {/* Protected Routes for Customer */}
+          <Route element={<CustomerProtectedRoute />}>
+            <Route path={ROUTES.BOOKING} element={<BookingPage />} />
+            <Route path={ROUTES.BOOKING_SUCCESS} element={<BookingSuccessPage />} />
+          </Route>
+
           <Route path={ROUTES.ACCOUNT} element={<AccountPage />} />
           <Route path={ROUTES.EVENTS} element={<EventsPage />} />
           <Route path={ROUTES.CONTACT} element={<ContactPage />} />
