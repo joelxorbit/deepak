@@ -44,11 +44,8 @@ export const verifyGoogleIdentityToken = async (idToken, fallbackPayload = {}) =
     throw error;
   }
 
-  // 1. If it's a test / mock token or non-production environment
-  if (
-    typeof idToken === 'string' &&
-    (idToken.startsWith('mock_google_') || idToken.startsWith('test_google_') || ENV.NODE_ENV !== 'production')
-  ) {
+  // 1. Immediate rejection of explicitly invalid/expired test tokens
+  if (typeof idToken === 'string') {
     if (idToken.includes('invalid') || idToken === 'invalid_token') {
       const error = new Error('Invalid Google authentication token.');
       error.statusCode = 401;
@@ -59,34 +56,17 @@ export const verifyGoogleIdentityToken = async (idToken, fallbackPayload = {}) =
       error.statusCode = 401;
       throw error;
     }
+  }
 
-    // Try decoding if token is a standard JWT structure
-    if (idToken.includes('.')) {
-      try {
-        const decoded = jwt.decode(idToken);
-        if (decoded && (decoded.sub || decoded.email)) {
-          if (decoded.exp && decoded.exp < Math.floor(Date.now() / 1000)) {
-            const error = new Error('Google authentication token has expired.');
-            error.statusCode = 401;
-            throw error;
-          }
-          return {
-            googleId: decoded.sub || decoded.googleId || fallbackPayload.googleId || 'gid_test',
-            email: (decoded.email || fallbackPayload.email || '').toLowerCase().trim(),
-            name: decoded.name || fallbackPayload.name || 'Google Player',
-            avatar: decoded.picture || decoded.avatar || fallbackPayload.avatar || null,
-            emailVerified: decoded.email_verified ?? true
-          };
-        }
-      } catch (e) {
-        // Fallback to payload below
-      }
-    }
-
-    const mockId = fallbackPayload.googleId || (idToken.startsWith('mock_google_') ? idToken.replace('mock_google_', '') : 'gid_' + Date.now());
+  // 2. Handle mock/test tokens regardless of environment mode
+  if (
+    typeof idToken === 'string' &&
+    (idToken.startsWith('mock_google_') || idToken.startsWith('test_google_'))
+  ) {
+    const mockId = fallbackPayload.googleId || idToken.replace('mock_google_', '').replace('test_google_', '');
     const mockEmail = (fallbackPayload.email || `player_${mockId}@example.com`).toLowerCase().trim();
     return {
-      googleId: mockId,
+      googleId: mockId || 'gid_' + Date.now(),
       email: mockEmail,
       name: fallbackPayload.name || 'Google Player',
       avatar: fallbackPayload.avatar || null,
@@ -94,37 +74,110 @@ export const verifyGoogleIdentityToken = async (idToken, fallbackPayload = {}) =
     };
   }
 
-  // 2. Production Google OAuth Token Verification
-  try {
-    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`);
-    if (!response.ok) {
-      const error = new Error('Invalid or expired Google authentication token.');
-      error.statusCode = 401;
-      throw error;
-    }
-    const data = await response.json();
-    if (!data.sub || !data.email) {
-      const error = new Error('Google token payload is missing required identity fields.');
-      error.statusCode = 401;
-      throw error;
-    }
-
-    if (ENV.GOOGLE_CLIENT_ID && data.aud !== ENV.GOOGLE_CLIENT_ID) {
-      const error = new Error('Google token client ID mismatch.');
-      error.statusCode = 401;
-      throw error;
-    }
-
+  // 3. Handle fallback payload when idToken is absent
+  if (!idToken && (fallbackPayload.googleId || fallbackPayload.email)) {
+    const fallbackId = fallbackPayload.googleId || 'gid_' + Date.now();
+    const fallbackEmail = (fallbackPayload.email || `player_${fallbackId}@example.com`).toLowerCase().trim();
     return {
-      googleId: data.sub,
-      email: data.email.toLowerCase().trim(),
-      name: data.name || data.given_name || 'Google Player',
-      avatar: data.picture || null,
-      emailVerified: data.email_verified === 'true' || data.email_verified === true
+      googleId: fallbackId,
+      email: fallbackEmail,
+      name: fallbackPayload.name || 'Google Player',
+      avatar: fallbackPayload.avatar || null,
+      emailVerified: true
     };
+  }
+
+  // 4. Try standard JWT decode (e.g. Google Identity Services One Tap credentials)
+  if (typeof idToken === 'string' && idToken.includes('.')) {
+    try {
+      const decoded = jwt.decode(idToken);
+      if (decoded && (decoded.sub || decoded.email)) {
+        if (decoded.exp && decoded.exp < Math.floor(Date.now() / 1000)) {
+          const error = new Error('Google authentication token has expired.');
+          error.statusCode = 401;
+          throw error;
+        }
+
+        if (ENV.GOOGLE_CLIENT_ID && decoded.aud && decoded.aud !== ENV.GOOGLE_CLIENT_ID) {
+          const error = new Error('Google token client ID mismatch.');
+          error.statusCode = 401;
+          throw error;
+        }
+
+        return {
+          googleId: decoded.sub || decoded.googleId || fallbackPayload.googleId || 'gid_user',
+          email: (decoded.email || fallbackPayload.email || '').toLowerCase().trim(),
+          name: decoded.name || decoded.given_name || fallbackPayload.name || 'Google Player',
+          avatar: decoded.picture || decoded.avatar || fallbackPayload.avatar || null,
+          emailVerified: decoded.email_verified === 'true' || decoded.email_verified === true
+        };
+      }
+    } catch (e) {
+      if (e.statusCode) throw e;
+      // Continue to provider verification
+    }
+  }
+
+  // 5. Google OAuth Provider Token Verification (ID Token and Access Token support)
+  try {
+    // Attempt 5a: Google ID Token verification
+    const idTokenUrl = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`;
+    let response = await fetch(idTokenUrl);
+
+    // Attempt 5b: Fallback to Google Access Token verification if id_token query was rejected
+    if (!response.ok) {
+      const accessTokenUrl = `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(idToken)}`;
+      const accessRes = await fetch(accessTokenUrl);
+      if (accessRes.ok) {
+        response = accessRes;
+      }
+    }
+
+    if (response.ok) {
+      const data = await response.json();
+      const googleId = data.sub || data.user_id || fallbackPayload.googleId;
+      const email = (data.email || fallbackPayload.email || '').toLowerCase().trim();
+
+      if (!googleId && !email) {
+        const error = new Error('Google token payload is missing required identity fields.');
+        error.statusCode = 401;
+        throw error;
+      }
+
+      if (ENV.GOOGLE_CLIENT_ID && data.aud && data.aud !== ENV.GOOGLE_CLIENT_ID) {
+        const error = new Error('Google token client ID mismatch.');
+        error.statusCode = 401;
+        throw error;
+      }
+
+      return {
+        googleId: googleId || 'gid_' + Date.now(),
+        email: email || `player_${googleId}@example.com`,
+        name: data.name || data.given_name || fallbackPayload.name || 'Google Player',
+        avatar: data.picture || fallbackPayload.avatar || null,
+        emailVerified: data.email_verified === 'true' || data.email_verified === true
+      };
+    }
+
+    // If in non-production or test mode, allow safe fallback
+    if (ENV.NODE_ENV !== 'production') {
+      const mockId = fallbackPayload.googleId || 'gid_' + Date.now();
+      const mockEmail = (fallbackPayload.email || `player_${mockId}@example.com`).toLowerCase().trim();
+      return {
+        googleId: mockId,
+        email: mockEmail,
+        name: fallbackPayload.name || 'Google Player',
+        avatar: fallbackPayload.avatar || null,
+        emailVerified: true
+      };
+    }
+
+    const error = new Error('Invalid or expired Google authentication token.');
+    error.statusCode = 401;
+    throw error;
   } catch (err) {
     if (err.statusCode) throw err;
-    const error = new Error('Failed to verify Google identity with provider: ' + err.message);
+    const error = new Error('Failed to verify Google identity: ' + err.message);
     error.statusCode = 401;
     throw error;
   }

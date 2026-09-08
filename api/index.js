@@ -7,5 +7,16 @@ try {
 } catch (e) {
   console.error('[Vercel Serverless Firebase Init Warning]', e.message);
 }
-
-export default app;
+export default function handler(req, res) {
+  try {
+    return app(req, res);
+  } catch (error) {
+    console.error('[Vercel Serverless Function Error]', error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error during function execution: ' + error.message
+      });
+    }
+  }
+}

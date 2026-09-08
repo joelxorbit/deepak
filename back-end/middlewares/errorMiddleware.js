@@ -28,6 +28,8 @@ export const isFirebaseDatabaseError = (err) => {
 };
 
 export const errorMiddleware = (err, req, res, next) => {
+  logger.error(`[Global Error Handler] ${err.name || 'Error'}: ${err.message}`, { stack: err.stack });
+
   if (isFirebaseDatabaseError(err)) {
     logger.error(`[Global Error Handler] Firestore/Firebase infrastructure failure: ${err.name || 'AuthenticationError'}`);
     return sendError(
@@ -41,7 +43,7 @@ export const errorMiddleware = (err, req, res, next) => {
   // Non-database errors
   const statusCode = err.statusCode || 500;
   const message = (statusCode === 500 && process.env.NODE_ENV === 'production')
-    ? 'Internal Server Error'
+    ? (err.isPublicMessage ? err.message : 'Internal Server Error')
     : (err.message || 'Internal Server Error');
 
   return sendError(res, message, err.errors || null, statusCode);
