@@ -30,7 +30,7 @@ export const createRateRuleSchema = Joi.object({
   timeSlots: Joi.array().items(Joi.string().trim()).default(['ALL']).optional(),
   isPeak: Joi.boolean().default(false).optional(),
   status: Joi.string().valid('active', 'inactive').default('active').optional(),
-  priority: Joi.number().integer().min(1).max(100).default(10).optional()
+  priority: Joi.number().integer().min(0).max(100).default(10).optional()
 }).custom(rateDateValidator).unknown(true);
 
 export const updateRateRuleSchema = Joi.object({
@@ -47,7 +47,7 @@ export const updateRateRuleSchema = Joi.object({
   timeSlots: Joi.array().items(Joi.string().trim()).optional(),
   isPeak: Joi.boolean().optional(),
   status: Joi.string().valid('active', 'inactive').optional(),
-  priority: Joi.number().integer().min(1).max(100).optional()
+  priority: Joi.number().integer().min(0).max(100).optional()
 }).custom(rateDateValidator).unknown(true);
 
 export const validateCreateRateRule = (req, res, next) => {
