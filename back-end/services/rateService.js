@@ -110,12 +110,15 @@ export const evaluateRateRule = async ({
         if (rule.effectiveFrom && cleanDateStr < rule.effectiveFrom) return false;
         if (rule.effectiveTo && cleanDateStr > rule.effectiveTo) return false;
         return true;
-      });
+      })
+      .sort((a, b) => (b.priority || 10) - (a.priority || 10));
 
     const isSpecificDateRule = (r) => Boolean(
       r.dateStr === cleanDateStr ||
       r.date === cleanDateStr ||
-      (r.effectiveFrom === cleanDateStr && r.effectiveTo === cleanDateStr)
+      (r.effectiveFrom && r.effectiveTo) || // It's a date range rule
+      (r.effectiveFrom && !r.effectiveTo) || // Open ended start
+      (!r.effectiveFrom && r.effectiveTo)    // Open ended end
     );
 
     // 1. Tier 1: Specific Date + Specific Slot match
@@ -281,8 +284,8 @@ export const calculateBookingPrice = async ({
   const totalAmount = subtotal;
   const effectiveRatePerHour = roundToCurrency(subtotal / slotCount);
 
-  // Authoritative Fixed Advance Resolution strictly from Firestore settings (settings/paymentSettings.fixedAdvanceAmount)
-  const rawFixedAdvance = pricingSettings?.fixedAdvanceAmount;
+  // Authoritative Fixed Advance Resolution strictly from Firestore settings (settings/paymentSettings.fixedAdvanceAmount), fallback to 200
+  const rawFixedAdvance = pricingSettings?.fixedAdvanceAmount !== undefined ? pricingSettings.fixedAdvanceAmount : 200;
   if (rawFixedAdvance === undefined || rawFixedAdvance === null || !isValidAmount(rawFixedAdvance) || Number(rawFixedAdvance) <= 0) {
     const error = new Error('Payment configuration error: Authoritative fixed advance amount is missing or invalid in server settings (settings/paymentSettings.fixedAdvanceAmount).');
     error.statusCode = 422;
