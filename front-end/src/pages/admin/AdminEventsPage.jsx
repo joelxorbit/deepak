@@ -44,9 +44,6 @@ export const AdminEventsPage = () => {
     venue: 'Elite Turf Main Arena',
     description: '',
     image: '',
-    registrationStatus: 'OPEN',
-    registrationDeadline: new Date().toISOString().split('T')[0],
-    maxParticipants: 16,
     currentParticipants: 0,
     contactPhone: '9876543210',
     contactEmail: '',
@@ -83,9 +80,6 @@ export const AdminEventsPage = () => {
       venue: 'Elite Turf Main Arena',
       description: '',
       image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=1200',
-      registrationStatus: 'OPEN',
-      registrationDeadline: todayStr,
-      maxParticipants: 16,
       currentParticipants: 0,
       contactPhone: '9876543210',
       contactEmail: '',
@@ -107,9 +101,6 @@ export const AdminEventsPage = () => {
       venue: evt.venue || 'Elite Turf Main Arena',
       description: evt.description || '',
       image: evt.image || '',
-      registrationStatus: evt.registrationStatus || 'OPEN',
-      registrationDeadline: evt.registrationDeadline ? evt.registrationDeadline.split('T')[0] : (evt.date ? evt.date.split('T')[0] : ''),
-      maxParticipants: evt.maxParticipants || 16,
       currentParticipants: evt.currentParticipants || 0,
       contactPhone: evt.contactPhone || '9876543210',
       contactEmail: evt.contactEmail || '',
@@ -164,11 +155,6 @@ export const AdminEventsPage = () => {
       return;
     }
 
-    if (formData.registrationDeadline && formData.date && formData.registrationDeadline > formData.date) {
-      addToast('Registration deadline cannot be after the event date.', 'error');
-      return;
-    }
-
     try {
       setSubmitting(true);
       const payload = {
@@ -180,9 +166,6 @@ export const AdminEventsPage = () => {
         venue: formData.venue.trim(),
         description: formData.description.trim(),
         image: formData.image.trim(),
-        registrationStatus: formData.registrationStatus,
-        registrationDeadline: formData.registrationDeadline,
-        maxParticipants: Number(formData.maxParticipants) || 16,
         currentParticipants: Number(formData.currentParticipants) || 0,
         contactPhone: formData.contactPhone.trim(),
         contactEmail: formData.contactEmail.trim() || undefined,
@@ -368,11 +351,7 @@ export const AdminEventsPage = () => {
                       )}
                     </div>
 
-                    {isClosed && (
-                      <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase">
-                        Reg Closed
-                      </span>
-                    )}
+
                   </div>
 
                   <div className="p-5 space-y-3">
@@ -380,18 +359,8 @@ export const AdminEventsPage = () => {
                       <span>{evt.date ? evt.date.split('T')[0] : ''}</span>
                       {evt.startTime && <span className="text-slate-500">{evt.startTime} - {evt.endTime}</span>}
                     </div>
-
                     <h3 className="font-bold text-base text-slate-900 line-clamp-1">{evt.title}</h3>
                     <p className="text-xs text-on-surface-variant line-clamp-2">{evt.description}</p>
-
-                    <div className="pt-2 border-t border-black/5 grid grid-cols-2 gap-2 text-[11px] text-slate-500">
-                      <div>
-                        Capacity: <span className="font-bold text-slate-800">{evt.currentParticipants || 0}/{evt.maxParticipants || 16}</span>
-                      </div>
-                      <div>
-                        Deadline: <span className="font-bold text-slate-800">{evt.registrationDeadline ? evt.registrationDeadline.split('T')[0] : 'N/A'}</span>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -522,40 +491,7 @@ export const AdminEventsPage = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Registration Status</label>
-                  <select
-                    value={formData.registrationStatus}
-                    onChange={(e) => setFormData({ ...formData, registrationStatus: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-primary font-bold"
-                  >
-                    <option value="OPEN">OPEN (Accepting Enquiries)</option>
-                    <option value="CLOSED">CLOSED (Reject New Enquiries)</option>
-                  </select>
-                </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Registration Deadline</label>
-                  <input
-                    type="date"
-                    value={formData.registrationDeadline}
-                    onChange={(e) => setFormData({ ...formData, registrationDeadline: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-primary"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Max Capacity</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.maxParticipants}
-                    onChange={(e) => setFormData({ ...formData, maxParticipants: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-primary"
-                  />
-                </div>
-              </div>
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1">Description *</label>

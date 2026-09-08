@@ -1,16 +1,6 @@
 import Joi from 'joi';
 
-const dateOrderValidator = (value, helpers) => {
-  const { date, registrationDeadline } = value;
-  if (date && registrationDeadline) {
-    const eventDate = new Date(date).toISOString().split('T')[0];
-    const regDeadline = new Date(registrationDeadline).toISOString().split('T')[0];
-    if (regDeadline > eventDate) {
-      return helpers.message('Registration deadline cannot be after the event date.');
-    }
-  }
-  return value;
-};
+
 
 export const createEventSchema = Joi.object({
   title: Joi.string().trim().min(3).max(150).required().messages({
@@ -33,11 +23,6 @@ export const createEventSchema = Joi.object({
   venue: Joi.string().trim().max(100).default('Main Arena (FIFA-Grade Turf)').optional(),
   image: Joi.string().trim().default('https://images.unsplash.com/photo-1574629810360-7efbbe195018').optional(),
   gallery: Joi.array().items(Joi.string().trim()).default([]).optional(),
-  registrationStatus: Joi.string().valid('OPEN', 'CLOSED').default('OPEN').optional(),
-  registrationDeadline: Joi.string().trim().allow('', null).optional(),
-  maxParticipants: Joi.number().integer().min(1).max(5000).allow(null).optional().messages({
-    'number.min': 'Maximum participants must be a positive integer greater than 0.'
-  }),
   currentParticipants: Joi.number().integer().min(0).default(0).optional(),
   contactPhone: Joi.string().trim().allow('', null).optional(),
   contactEmail: Joi.string().trim().email().allow('', null).optional(),
@@ -47,7 +32,7 @@ export const createEventSchema = Joi.object({
   ),
   status: Joi.string().valid('Upcoming', 'Published', 'Draft', 'Completed', 'Archived').optional(),
   isPublished: Joi.boolean().optional()
-}).custom(dateOrderValidator).unknown(true);
+}).unknown(true);
 
 export const updateEventSchema = Joi.object({
   title: Joi.string().trim().min(3).max(150).optional(),
@@ -59,9 +44,6 @@ export const updateEventSchema = Joi.object({
   venue: Joi.string().trim().max(100).optional(),
   image: Joi.string().trim().optional(),
   gallery: Joi.array().items(Joi.string().trim()).optional(),
-  registrationStatus: Joi.string().valid('OPEN', 'CLOSED').optional(),
-  registrationDeadline: Joi.string().trim().allow('', null).optional(),
-  maxParticipants: Joi.number().integer().min(1).max(5000).allow(null).optional(),
   currentParticipants: Joi.number().integer().min(0).optional(),
   contactPhone: Joi.string().trim().allow('', null).optional(),
   contactEmail: Joi.string().trim().email().allow('', null).optional(),
@@ -72,7 +54,7 @@ export const updateEventSchema = Joi.object({
   status: Joi.string().valid('Upcoming', 'Published', 'Draft', 'Completed', 'Archived').optional(),
   isPublished: Joi.boolean().optional(),
   isArchived: Joi.boolean().optional()
-}).custom(dateOrderValidator).unknown(true);
+}).unknown(true);
 
 export const uploadBannerSchema = Joi.object({
   imageBase64: Joi.string().required().messages({
