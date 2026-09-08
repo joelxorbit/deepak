@@ -4,6 +4,7 @@ import { useCustomerAuth } from '../../context/CustomerAuthContext';
 import { getCustomerBookingsApi } from '../../services/authService';
 import { fetchCustomerEnquiriesService } from '../../services/enquiryService';
 import { downloadTicketPdfService } from '../../services/bookingService';
+import { signInWithGoogle } from '../../config/firebase';
 import { ROUTES } from '../../constants/routes';
 
 export const AccountPage = () => {
@@ -39,6 +40,36 @@ export const AccountPage = () => {
   // Booking Details Modal state
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [downloadingPdfId, setDownloadingPdfId] = useState(null);
+
+  /**
+   * Handle Google Sign-In using Firebase Client SDK.
+   * Opens a Google popup → Firebase gets the credential → we get a Firebase ID token
+   * → send to backend → backend calls admin.auth().verifyIdToken() to validate securely.
+   */
+  const handleGoogleLogin = async () => {
+    setLoginError('');
+    setIsLoggingIn(true);
+    try {
+      const { idToken, user } = await signInWithGoogle();
+      await loginWithGoogle({
+        idToken,
+        name:   user.displayName,
+        avatar: user.photoURL,
+        email:  user.email,
+      });
+    } catch (err) {
+      // user closed popup → err.code === 'auth/popup-closed-by-user'
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+        setLoginError('Google sign-in was cancelled. Please try again.');
+      } else if (err.code === 'auth/popup-blocked') {
+        setLoginError('Google sign-in popup was blocked by your browser. Please allow popups for this site and try again.');
+      } else {
+        setLoginError(err.message || 'Google sign-in failed. Please try again.');
+      }
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
   const handleDownloadPdf = async (bookingId) => {
     if (!bookingId) return;
@@ -88,30 +119,7 @@ export const AccountPage = () => {
     }
   }, [isAuthenticated, activeTab, fetchBookings]);
 
-  // Handle Google Sign-In
-  const handleGoogleLogin = async () => {
-    try {
-      setLoginError('');
-      setIsLoggingIn(true);
-      if (window.google?.accounts?.id) {
-        window.google.accounts.id.prompt();
-      } else {
-        // Safe staging / browser fallback
-        const mockGoogleUser = {
-          idToken: 'mock_google_token_' + Date.now(),
-          googleId: 'g_' + Math.random().toString(36).substring(2, 10),
-          email: 'player.' + Math.random().toString(36).substring(2, 6) + '@gmail.com',
-          name: 'Google Player',
-          avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAGjlSY3ZH4Gg-wF0ZcHm93JeUDmZ8rd3X7blHWi5o64Z1TXN_1dTfFDvFZ46uvSYO1cu04G9DjwVQYWlc4lK8GRQ2oOPs32xxpxPHoT6WXIkVFQNMyIZlZz2GuT_DWM2867zkjkSt7d-6e6PonetgcZ0ZX3aDsszDdKVqleCv-iNwnEv8zQzPrmf1zuuvMXiKxQwYLpmQM-iOGvqZQFIl0nwefbF0VE_mPQ0OY_a7xbduKVZzlgQvNbQ'
-        };
-        await loginWithGoogle(mockGoogleUser);
-      }
-    } catch (err) {
-      setLoginError(err.message || 'Google sign-in failed. Please try again.');
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
+
 
   // Handle Customer Phone Login (Staging / Development)
   const handleLoginSubmit = async (e) => {

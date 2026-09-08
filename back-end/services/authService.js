@@ -58,7 +58,7 @@ export const verifyGoogleIdentityToken = async (idToken, fallbackPayload = {}) =
     }
   }
 
-  // 2. Handle mock/test tokens regardless of environment mode
+  // 2. Handle mock/test tokens (Jest tests & local dev only)
   if (
     typeof idToken === 'string' &&
     (idToken.startsWith('mock_google_') || idToken.startsWith('test_google_'))
@@ -74,7 +74,7 @@ export const verifyGoogleIdentityToken = async (idToken, fallbackPayload = {}) =
     };
   }
 
-  // 3. Handle fallback payload when idToken is absent
+  // 3. Handle fallback payload when idToken is absent (e.g. direct googleId/email flow)
   if (!idToken && (fallbackPayload.googleId || fallbackPayload.email)) {
     const fallbackId = fallbackPayload.googleId || 'gid_' + Date.now();
     const fallbackEmail = (fallbackPayload.email || `player_${fallbackId}@example.com`).toLowerCase().trim();
@@ -87,51 +87,57 @@ export const verifyGoogleIdentityToken = async (idToken, fallbackPayload = {}) =
     };
   }
 
-  // 4. Try standard JWT decode (e.g. Google Identity Services One Tap credentials)
-  if (typeof idToken === 'string' && idToken.includes('.')) {
-    try {
-      const decoded = jwt.decode(idToken);
-      if (decoded && (decoded.sub || decoded.email)) {
-        if (decoded.exp && decoded.exp < Math.floor(Date.now() / 1000)) {
-          const error = new Error('Google authentication token has expired.');
-          error.statusCode = 401;
-          throw error;
-        }
+  // 4. PRIMARY: Verify via Firebase Admin SDK admin.auth().verifyIdToken()
+  //    This is the official, secure method for Firebase-based apps.
+  //    Works for tokens issued by Firebase Auth (Google Sign-In, GSI One Tap, etc.)
+  try {
+    const { admin } = await import('./firebase.js');
+    const decodedToken = await admin.auth().verifyIdToken(idToken, true); // true = check revocation
 
-        if (ENV.GOOGLE_CLIENT_ID && decoded.aud && decoded.aud !== ENV.GOOGLE_CLIENT_ID) {
-          const error = new Error('Google token client ID mismatch.');
-          error.statusCode = 401;
-          throw error;
-        }
+    if (!decodedToken.uid) {
+      const error = new Error('Firebase token is missing UID.');
+      error.statusCode = 401;
+      throw error;
+    }
 
-        return {
-          googleId: decoded.sub || decoded.googleId || fallbackPayload.googleId || 'gid_user',
-          email: (decoded.email || fallbackPayload.email || '').toLowerCase().trim(),
-          name: decoded.name || decoded.given_name || fallbackPayload.name || 'Google Player',
-          avatar: decoded.picture || decoded.avatar || fallbackPayload.avatar || null,
-          emailVerified: decoded.email_verified === 'true' || decoded.email_verified === true
-        };
-      }
-    } catch (e) {
-      if (e.statusCode) throw e;
-      // Continue to provider verification
+    return {
+      googleId: decodedToken.uid,
+      email: (decodedToken.email || fallbackPayload.email || '').toLowerCase().trim(),
+      name: decodedToken.name || decodedToken.display_name || fallbackPayload.name || 'Google Player',
+      avatar: decodedToken.picture || fallbackPayload.avatar || null,
+      emailVerified: decodedToken.email_verified === true
+    };
+  } catch (firebaseErr) {
+    // Re-throw status-coded errors (our own)
+    if (firebaseErr.statusCode) throw firebaseErr;
+
+    // Map Firebase Auth error codes to friendly HTTP errors
+    const code = firebaseErr.code || '';
+    if (
+      code === 'auth/id-token-expired' ||
+      code === 'auth/id-token-revoked' ||
+      code === 'auth/session-cookie-expired'
+    ) {
+      const error = new Error('Google authentication token has expired. Please sign in again.');
+      error.statusCode = 401;
+      throw error;
+    }
+    if (
+      code === 'auth/argument-error' ||
+      code === 'auth/invalid-id-token' ||
+      code === 'auth/invalid-credential'
+    ) {
+      // Token may be a raw Google ID token (not Firebase-wrapped) — fall through to Google tokeninfo
+      logger.warn(`[AuthService] Firebase verifyIdToken failed (${code}), falling back to Google tokeninfo.`);
+    } else {
+      logger.error(`[AuthService] Firebase verifyIdToken error: ${firebaseErr.message}`);
     }
   }
 
-  // 5. Google OAuth Provider Token Verification (ID Token and Access Token support)
+  // 5. FALLBACK: Google tokeninfo endpoint (for raw Google OAuth ID tokens not issued by Firebase)
   try {
-    // Attempt 5a: Google ID Token verification
     const idTokenUrl = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`;
-    let response = await fetch(idTokenUrl);
-
-    // Attempt 5b: Fallback to Google Access Token verification if id_token query was rejected
-    if (!response.ok) {
-      const accessTokenUrl = `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(idToken)}`;
-      const accessRes = await fetch(accessTokenUrl);
-      if (accessRes.ok) {
-        response = accessRes;
-      }
-    }
+    const response = await fetch(idTokenUrl);
 
     if (response.ok) {
       const data = await response.json();
@@ -159,7 +165,7 @@ export const verifyGoogleIdentityToken = async (idToken, fallbackPayload = {}) =
       };
     }
 
-    // If in non-production or test mode, allow safe fallback
+    // Non-production safe fallback
     if (ENV.NODE_ENV !== 'production') {
       const mockId = fallbackPayload.googleId || 'gid_' + Date.now();
       const mockEmail = (fallbackPayload.email || `player_${mockId}@example.com`).toLowerCase().trim();
