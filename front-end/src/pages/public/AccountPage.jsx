@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCustomerAuth } from '../../context/CustomerAuthContext';
 import { getCustomerBookingsApi } from '../../services/authService';
 import { fetchCustomerEnquiriesService } from '../../services/enquiryService';
@@ -9,7 +9,14 @@ import { ROUTES } from '../../constants/routes';
 
 export const AccountPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { customer, isAuthenticated, isLoading: isAuthLoading, loginCustomer, loginWithGoogle, updateProfile, logoutCustomer, authError } = useCustomerAuth();
+
+  useEffect(() => {
+    if (isAuthenticated && location.state?.from) {
+      navigate(location.state.from, { replace: true });
+    }
+  }, [isAuthenticated, location, navigate]);
 
   // Login form state (for unauthenticated users)
   const [loginPhone, setLoginPhone] = useState('');
