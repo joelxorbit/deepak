@@ -138,7 +138,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
 
   const handleSlotToggle = useCallback((slot) => {
     setErrorMsg('');
-    if (bookedSlots.includes(slot)) return;
+    if (bookedSlots.includes(slot) || blockedSlots.includes(slot)) return;
 
     setSelectedSlots((prevSelected) => {
       if (prevSelected.includes(slot)) {
@@ -160,7 +160,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
         }
       }
     });
-  }, [bookedSlots]);
+  }, [bookedSlots, blockedSlots]);
 
   const handleReset = useCallback(() => {
     setFullName('');

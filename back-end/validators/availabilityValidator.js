@@ -11,7 +11,14 @@ export const blockSlotSchema = Joi.object({
   isFullDay: Joi.boolean().optional(),
   slot: Joi.string().trim().allow(null, '').optional(),
   slots: Joi.array().items(Joi.string()).optional(),
-  sportId: Joi.string().trim().optional()
+  sportId: Joi.string().trim().optional(),
+  blockType: Joi.string().trim().valid('maintenance', 'private_booking').optional(),
+  paymentInfo: Joi.object({
+    name: Joi.string().allow('', null).optional(),
+    phone: Joi.string().allow('', null).optional(),
+    amount: Joi.number().allow(null).optional(),
+    note: Joi.string().allow('', null).optional()
+  }).allow(null).optional()
 }).or('dateStr', 'date').unknown(true);
 
 export const validateBlockSlot = (req, res, next) => {

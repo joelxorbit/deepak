@@ -24,6 +24,7 @@ export const AdminLayout = ({ children }) => {
     { id: 'rates', path: ROUTES.ADMIN_RATES, label: 'Rates & Pricing', icon: 'currency_rupee' },
     { id: 'enquiries', path: ROUTES.ADMIN_ENQUIRIES, label: 'Enquiries', icon: 'mail' },
     { id: 'events', path: ROUTES.ADMIN_EVENTS, label: 'Events Console', icon: 'event' },
+    { id: 'freeze', path: ROUTES.ADMIN_FREEZE, label: 'Freeze Manager', icon: 'ac_unit' },
   ];
 
   return (
