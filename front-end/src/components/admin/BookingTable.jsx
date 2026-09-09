@@ -138,27 +138,42 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
       <div className="hidden md:block overflow-x-auto rounded-3xl border border-black/5 bg-white shadow-sm">
         <table className="w-full text-left text-sm table-fixed">
           <colgroup>
-            <col style={{ width: '14%' }} />
-            <col style={{ width: '14%' }} />
-            <col style={{ width: '9%' }} />
-            <col style={{ width: '22%' }} />
-            <col style={{ width: '8%' }} />
-            <col style={{ width: '11%' }} />
-            <col style={{ width: '10%' }} />
-            <col style={{ width: '10%' }} />
-            {showActions && <col style={{ width: '12%' }} />}
+            {showActions ? (
+              <>
+                <col style={{ width: '13%' }} />
+                <col style={{ width: '13%' }} />
+                <col style={{ width: '9%' }} />
+                <col style={{ width: '16%' }} />
+                <col style={{ width: '9%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '9%' }} />
+                <col style={{ width: '9%' }} />
+                <col style={{ width: '11%' }} />
+              </>
+            ) : (
+              <>
+                <col style={{ width: '15%' }} />
+                <col style={{ width: '15%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '18%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '9%' }} />
+                <col style={{ width: '9%' }} />
+              </>
+            )}
           </colgroup>
           <thead>
             <tr className="bg-gradient-to-r from-slate-50 to-white border-b-2 border-slate-100">
-              <th className="px-5 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Booking ID</th>
-              <th className="px-5 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Customer</th>
-              <th className="px-5 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Date</th>
-              <th className="px-5 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Time Slots</th>
-              <th className="px-5 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider text-right">Amount</th>
-              <th className="px-5 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Payment</th>
-              <th className="px-5 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Review</th>
-              <th className="px-5 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Status</th>
-              {showActions && <th className="px-5 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider text-center">Actions</th>}
+              <th className="px-4 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Booking ID</th>
+              <th className="px-4 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Customer</th>
+              <th className="px-4 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Date</th>
+              <th className="px-4 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Time Slots</th>
+              <th className="px-4 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Amount</th>
+              <th className="px-4 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Payment</th>
+              <th className="px-4 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Review</th>
+              <th className="px-4 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Status</th>
+              {showActions && <th className="px-4 py-3.5 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider text-center">Actions</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
@@ -194,12 +209,12 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
                   className={`group transition-colors ${rowIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-primary/[0.025] ${onRowClick ? 'cursor-pointer' : ''}`}
                 >
                   {/* Booking ID */}
-                  <td className="px-5 py-4 align-top">
+                  <td className="px-4 py-4 align-top">
                     <span className="font-extrabold text-primary text-xs tracking-wide block leading-relaxed">{displayId}</span>
                   </td>
 
                   {/* Customer */}
-                  <td className="px-5 py-4 align-top overflow-hidden">
+                  <td className="px-4 py-4 align-top overflow-hidden">
                     <p className="font-bold text-slate-800 text-xs leading-tight truncate">{customerName}</p>
                     {mobileNumber && (
                       <p className="text-[10px] text-slate-400 font-mono mt-0.5 tracking-wide">{mobileNumber}</p>
@@ -207,13 +222,13 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
                   </td>
 
                   {/* Date */}
-                  <td className="px-5 py-4 align-top">
+                  <td className="px-4 py-4 align-top">
                     <span className="text-xs font-bold text-slate-700 block">{dateParts[0]} {dateParts[1]}</span>
                     <span className="text-[10px] text-slate-400">{dateParts[2]}</span>
                   </td>
 
                   {/* Slots */}
-                  <td className="px-5 py-4 align-top">
+                  <td className="px-4 py-4 align-top">
                     <div className="flex flex-wrap gap-1">
                       {slotsList.map((s, idx) => (
                         <span key={idx} className="inline-block bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-md border border-primary/15 whitespace-nowrap">
@@ -224,12 +239,12 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
                   </td>
 
                   {/* Amount */}
-                  <td className="px-5 py-4 align-top text-right">
+                  <td className="px-4 py-4 align-top">
                     <span className="font-extrabold text-slate-800 text-sm">₹{totalAmt.toLocaleString('en-IN')}</span>
                   </td>
 
                   {/* Payment */}
-                  <td className="px-5 py-4 align-top">
+                  <td className="px-4 py-4 align-top">
                     <span className={`inline-flex items-center text-[11px] font-bold px-2.5 py-1 rounded-lg ${payBadgeStyle}`}>
                       {paymentStatus}
                     </span>
@@ -239,7 +254,7 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
                   </td>
 
                   {/* Review */}
-                  <td className="px-5 py-4 align-top">
+                  <td className="px-4 py-4 align-top">
                     {isReviewed ? (
                       <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold px-2.5 py-1 rounded-lg border border-emerald-200">
                         <span className="material-symbols-outlined text-xs">check_circle</span>
@@ -254,7 +269,7 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
                   </td>
 
                   {/* Status */}
-                  <td className="px-5 py-4 align-top">
+                  <td className="px-4 py-4 align-top">
                     <span className={`inline-flex items-center text-[11px] font-bold px-2.5 py-1 rounded-lg ${statusBadgeStyle}`}>
                       {b.status}
                     </span>
@@ -267,7 +282,7 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
 
                   {/* Actions */}
                   {showActions && (
-                    <td onClick={(e) => e.stopPropagation()} className="px-5 py-4 align-top">
+                    <td onClick={(e) => e.stopPropagation()} className="px-4 py-4 align-top">
                       <div className="flex flex-wrap items-center justify-center gap-1.5">
                         <button
                           onClick={(e) => handleDownloadPdf(e, displayId)}
