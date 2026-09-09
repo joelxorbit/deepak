@@ -71,11 +71,12 @@ export const AdminLayout = ({ children }) => {
 
       {/* Mobile Slide Drawer */}
       <aside 
-        className={`md:hidden fixed top-0 bottom-0 left-0 z-50 w-72 bg-surface-dark text-white p-6 flex flex-col justify-between transition-transform duration-300 ease-in-out overflow-y-auto ${
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className={`md:hidden fixed top-0 bottom-0 left-0 z-50 w-72 bg-surface-dark text-white p-6 flex flex-col justify-between transition-transform duration-300 ease-in-out overflow-y-auto overflow-x-hidden hide-scrollbar ${
           isMobileDrawerOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div>
+        <div className="overflow-x-hidden">
           <div className="flex items-center justify-between pb-6 mb-6 border-b border-white/10">
             <div className="flex items-center gap-3">
               <img 
@@ -93,7 +94,7 @@ export const AdminLayout = ({ children }) => {
             </button>
           </div>
 
-          <nav className="space-y-1.5">
+          <nav className="space-y-1.5 overflow-x-hidden hide-scrollbar">
             {navItems.map((item) => (
               <NavLink
                 key={item.id}
@@ -129,11 +130,12 @@ export const AdminLayout = ({ children }) => {
       <aside 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`hidden md:flex sticky top-0 h-screen bg-surface-dark text-white p-4 flex-col justify-between border-r border-white/10 shrink-0 transition-all duration-300 ease-in-out z-30 ${
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className={`hidden md:flex sticky top-0 h-screen bg-surface-dark text-white p-4 flex-col justify-between border-r border-white/10 shrink-0 transition-all duration-300 ease-in-out z-30 overflow-x-hidden hide-scrollbar ${
           isHovered ? 'w-64' : 'w-20'
         }`}
       >
-        <div>
+        <div className="overflow-x-hidden">
           <div 
             onClick={() => navigate(ROUTES.HOME)}
             className="flex items-center gap-3 mb-6 cursor-pointer px-2 py-2 rounded-xl hover:bg-white/5 transition-colors overflow-hidden"
@@ -148,7 +150,10 @@ export const AdminLayout = ({ children }) => {
             </div>
           </div>
 
-          <nav className="space-y-1.5 overflow-y-auto max-h-[calc(100vh-180px)]">
+          <nav 
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            className="space-y-1.5 overflow-y-auto overflow-x-hidden hide-scrollbar max-h-[calc(100vh-180px)]"
+          >
             {navItems.map((item) => (
               <NavLink
                 key={item.id}
@@ -220,7 +225,7 @@ export const AdminLayout = ({ children }) => {
         </header>
 
         {/* Main Content Viewport */}
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden hide-scrollbar max-w-7xl mx-auto w-full">
           {children}
         </main>
       </div>

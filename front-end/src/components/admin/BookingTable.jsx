@@ -248,9 +248,6 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
                     <span className={`inline-flex items-center text-[11px] font-bold px-2.5 py-1 rounded-lg ${payBadgeStyle}`}>
                       {paymentStatus}
                     </span>
-                    {b.paymentMethod && (
-                      <p className="text-[10px] text-slate-400 mt-1">{b.paymentMethod}</p>
-                    )}
                   </td>
 
                   {/* Review */}
