@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBooking } from '../../context/BookingContext';
+import { useCustomerAuth } from '../../context/CustomerAuthContext';
 import { TIME_SLOTS, areSlotsConsecutive } from '../../utils/bookingUtils';
 import { getTodayString } from '../../utils/dateUtils';
 import { ROUTES } from '../../constants/routes';
@@ -13,12 +14,20 @@ export const BookingForm = ({ navigate: navigateProp }) => {
   const navigate = navigateProp || navigateRouter;
 
   const { createBooking, getBookedSlotsForDate, getAvailabilityForDate, setIsTrackModalOpen, setIsCancelModalOpen } = useBooking();
+  const { customer, isAuthenticated } = useCustomerAuth();
 
   const todayStr = getTodayString();
 
-  const [fullName, setFullName] = useState('');
-  const [mobileNumber, setMobileNumber] = useState('');
+  const [fullName, setFullName] = useState(customer?.name || '');
+  const [mobileNumber, setMobileNumber] = useState(customer?.phone || '');
   const [bookingDate, setBookingDate] = useState(todayStr);
+
+  useEffect(() => {
+    if (isAuthenticated && customer) {
+      setFullName(prev => prev || (customer.name !== 'Player' && customer.name !== 'Guest Player' ? customer.name : '') || '');
+      setMobileNumber(prev => prev || customer.phone || '');
+    }
+  }, [isAuthenticated, customer]);
   const [bookedSlots, setBookedSlots] = useState([]);
   const [blockedSlots, setBlockedSlots] = useState([]);
   const [isFullDayBlocked, setIsFullDayBlocked] = useState(false);
@@ -163,14 +172,14 @@ export const BookingForm = ({ navigate: navigateProp }) => {
   }, [bookedSlots, blockedSlots]);
 
   const handleReset = useCallback(() => {
-    setFullName('');
-    setMobileNumber('');
+    setFullName(customer?.name !== 'Player' && customer?.name !== 'Guest Player' ? customer?.name || '' : '');
+    setMobileNumber(customer?.phone || '');
     setBookingDate(todayStr);
     setSelectedSlots([]);
     setPaymentOption('ADVANCE');
     setErrorMsg('');
     setIsSubmitting(false);
-  }, [todayStr]);
+  }, [todayStr, customer]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
