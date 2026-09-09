@@ -42,6 +42,8 @@ export const createRateRuleDoc = async (ruleData, adminUser = null) => {
     timeSlots: Array.isArray(ruleData.timeSlots) && ruleData.timeSlots.length > 0 ? ruleData.timeSlots : ['ALL'],
     isPeak: Boolean(ruleData.isPeak),
     status: ruleData.status || 'active',
+    ruleName: ruleData.ruleName || 'Price Rule',
+    notes: ruleData.notes || '',
     priority: ruleData.priority ? Number(ruleData.priority) : 10,
     createdBy: adminId,
     createdAt: now,

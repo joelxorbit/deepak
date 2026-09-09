@@ -1,0 +1,328 @@
+{
+  "bookings": [
+    {
+      "id": "doc_4e3ibjamvmtua978n",
+      "_id": "doc_4e3ibjamvmtua978n",
+      "bookingId": "BK-20290720-0001",
+      "customerId": "doc_58ls6win5mtua978i",
+      "customerName": "Alice Johnson",
+      "customerPhone": "9876500001",
+      "customerEmail": "alice@example.com",
+      "sportId": "football-5v5",
+      "sportType": "Football Arena (5v5)",
+      "dateStr": "2029-07-20",
+      "timeSlots": [
+        "06:00 AM - 07:00 AM",
+        "07:00 AM - 08:00 AM"
+      ],
+      "slotCount": 2,
+      "slotPrice": 350,
+      "subtotal": 700,
+      "totalAmount": 700,
+      "advancePaid": 200,
+      "balanceDue": 500,
+      "paymentOption": "ADVANCE",
+      "paymentStatus": "Advance Paid",
+      "status": "Confirmed",
+      "isReviewed": true,
+      "pricingSnapshot": {
+        "ratePerHour": 350,
+        "subtotal": 700,
+        "totalAmount": 700,
+        "fixedAdvanceAmount": 200,
+        "advanceRequired": 200,
+        "advancePaid": 200,
+        "balanceDue": 500,
+        "snapshotVersion": 1
+      },
+      "createdAt": "2026-09-09T15:58:28.582Z",
+      "updatedAt": "2026-09-09T15:58:28.582Z"
+    },
+    {
+      "id": "doc_pwjbwt3p1mtua978o",
+      "_id": "doc_pwjbwt3p1mtua978o",
+      "bookingId": "BK-20290720-0002",
+      "customerId": "doc_5aimyfdqnmtua978l",
+      "customerName": "Bob Smith",
+      "customerPhone": "9876500002",
+      "customerEmail": "bob@example.com",
+      "sportId": "football-5v5",
+      "sportType": "Football Arena (5v5)",
+      "dateStr": "2029-07-20",
+      "timeSlots": [
+        "08:00 AM - 09:00 AM",
+        "09:00 AM - 10:00 AM"
+      ],
+      "slotCount": 2,
+      "slotPrice": 350,
+      "subtotal": 700,
+      "totalAmount": 700,
+      "advancePaid": 700,
+      "balanceDue": 0,
+      "paymentOption": "FULL",
+      "paymentStatus": "Fully Paid",
+      "status": "Confirmed",
+      "isReviewed": true,
+      "pricingSnapshot": {
+        "ratePerHour": 350,
+        "subtotal": 700,
+        "totalAmount": 700,
+        "fixedAdvanceAmount": 200,
+        "advanceRequired": 700,
+        "advancePaid": 700,
+        "balanceDue": 0,
+        "snapshotVersion": 1
+      },
+      "createdAt": "2026-09-09T15:58:28.584Z",
+      "updatedAt": "2026-09-09T15:58:28.584Z"
+    }
+  ],
+  "customers": [
+    {
+      "id": "doc_58ls6win5mtua978i",
+      "_id": "doc_58ls6win5mtua978i",
+      "name": "Alice Johnson",
+      "phone": "9876500001",
+      "email": "alice@example.com",
+      "isPhoneVerified": true,
+      "createdAt": "2026-09-09T15:58:28.578Z"
+    },
+    {
+      "id": "doc_5aimyfdqnmtua978l",
+      "_id": "doc_5aimyfdqnmtua978l",
+      "name": "Bob Smith",
+      "phone": "9876500002",
+      "email": "bob@example.com",
+      "isPhoneVerified": true,
+      "createdAt": "2026-09-09T15:58:28.581Z"
+    }
+  ],
+  "enquiries": [
+    {
+      "id": "doc_vzc5k6fjbmtua9797",
+      "_id": "doc_vzc5k6fjbmtua9797",
+      "name": "Praveen Player",
+      "phone": "9876543210",
+      "email": "player@example.com",
+      "subject": "General Inquiry",
+      "message": "Interested in registering a team of 8 players.",
+      "eventId": "doc_ay24cktkxmtua978p",
+      "eventTitle": "Monsoon Championship 2029",
+      "preferredDate": null,
+      "participantCount": null,
+      "contactPreference": "any",
+      "customerId": null,
+      "notes": null,
+      "status": "New",
+      "createdAt": "2026-09-09T15:58:28.603Z",
+      "updatedAt": "2026-09-09T15:58:28.603Z"
+    }
+  ],
+  "events": [
+    {
+      "id": "doc_ay24cktkxmtua978p",
+      "_id": "doc_ay24cktkxmtua978p",
+      "title": "Monsoon Championship 2029",
+      "slug": "monsoon-championship-2029",
+      "category": "Tournament",
+      "sportType": "Football",
+      "status": "published",
+      "eventDate": "2029-08-15",
+      "isRegistrationOpen": true,
+      "createdAt": "2026-09-09T15:58:28.585Z"
+    }
+  ],
+  "admins": [
+    {
+      "id": "doc_cxj9q4u34mtua978h",
+      "_id": "doc_cxj9q4u34mtua978h",
+      "username": "admin_phase8",
+      "email": "admin8@eliteturf.com",
+      "role": "admin",
+      "createdAt": "2026-09-09T15:58:28.577Z"
+    }
+  ],
+  "counters": [
+    {
+      "id": "1",
+      "count": 1
+    },
+    {
+      "id": "booking_20260910",
+      "_id": "booking_20260910",
+      "seq": 1,
+      "createdAt": "2026-09-09T15:55:41.847Z",
+      "updatedAt": "2026-09-09T15:55:41.847Z"
+    },
+    {
+      "id": "booking_20281120",
+      "_id": "booking_20281120",
+      "seq": 15,
+      "createdAt": "2026-09-09T15:56:18.217Z",
+      "updatedAt": "2026-09-09T15:57:49.206Z"
+    },
+    {
+      "id": "booking_20290515",
+      "_id": "booking_20290515",
+      "seq": 2,
+      "createdAt": "2026-09-09T15:58:09.270Z",
+      "updatedAt": "2026-09-09T15:58:09.415Z"
+    }
+  ],
+  "slot_holds": [],
+  "blocked_slots": [],
+  "settings": [
+    {
+      "id": "paymentSettings",
+      "_id": "paymentSettings",
+      "fixedAdvanceAmount": 200,
+      "createdAt": "2026-09-09T15:58:28.574Z",
+      "updatedAt": "2026-09-09T15:58:28.574Z"
+    },
+    {
+      "id": "general",
+      "_id": "general",
+      "businessName": "Elite Pitch Arena Stadium",
+      "venueAddress": "Plot 42, International Sports City",
+      "contactPhone": "9876543210",
+      "contactEmail": "arena@eliteturf.com",
+      "instructions": [
+        "Arrive 15 minutes before your scheduled slot.",
+        "Strictly wear astro-turf studs or flat-sole footwear.",
+        "Settle remaining balance before entering the pitch."
+      ],
+      "createdAt": "2026-09-09T15:58:28.575Z",
+      "updatedAt": "2026-09-09T15:58:28.575Z"
+    }
+  ],
+  "rates": [
+    {
+      "id": "rate_normal_hours",
+      "_id": "rate_normal_hours",
+      "ruleName": "Price Rule - \u20b9600 (Normal Hours)",
+      "sportId": "all",
+      "ratePerHour": 600,
+      "peakRatePerHour": 600,
+      "weekendRatePerHour": 600,
+      "daysOfWeek": [
+        "ALL"
+      ],
+      "timeSlots": [
+        "10:00 AM - 11:00 AM",
+        "11:00 AM - 12:00 PM",
+        "12:00 PM - 01:00 PM",
+        "01:00 PM - 02:00 PM",
+        "02:00 PM - 03:00 PM",
+        "03:00 PM - 04:00 PM"
+      ],
+      "isPeak": false,
+      "status": "active",
+      "priority": 20,
+      "notes": "Default Normal Hours (10 AM - 4 PM)",
+      "createdAt": "2026-09-09T12:00:00.000Z",
+      "updatedAt": "2026-09-09T12:00:00.000Z"
+    },
+    {
+      "id": "rate_peak_hours",
+      "_id": "rate_peak_hours",
+      "ruleName": "Price Rule - \u20b9800 (Peak Hours)",
+      "sportId": "all",
+      "ratePerHour": 800,
+      "peakRatePerHour": 800,
+      "weekendRatePerHour": 800,
+      "daysOfWeek": [
+        "ALL"
+      ],
+      "timeSlots": [
+        "04:00 AM - 05:00 AM",
+        "05:00 AM - 06:00 AM",
+        "06:00 AM - 07:00 AM",
+        "07:00 AM - 08:00 AM",
+        "08:00 AM - 09:00 AM",
+        "09:00 AM - 10:00 AM",
+        "04:00 PM - 05:00 PM",
+        "05:00 PM - 06:00 PM",
+        "06:00 PM - 07:00 PM",
+        "07:00 PM - 08:00 PM",
+        "08:00 PM - 09:00 PM",
+        "09:00 PM - 10:00 PM",
+        "10:00 PM - 11:00 PM",
+        "11:00 PM - 12:00 AM"
+      ],
+      "isPeak": true,
+      "status": "active",
+      "priority": 20,
+      "notes": "Default Peak Hours (All other times)",
+      "createdAt": "2026-09-09T12:00:00.000Z",
+      "updatedAt": "2026-09-09T12:00:00.000Z"
+    }
+  ],
+  "audit_logs": [
+    {
+      "id": "doc_7s31xex3smtua979a",
+      "_id": "doc_7s31xex3smtua979a",
+      "action": "ENQUIRY_CREATE",
+      "user": "Praveen Player",
+      "details": {
+        "enquiryId": "doc_vzc5k6fjbmtua9797",
+        "phone": "9876543210",
+        "eventId": "doc_ay24cktkxmtua978p"
+      },
+      "timestamp": "2026-09-09T15:58:28.606Z"
+    }
+  ],
+  "idempotency_keys": [],
+  "notifications": [
+    {
+      "id": "doc_qeatyvrb6mtua979d",
+      "_id": "doc_qeatyvrb6mtua979d",
+      "recipientType": "admin",
+      "recipientId": "admin",
+      "recipientPhone": null,
+      "recipientEmail": null,
+      "type": "ENQUIRY_RECEIVED",
+      "title": "Event Enquiry: Monsoon Championship 2029",
+      "message": "Enquiry from Praveen Player (9876543210): \"General Inquiry\"",
+      "bookingId": null,
+      "enquiryId": "doc_vzc5k6fjbmtua9797",
+      "eventId": "doc_ay24cktkxmtua978p",
+      "metadata": {
+        "name": "Praveen Player",
+        "phone": "9876543210",
+        "email": "player@example.com",
+        "eventId": "doc_ay24cktkxmtua978p",
+        "eventTitle": "Monsoon Championship 2029"
+      },
+      "idempotencyKey": "ENQUIRY_RECEIVED:doc_vzc5k6fjbmtua9797:admin",
+      "isRead": false,
+      "readAt": null,
+      "createdAt": "2026-09-09T15:58:28.609Z",
+      "updatedAt": "2026-09-09T15:58:28.609Z"
+    },
+    {
+      "id": "doc_naxuxoe4nmtua979g",
+      "_id": "doc_naxuxoe4nmtua979g",
+      "recipientType": "customer",
+      "recipientId": null,
+      "recipientPhone": "9876543210",
+      "recipientEmail": "player@example.com",
+      "type": "ENQUIRY_RECEIVED",
+      "title": "Enquiry Received",
+      "message": "Thank you for contacting Elite Turf! We have received your enquiry regarding Monsoon Championship 2029 and will get back to you shortly.",
+      "bookingId": null,
+      "enquiryId": "doc_vzc5k6fjbmtua9797",
+      "eventId": "doc_ay24cktkxmtua978p",
+      "metadata": {
+        "eventTitle": "Monsoon Championship 2029",
+        "subject": "General Inquiry"
+      },
+      "idempotencyKey": "ENQUIRY_RECEIVED:doc_vzc5k6fjbmtua9797:customer",
+      "isRead": false,
+      "readAt": null,
+      "createdAt": "2026-09-09T15:58:28.612Z",
+      "updatedAt": "2026-09-09T15:58:28.612Z"
+    }
+  ],
+  "admin": [],
+  "holds": []
+}

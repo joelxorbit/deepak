@@ -43,10 +43,10 @@ export const getFirebaseDiagnostics = () => {
 };
 
 export const initializeFirebase = () => {
-  if (process.env.JEST_WORKER_ID !== undefined || process.env.NODE_ENV === 'test') {
+  if (process.env.USE_LOCAL_DB === 'true' || process.env.JEST_WORKER_ID !== undefined || process.env.NODE_ENV === 'test') {
     if (!db) {
       db = new MockDb();
-      logger.info('[Firebase] Using MockDb for Jest testing environment to bypass missing credentials.');
+      logger.info('[Firebase] Using Persistent MockDb (back-end/data/local_db.json) for local execution.');
     }
     return { db, admin };
   }

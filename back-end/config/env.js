@@ -17,6 +17,7 @@ export const ENV = {
   JWT_SECRET: process.env.JWT_SECRET || 'super_secret_jwt_key_elite_pitch_2026',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
+  USE_LOCAL_DB: process.env.USE_LOCAL_DB === 'true',
   
   // Firebase Cloud Firestore Environment Configuration
   FIREBASE_TYPE: process.env.FIREBASE_TYPE || 'service_account',

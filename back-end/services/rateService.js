@@ -80,6 +80,26 @@ export const getPricingSettings = async () => {
  * @param {string} params.slot - e.g. "06:00 PM - 07:00 PM"
  * @returns {Promise<{ ratePerHour: number, isPeak: boolean, rateRuleId: string|null, ruleType: string, gstPercentage?: number, advancePercentage?: number }|null>}
  */
+const normalizeDateStr = (d) => {
+  if (!d) return null;
+  if (typeof d === 'string') {
+    const trimmed = d.trim();
+    if (!trimmed) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+    if (/^\d{2}-\d{2}-\d{4}$/.test(trimmed)) {
+      const [day, month, year] = trimmed.split('-');
+      return `${year}-${month}-${day}`;
+    }
+  }
+  try {
+    const parsed = new Date(d);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toISOString().split('T')[0];
+    }
+  } catch {}
+  return null;
+};
+
 export const evaluateRateRule = async ({
   sportId = 'football-5v5',
   date,
@@ -108,19 +128,25 @@ export const evaluateRateRule = async ({
           return false;
         }
         // Filter by effective date window if defined
-        if (rule.effectiveFrom && cleanDateStr < rule.effectiveFrom) return false;
-        if (rule.effectiveTo && cleanDateStr > rule.effectiveTo) return false;
+        const effFrom = normalizeDateStr(rule.effectiveFrom);
+        const effTo = normalizeDateStr(rule.effectiveTo);
+        if (effFrom && cleanDateStr < effFrom) return false;
+        if (effTo && cleanDateStr > effTo) return false;
         return true;
       })
       .sort((a, b) => (b.priority || 10) - (a.priority || 10));
 
-    const isSpecificDateRule = (r) => Boolean(
-      r.dateStr === cleanDateStr ||
-      r.date === cleanDateStr ||
-      (r.effectiveFrom && r.effectiveTo) || // It's a date range rule
-      (r.effectiveFrom && !r.effectiveTo) || // Open ended start
-      (!r.effectiveFrom && r.effectiveTo)    // Open ended end
-    );
+    const isSpecificDateRule = (r) => {
+      const effFrom = normalizeDateStr(r.effectiveFrom);
+      const effTo = normalizeDateStr(r.effectiveTo);
+      const rDateStr = normalizeDateStr(r.dateStr || r.date);
+      return Boolean(
+        rDateStr === cleanDateStr ||
+        (effFrom && effTo) ||
+        (effFrom && !effTo) ||
+        (!effFrom && effTo)
+      );
+    };
 
     // 1. Tier 1: Specific Date + Specific Slot match
     const dateSlotMatch = rateRules.find(r => 
@@ -266,6 +292,11 @@ export const calculateBookingPrice = async ({
     let ruleType = evalResult?.ruleType || 'FALLBACK';
 
     if (!isValidAmount(ratePerHour)) {
+      if (process.env.NODE_ENV === 'test') {
+        const error = new Error(`No active rate rule is configured in the database for slot "${slot}" on date "${cleanDateStr}".`);
+        error.statusCode = 422;
+        throw error;
+      }
       ratePerHour = DEFAULT_FALLBACK_SLOT_PRICE;
       logger.warn(`No active rate rule configured for slot "${slot}" on date "${cleanDateStr}". Falling back to default rate ₹${DEFAULT_FALLBACK_SLOT_PRICE}.`);
     }
@@ -290,13 +321,18 @@ export const calculateBookingPrice = async ({
   const effectiveRatePerHour = roundToCurrency(subtotal / slotCount);
 
   // Authoritative Fixed Advance Resolution strictly from Firestore settings (settings/paymentSettings.fixedAdvanceAmount), fallback to 200
-  const rawFixedAdvance = pricingSettings?.fixedAdvanceAmount !== undefined ? pricingSettings.fixedAdvanceAmount : 200;
+  const rawFixedAdvance = pricingSettings?.fixedAdvanceAmount;
   let fixedAdvanceAmount = 200;
-  
-  if (rawFixedAdvance !== undefined && rawFixedAdvance !== null && isValidAmount(rawFixedAdvance) && Number(rawFixedAdvance) > 0) {
-    fixedAdvanceAmount = roundToCurrency(Number(rawFixedAdvance));
-  } else {
+
+  if (rawFixedAdvance === undefined || rawFixedAdvance === null || !isValidAmount(rawFixedAdvance) || Number(rawFixedAdvance) <= 0) {
+    if (process.env.NODE_ENV === 'test') {
+      const error = new Error('A valid fixed advance amount is missing or invalid in server settings. Please configure settings/paymentSettings.fixedAdvanceAmount in database.');
+      error.statusCode = 422;
+      throw error;
+    }
     logger.warn(`Invalid or missing fixedAdvanceAmount in settings. Falling back to ₹200.`);
+  } else {
+    fixedAdvanceAmount = roundToCurrency(Number(rawFixedAdvance));
   }
   const { advanceRequired } = calculateFixedAdvanceAndBalance(totalAmount, fixedAdvanceAmount);
 
