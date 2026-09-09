@@ -12,12 +12,8 @@ import {
 } from '../../services/eventService';
 
 const CATEGORIES = [
-  'Tournament',
-  'Friendly',
-  'League',
-  'Academy',
-  'Corporate',
-  'COMPLETED'
+  'Upcoming',
+  'Completed'
 ];
 
 export const AdminEventsPage = () => {
@@ -37,7 +33,7 @@ export const AdminEventsPage = () => {
   // Form State
   const [formData, setFormData] = useState({
     title: '',
-    category: 'Tournament',
+    category: 'Upcoming',
     date: new Date().toISOString().split('T')[0],
     startTime: '09:00',
     endTime: '18:00',
@@ -47,7 +43,6 @@ export const AdminEventsPage = () => {
     currentParticipants: 0,
     contactPhone: '9876543210',
     contactEmail: '',
-    rules: '',
     isPublished: true,
     status: 'Upcoming'
   });
@@ -73,7 +68,7 @@ export const AdminEventsPage = () => {
     const todayStr = new Date().toISOString().split('T')[0];
     setFormData({
       title: '',
-      category: 'Tournament',
+      category: 'Upcoming',
       date: todayStr,
       startTime: '09:00',
       endTime: '18:00',
@@ -83,7 +78,6 @@ export const AdminEventsPage = () => {
       currentParticipants: 0,
       contactPhone: '9876543210',
       contactEmail: '',
-      rules: '',
       isPublished: true,
       status: 'Upcoming'
     });
@@ -94,7 +88,7 @@ export const AdminEventsPage = () => {
     setEditingId(evt.id || evt._id);
     setFormData({
       title: evt.title || '',
-      category: evt.category || 'Tournament',
+      category: evt.category || 'Upcoming',
       date: evt.date ? evt.date.split('T')[0] : '',
       startTime: evt.startTime || '09:00',
       endTime: evt.endTime || '18:00',
@@ -104,7 +98,6 @@ export const AdminEventsPage = () => {
       currentParticipants: evt.currentParticipants || 0,
       contactPhone: evt.contactPhone || '9876543210',
       contactEmail: evt.contactEmail || '',
-      rules: Array.isArray(evt.rules) ? evt.rules.join('\n') : (evt.rules || ''),
       isPublished: Boolean(evt.isPublished),
       status: evt.status || 'Upcoming'
     });
@@ -169,7 +162,6 @@ export const AdminEventsPage = () => {
         currentParticipants: Number(formData.currentParticipants) || 0,
         contactPhone: formData.contactPhone.trim(),
         contactEmail: formData.contactEmail.trim() || undefined,
-        rules: formData.rules ? formData.rules.split('\n').filter(r => r.trim().length > 0) : [],
         isPublished: formData.isPublished,
         status: formData.status
       };
@@ -540,18 +532,6 @@ export const AdminEventsPage = () => {
                     />
                   </div>
                 )}
-              </div>
-
-              {/* Rules / Guidelines */}
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Tournament Rules & Notes (One per line)</label>
-                <textarea
-                  rows="2"
-                  value={formData.rules}
-                  onChange={(e) => setFormData({ ...formData, rules: e.target.value })}
-                  placeholder="1. FIFA standard rules apply&#10;2. Non-marking studs mandatory"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-primary"
-                ></textarea>
               </div>
 
               <div className="flex items-center gap-2 pt-2">

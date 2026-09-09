@@ -215,9 +215,8 @@ export const uploadEventBannerService = async ({ imageBase64, mimeType, fileName
     return { url: publicUrl, fileName: safeUniqueName };
   } catch (err) {
     // In staging / test environment where Storage bucket may be disabled or mocked,
-    // generate a safe deterministic public asset URI rather than throwing or storing raw local path
-    const fallbackUrl = `https://storage.googleapis.com/eliteturf-staging.appspot.com/${safeUniqueName}`;
-    logger.info(`[EventService] Storage staging fallback url generated: ${fallbackUrl}`);
-    return { url: fallbackUrl, fileName: safeUniqueName };
+    // fallback to storing the Base64 string directly in the database.
+    logger.warn(`[EventService] Firebase storage failed/disabled, falling back to Base64 data URI.`);
+    return { url: imageBase64, fileName: safeUniqueName };
   }
 };

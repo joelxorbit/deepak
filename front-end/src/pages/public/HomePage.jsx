@@ -1,10 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes';
 import headerBgVideo from '../../assets/header bg video.mp4';
+import { getPublicEventsService } from '../../services/eventService';
 
 export const HomePage = () => {
   const navigate = useNavigate();
+  const [events, setEvents] = useState([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const data = await getPublicEventsService();
+        if (Array.isArray(data)) setEvents(data);
+      } catch (err) {
+        console.warn('Failed to fetch events', err);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const upcomingEvents = events.filter(e => !e.isArchived && e.status === 'Upcoming' && e.date >= todayStr);
+  const completedEvents = events.filter(e => !e.isArchived && (e.status === 'Completed' || e.category === 'Completed' || (e.date < todayStr && e.status !== 'Upcoming')));
+
+  useEffect(() => {
+    if (upcomingEvents.length === 0 && completedEvents.length > 1) {
+      const timer = setInterval(() => {
+        setCurrentSlide(prev => (prev + 1) % completedEvents.length);
+      }, 3000);
+      return () => clearInterval(timer);
+    }
+  }, [upcomingEvents.length, completedEvents.length]);
 
   const sportsList = [
     {
@@ -134,6 +162,94 @@ export const HomePage = () => {
           </div>
         </div>
       </section>
+
+      {/* EVENT BANNER SECTION */}
+      {(upcomingEvents.length > 0 || completedEvents.length > 0) && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
+          <div 
+            onClick={() => navigate(ROUTES.EVENTS)}
+            className="bg-white rounded-3xl shadow-2xl shadow-emerald-900/5 border border-black/5 overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-1 hover:shadow-emerald-900/10"
+          >
+            {upcomingEvents.length > 0 ? (
+              <div className="flex flex-col md:flex-row items-stretch">
+                <div className="w-full md:w-1/3 h-48 md:h-auto relative overflow-hidden">
+                  <img 
+                    src={upcomingEvents[0].image || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'} 
+                    alt={upcomingEvents[0].title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'; }}
+                  />
+                  <div className="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-lg">
+                    Upcoming Event
+                  </div>
+                </div>
+                <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center space-y-4 relative overflow-hidden">
+                  <div className="absolute right-0 top-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+                  <div className="flex items-center gap-3 text-xs font-mono font-bold text-emerald-600 relative z-10">
+                    <span className="material-symbols-outlined text-base">calendar_month</span>
+                    <span>{upcomingEvents[0].date ? upcomingEvents[0].date.split('T')[0] : ''}</span>
+                    {upcomingEvents[0].startTime && (
+                      <>
+                        <span className="text-black/20">•</span>
+                        <span className="text-slate-500 font-sans">{upcomingEvents[0].startTime} - {upcomingEvents[0].endTime}</span>
+                      </>
+                    )}
+                  </div>
+                  <h3 className="font-extrabold text-2xl sm:text-3xl text-slate-900 group-hover:text-emerald-600 transition-colors relative z-10">
+                    {upcomingEvents[0].title}
+                  </h3>
+                  <p className="text-sm text-slate-600 line-clamp-2 max-w-2xl relative z-10">
+                    {upcomingEvents[0].description}
+                  </p>
+                  <div className="pt-2 relative z-10">
+                    <span className="inline-flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider">
+                      View Event Details <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col md:flex-row items-stretch">
+                <div className="w-full md:w-1/3 h-48 md:h-auto relative overflow-hidden">
+                  <img 
+                    src={completedEvents[currentSlide]?.image || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'} 
+                    alt={completedEvents[currentSlide]?.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 animate-fade-in"
+                    key={currentSlide}
+                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'; }}
+                  />
+                  <div className="absolute top-4 left-4 bg-slate-800 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-lg">
+                    Past Event Showcase
+                  </div>
+                </div>
+                <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center space-y-4 relative overflow-hidden min-h-[200px]">
+                  <div className="flex items-center gap-3 text-xs font-mono font-bold text-slate-500 relative z-10 animate-fade-in" key={`date-${currentSlide}`}>
+                    <span className="material-symbols-outlined text-base">calendar_month</span>
+                    <span>{completedEvents[currentSlide]?.date ? completedEvents[currentSlide]?.date.split('T')[0] : ''}</span>
+                  </div>
+                  <h3 className="font-extrabold text-2xl sm:text-3xl text-slate-900 group-hover:text-emerald-600 transition-colors relative z-10 animate-fade-in" key={`title-${currentSlide}`}>
+                    {completedEvents[currentSlide]?.title}
+                  </h3>
+                  <p className="text-sm text-slate-600 line-clamp-2 max-w-2xl relative z-10 animate-fade-in" key={`desc-${currentSlide}`}>
+                    {completedEvents[currentSlide]?.description}
+                  </p>
+                  
+                  {completedEvents.length > 1 && (
+                    <div className="absolute bottom-6 right-8 flex gap-1.5 z-20">
+                      {completedEvents.map((_, idx) => (
+                        <div 
+                          key={idx} 
+                          className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentSlide ? 'w-6 bg-emerald-500' : 'w-1.5 bg-slate-300'}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* 2. SPORTS & EVENTS WE HOST SHOWCASE */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
