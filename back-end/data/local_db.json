@@ -197,62 +197,25 @@
   ],
   "rates": [
     {
-      "id": "rate_normal_hours",
-      "_id": "rate_normal_hours",
-      "ruleName": "Price Rule - \u20b9600 (Normal Hours)",
+      "id": "rate_standard",
+      "_id": "rate_standard",
+      "ruleName": "Price Rule - ₹600 (Normal) / ₹800 (Peak)",
       "sportId": "all",
       "ratePerHour": 600,
-      "peakRatePerHour": 600,
-      "weekendRatePerHour": 600,
+      "peakRatePerHour": 800,
+      "weekendRatePerHour": 800,
+      "effectiveFrom": "2026-09-09",
+      "effectiveTo": "2026-10-09",
       "daysOfWeek": [
         "ALL"
       ],
       "timeSlots": [
-        "10:00 AM - 11:00 AM",
-        "11:00 AM - 12:00 PM",
-        "12:00 PM - 01:00 PM",
-        "01:00 PM - 02:00 PM",
-        "02:00 PM - 03:00 PM",
-        "03:00 PM - 04:00 PM"
+        "ALL"
       ],
       "isPeak": false,
       "status": "active",
       "priority": 20,
-      "notes": "Default Normal Hours (10 AM - 4 PM)",
-      "createdAt": "2026-09-09T12:00:00.000Z",
-      "updatedAt": "2026-09-09T12:00:00.000Z"
-    },
-    {
-      "id": "rate_peak_hours",
-      "_id": "rate_peak_hours",
-      "ruleName": "Price Rule - \u20b9800 (Peak Hours)",
-      "sportId": "all",
-      "ratePerHour": 800,
-      "peakRatePerHour": 800,
-      "weekendRatePerHour": 800,
-      "daysOfWeek": [
-        "ALL"
-      ],
-      "timeSlots": [
-        "04:00 AM - 05:00 AM",
-        "05:00 AM - 06:00 AM",
-        "06:00 AM - 07:00 AM",
-        "07:00 AM - 08:00 AM",
-        "08:00 AM - 09:00 AM",
-        "09:00 AM - 10:00 AM",
-        "04:00 PM - 05:00 PM",
-        "05:00 PM - 06:00 PM",
-        "06:00 PM - 07:00 PM",
-        "07:00 PM - 08:00 PM",
-        "08:00 PM - 09:00 PM",
-        "09:00 PM - 10:00 PM",
-        "10:00 PM - 11:00 PM",
-        "11:00 PM - 12:00 AM"
-      ],
-      "isPeak": true,
-      "status": "active",
-      "priority": 20,
-      "notes": "Default Peak Hours (All other times)",
+      "notes": "Normal: ₹600 (10 AM - 4 PM) & Peak: ₹800 (All other times)",
       "createdAt": "2026-09-09T12:00:00.000Z",
       "updatedAt": "2026-09-09T12:00:00.000Z"
     }

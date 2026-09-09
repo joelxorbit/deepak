@@ -40,6 +40,44 @@ export const getDayOfWeekCode = (date) => {
  * @param {string} dayCode
  * @returns {boolean}
  */
+export const NORMAL_HOUR_SLOTS = [
+  '10:00 AM - 11:00 AM',
+  '11:00 AM - 12:00 PM',
+  '12:00 PM - 01:00 PM',
+  '01:00 PM - 02:00 PM',
+  '02:00 PM - 03:00 PM',
+  '03:00 PM - 04:00 PM'
+];
+
+export const isNormalHourSlot = (slot) => {
+  if (!slot || typeof slot !== 'string') return false;
+  return NORMAL_HOUR_SLOTS.includes(slot.trim());
+};
+
+export const resolveRulePriceForSlot = (rule, slot) => {
+  if (!rule) return null;
+  // If rule specifies peakRatePerHour and it differs/is configured
+  if (rule.peakRatePerHour !== undefined && rule.peakRatePerHour !== null && isValidAmount(rule.peakRatePerHour)) {
+    const isNormal = isNormalHourSlot(slot);
+    if (isNormal) {
+      return {
+        ratePerHour: roundToCurrency(rule.ratePerHour),
+        isPeak: false
+      };
+    } else {
+      return {
+        ratePerHour: roundToCurrency(rule.peakRatePerHour),
+        isPeak: true
+      };
+    }
+  }
+
+  return {
+    ratePerHour: roundToCurrency(rule.ratePerHour),
+    isPeak: Boolean(rule.isPeak)
+  };
+};
+
 export const isWeekend = (dayCode) => {
   return dayCode === 'SAT' || dayCode === 'SUN';
 };
@@ -156,9 +194,10 @@ export const evaluateRateRule = async ({
       r.timeSlots.includes(slot)
     );
     if (dateSlotMatch && isValidAmount(dateSlotMatch.ratePerHour)) {
+      const resolved = resolveRulePriceForSlot(dateSlotMatch, slot);
       return {
-        ratePerHour: roundToCurrency(dateSlotMatch.ratePerHour),
-        isPeak: Boolean(dateSlotMatch.isPeak),
+        ratePerHour: resolved.ratePerHour,
+        isPeak: resolved.isPeak,
         rateRuleId: dateSlotMatch.id,
         ruleType: 'SPECIFIC_DATE_SLOT',
         advancePercentage: dateSlotMatch.advancePercentage
@@ -173,9 +212,10 @@ export const evaluateRateRule = async ({
       return matchDay && matchSlot;
     });
     if (daySlotMatch && isValidAmount(daySlotMatch.ratePerHour)) {
+      const resolved = resolveRulePriceForSlot(daySlotMatch, slot);
       return {
-        ratePerHour: roundToCurrency(daySlotMatch.ratePerHour),
-        isPeak: Boolean(daySlotMatch.isPeak),
+        ratePerHour: resolved.ratePerHour,
+        isPeak: resolved.isPeak,
         rateRuleId: daySlotMatch.id,
         ruleType: 'DAY_SLOT',
         advancePercentage: daySlotMatch.advancePercentage
@@ -188,9 +228,10 @@ export const evaluateRateRule = async ({
       (!r.timeSlots || r.timeSlots.includes('ALL') || r.timeSlots.length === 0)
     );
     if (dateMatch && isValidAmount(dateMatch.ratePerHour)) {
+      const resolved = resolveRulePriceForSlot(dateMatch, slot);
       return {
-        ratePerHour: roundToCurrency(dateMatch.ratePerHour),
-        isPeak: Boolean(dateMatch.isPeak),
+        ratePerHour: resolved.ratePerHour,
+        isPeak: resolved.isPeak,
         rateRuleId: dateMatch.id,
         ruleType: 'SPECIFIC_DATE',
         advancePercentage: dateMatch.advancePercentage
@@ -205,9 +246,10 @@ export const evaluateRateRule = async ({
       return matchDay && matchSlot;
     });
     if (dayMatch && isValidAmount(dayMatch.ratePerHour)) {
+      const resolved = resolveRulePriceForSlot(dayMatch, slot);
       return {
-        ratePerHour: roundToCurrency(dayMatch.ratePerHour),
-        isPeak: Boolean(dayMatch.isPeak),
+        ratePerHour: resolved.ratePerHour,
+        isPeak: resolved.isPeak,
         rateRuleId: dayMatch.id,
         ruleType: 'DAY_ALL_SLOTS',
         advancePercentage: dayMatch.advancePercentage
@@ -221,9 +263,10 @@ export const evaluateRateRule = async ({
       (!r.timeSlots || r.timeSlots.includes('ALL') || r.timeSlots.length === 0)
     );
     if (baselineMatch && isValidAmount(baselineMatch.ratePerHour)) {
+      const resolved = resolveRulePriceForSlot(baselineMatch, slot);
       return {
-        ratePerHour: roundToCurrency(baselineMatch.ratePerHour),
-        isPeak: Boolean(baselineMatch.isPeak),
+        ratePerHour: resolved.ratePerHour,
+        isPeak: resolved.isPeak,
         rateRuleId: baselineMatch.id,
         ruleType: 'SPORT_BASELINE',
         advancePercentage: baselineMatch.advancePercentage

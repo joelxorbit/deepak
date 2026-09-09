@@ -109,34 +109,12 @@ export const RatesPage = () => {
   };
 
   const openEditModal = (rule) => {
-    const isPeakRule = Boolean(rule.isPeak);
     const ruleId = rule.id || rule._id;
     setEditingId(ruleId);
-    setEditingIsPeak(isPeakRule);
+    setCompanionEditingId(rule.companionId || null);
 
-    // Look for the companion rule (matching dates, opposite isPeak)
-    const companion = rates.find(r => {
-      const rId = r.id || r._id;
-      if (rId === ruleId) return false;
-      const isOppositePeak = Boolean(r.isPeak) !== isPeakRule;
-      const matchDates = (r.effectiveFrom || '') === (rule.effectiveFrom || '') && 
-                         (r.effectiveTo || '') === (rule.effectiveTo || '');
-      return isOppositePeak && matchDates;
-    });
-
-    const companionId = companion ? (companion.id || companion._id) : null;
-    setCompanionEditingId(companionId);
-
-    let normalRate = '';
-    let peakRate = '';
-
-    if (isPeakRule) {
-      peakRate = rule.ratePerHour || '';
-      normalRate = companion ? companion.ratePerHour : (rates.find(r => !r.isPeak)?.ratePerHour || 600);
-    } else {
-      normalRate = rule.ratePerHour || '';
-      peakRate = companion ? companion.ratePerHour : (rates.find(r => r.isPeak)?.ratePerHour || 800);
-    }
+    const normalRate = rule.ratePerHour || '';
+    const peakRate = rule.peakRatePerHour || rule.ratePerHour || '';
 
     setFormData({
       ruleName: rule.ruleName || '',
@@ -146,8 +124,8 @@ export const RatesPage = () => {
       effectiveFrom: toInputDate(rule.effectiveFrom),
       effectiveTo: toInputDate(rule.effectiveTo),
       status: rule.status || 'active',
-      isPeak: isPeakRule,
-      priority: rule.priority || 0,
+      isPeak: false,
+      priority: rule.priority || 20,
       notes: rule.notes || ''
     });
     setIsModalOpen(true);
@@ -167,69 +145,36 @@ export const RatesPage = () => {
 
     try {
       setSubmitting(true);
-      
-      const normalTimeSlots = [
-        "10:00 AM - 11:00 AM",
-        "11:00 AM - 12:00 PM",
-        "12:00 PM - 01:00 PM",
-        "01:00 PM - 02:00 PM",
-        "02:00 PM - 03:00 PM",
-        "03:00 PM - 04:00 PM"
-      ];
-      
-      const peakTimeSlots = TIME_SLOTS.filter(s => !normalTimeSlots.includes(s));
 
-      const payloadNormal = {
-        ruleName: `Price Rule - ₹${formData.ratePerHour} (Normal Hours)`,
+      const payload = {
+        ruleName: formData.ruleName?.trim() || `Price Rule - ₹${formData.ratePerHour} (Normal) / ₹${formData.peakRatePerHour} (Peak)`,
         sportId: 'all',
         ratePerHour: Number(formData.ratePerHour),
+        peakRatePerHour: Number(formData.peakRatePerHour),
+        weekendRatePerHour: Number(formData.peakRatePerHour),
         daysOfWeek: ['ALL'],
-        timeSlots: normalTimeSlots,
+        timeSlots: ['ALL'],
         effectiveFrom: formData.effectiveFrom || undefined,
         effectiveTo: formData.effectiveTo || undefined,
-        status: 'active',
+        status: formData.status || 'active',
         isPeak: false,
         priority: (formData.effectiveFrom || formData.effectiveTo) ? 50 : 20,
-        notes: `Dynamic pricing rule updated on ${new Date().toISOString().split('T')[0]}`
-      };
-
-      const payloadPeak = {
-        ruleName: `Price Rule - ₹${formData.peakRatePerHour} (Peak Hours)`,
-        sportId: 'all',
-        ratePerHour: Number(formData.peakRatePerHour),
-        daysOfWeek: ['ALL'],
-        timeSlots: peakTimeSlots,
-        effectiveFrom: formData.effectiveFrom || undefined,
-        effectiveTo: formData.effectiveTo || undefined,
-        status: 'active',
-        isPeak: true,
-        priority: (formData.effectiveFrom || formData.effectiveTo) ? 50 : 20,
-        notes: `Dynamic pricing rule updated on ${new Date().toISOString().split('T')[0]}`
+        notes: formData.notes || `Normal: ₹${formData.ratePerHour}/hr (10 AM - 4 PM) & Peak: ₹${formData.peakRatePerHour}/hr (All other times)`
       };
 
       if (!editingId) {
-        // Create both
-        await createRateRuleService(payloadNormal);
-        await createRateRuleService(payloadPeak);
-        addToast('Dynamic rate rules created successfully.', 'success');
+        // Create ONE single rule
+        await createRateRuleService(payload);
+        addToast('Dynamic rate rule created successfully.', 'success');
       } else {
-        // Update both
-        const normalRuleId = editingIsPeak ? companionEditingId : editingId;
-        const peakRuleId = editingIsPeak ? editingId : companionEditingId;
-
-        if (normalRuleId) {
-          await updateRateRuleService(normalRuleId, payloadNormal);
-        } else {
-          await createRateRuleService(payloadNormal);
+        // Update the single rule
+        await updateRateRuleService(editingId, payload);
+        if (companionEditingId) {
+          try {
+            await deleteRateRuleService(companionEditingId);
+          } catch {}
         }
-
-        if (peakRuleId) {
-          await updateRateRuleService(peakRuleId, payloadPeak);
-        } else {
-          await createRateRuleService(payloadPeak);
-        }
-
-        addToast('Rate rules updated successfully.', 'success');
+        addToast('Rate rule updated successfully.', 'success');
       }
       
       setIsModalOpen(false);
@@ -249,22 +194,33 @@ export const RatesPage = () => {
 
     try {
       await toggleRateRuleActiveService(id, nextState);
+      if (rule.companionId) {
+        try {
+          await toggleRateRuleActiveService(rule.companionId, nextState);
+        } catch {}
+      }
       addToast(`Rate rule ${nextState ? 'activated' : 'deactivated'}.`, 'success');
-      setRates(prev => prev.map(r => (r.id === id || r._id === id ? { ...r, status: nextState ? 'active' : 'inactive', isActive: nextState } : r)));
+      setRates(prev => prev.map(r => (r.id === id || r._id === id || r.id === rule.companionId || r._id === rule.companionId ? { ...r, status: nextState ? 'active' : 'inactive', isActive: nextState } : r)));
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to update rate status.', 'error');
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (rule) => {
+    const id = rule.id || rule._id;
     if (!window.confirm('Are you sure you want to delete this rate rule? Past booking pricing snapshots will not be affected.')) {
       return;
     }
 
     try {
       await deleteRateRuleService(id);
+      if (rule.companionId) {
+        try {
+          await deleteRateRuleService(rule.companionId);
+        } catch {}
+      }
       addToast('Rate rule deleted successfully.', 'success');
-      setRates(prev => prev.filter(r => r.id !== id && r._id !== id));
+      await loadRates();
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to delete rate rule.', 'error');
     }
@@ -301,6 +257,52 @@ export const RatesPage = () => {
     }
     return true;
   });
+
+  // Group legacy split companion rules into a single row, or display single rules
+  const displayRates = React.useMemo(() => {
+    const list = [];
+    const seenCompanionIds = new Set();
+
+    for (const rule of filteredRates) {
+      const id = rule.id || rule._id;
+      if (seenCompanionIds.has(id)) continue;
+
+      // Check if there is an old legacy companion rule
+      const companion = filteredRates.find(r => {
+        const rId = r.id || r._id;
+        if (rId === id || seenCompanionIds.has(rId)) return false;
+        const isOppositePeak = Boolean(r.isPeak) !== Boolean(rule.isPeak);
+        const matchDates = (r.effectiveFrom || '') === (rule.effectiveFrom || '') && 
+                           (r.effectiveTo || '') === (rule.effectiveTo || '');
+        return isOppositePeak && matchDates;
+      });
+
+      if (companion) {
+        const companionId = companion.id || companion._id;
+        seenCompanionIds.add(companionId);
+
+        const normalRule = !rule.isPeak ? rule : companion;
+        const peakRule = rule.isPeak ? rule : companion;
+
+        list.push({
+          ...normalRule,
+          id: normalRule.id || normalRule._id,
+          ratePerHour: normalRule.ratePerHour,
+          peakRatePerHour: peakRule.ratePerHour,
+          companionId: companionId,
+          ruleName: `Price Rule - ₹${normalRule.ratePerHour} (Normal) / ₹${peakRule.ratePerHour} (Peak)`
+        });
+      } else {
+        list.push({
+          ...rule,
+          id: rule.id || rule._id,
+          ratePerHour: rule.ratePerHour,
+          peakRatePerHour: rule.peakRatePerHour || rule.ratePerHour
+        });
+      }
+    }
+    return list;
+  }, [filteredRates]);
 
   return (
     <div className="space-y-6 animate-fade-in text-on-surface">
@@ -367,7 +369,7 @@ export const RatesPage = () => {
             <span className="material-symbols-outlined text-4xl animate-spin">progress_activity</span>
             <p className="mt-2 text-sm">Loading rate rules...</p>
           </div>
-        ) : filteredRates.length === 0 ? (
+        ) : displayRates.length === 0 ? (
           <div className="p-12 text-center text-slate-400">
             <span className="material-symbols-outlined text-4xl">currency_rupee</span>
             <p className="mt-2 text-sm font-semibold">No dynamic rate rules found.</p>
@@ -386,30 +388,47 @@ export const RatesPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5">
-                {filteredRates.map((rule) => {
+                {displayRates.map((rule) => {
                   const id = rule.id || rule._id;
                   const isActive = rule.status === 'active' || rule.isActive === true;
                   return (
                     <tr key={id} className="hover:bg-slate-50 transition-colors">
                       <td className="p-4 pl-6 space-y-1">
                         <div className="font-bold text-slate-900 text-sm">
-                          {rule.ruleName || `Price Update`}
+                          {rule.ruleName || `Price Rule - ₹${rule.ratePerHour} / ₹${rule.peakRatePerHour || rule.ratePerHour}`}
                         </div>
                         {rule.notes && <p className="text-[11px] text-slate-400 italic line-clamp-1">{rule.notes}</p>}
                       </td>
 
                       <td className="p-4">
-                        <div className="font-extrabold text-sm text-emerald-600 font-mono">
-                          ₹{rule.ratePerHour}
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-sm text-emerald-600 font-mono">
+                              ₹{rule.ratePerHour}
+                            </span>
+                            <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md">
+                              Normal (10 AM - 4 PM)
+                            </span>
+                          </div>
+                          {rule.peakRatePerHour && Number(rule.peakRatePerHour) !== Number(rule.ratePerHour) ? (
+                            <div className="flex items-center gap-2">
+                              <span className="font-extrabold text-sm text-amber-600 font-mono">
+                                ₹{rule.peakRatePerHour}
+                              </span>
+                              <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md">
+                                Peak (Other times)
+                              </span>
+                            </div>
+                          ) : null}
                         </div>
-                        <span className="text-[10px] text-slate-400">per hour (GST-free)</span>
+                        <span className="text-[10px] text-slate-400 block mt-1">per hour (GST-free)</span>
                       </td>
 
                       <td className="p-4 text-[11px] text-slate-600">
                         {rule.effectiveFrom || rule.effectiveTo ? (
-                          <div className="font-mono">
-                            <div>From: {rule.effectiveFrom || 'Ever'}</div>
-                            <div>To: {rule.effectiveTo || 'Indefinite'}</div>
+                          <div className="font-mono space-y-0.5">
+                            <div>From: <span className="font-semibold text-slate-800">{rule.effectiveFrom || 'Ever'}</span></div>
+                            <div>To: <span className="font-semibold text-slate-800">{rule.effectiveTo || 'Indefinite'}</span></div>
                           </div>
                         ) : (
                           <span className="text-slate-400 italic">Always effective</span>
@@ -440,7 +459,7 @@ export const RatesPage = () => {
                             <span className="material-symbols-outlined text-base">edit</span>
                           </button>
                           <button
-                            onClick={() => handleDelete(id)}
+                            onClick={() => handleDelete(rule)}
                             className="p-1.5 rounded-lg bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-colors"
                             title="Delete Rule"
                           >

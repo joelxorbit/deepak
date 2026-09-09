@@ -990,6 +990,13 @@ describe('Phase 3 Hardened: Dynamic Rates, Immutable Snapshots, Advance & Paymen
       expect(createRes.body.data.paymentStatus).toBe(PAYMENT_STATUS.ADVANCE_PAID);
 
       // 2. Admin logs in to obtain auth token
+      const db = getDb();
+      await db.collection('admins').doc('admin_test_p3').set({
+        username: 'admin',
+        role: 'admin',
+        createdAt: new Date().toISOString()
+      });
+
       const loginRes = await request(app)
         .post('/api/admin/login')
         .send({ username: 'admin', password: 'password123' });
