@@ -421,6 +421,24 @@ export const BookingForm = ({ navigate: navigateProp }) => {
                       <span>BOOKING SUMMARY</span>
                       <span>{pricing.slotCount} hour(s)</span>
                     </div>
+                    {pricing.slotBreakdowns && pricing.slotBreakdowns.length > 0 && (
+                      <div className="flex justify-between text-slate-300 text-[10px]">
+                        <span>Rate Breakdown</span>
+                        <span className="text-slate-300">
+                          {(() => {
+                            const rateCounts = {};
+                            pricing.slotBreakdowns.forEach(b => {
+                              rateCounts[b.ratePerHour] = (rateCounts[b.ratePerHour] || 0) + 1;
+                            });
+                            const parts = Object.entries(rateCounts).map(([rate, count]) => {
+                              if (count === 1) return `₹${rate}`;
+                              return `₹(${rate})*${count}`;
+                            });
+                            return parts.join(' + ');
+                          })()}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-slate-300">
                       <span>Total Amount</span>
                       <span className="font-semibold text-white">₹{pricing.totalAmount}</span>
@@ -442,18 +460,6 @@ export const BookingForm = ({ navigate: navigateProp }) => {
                         <span>Pay full amount</span>
                         <span className="font-semibold text-emerald-400">₹{pricing.totalAmount}</span>
                       </div>
-                    )}
-                    {paymentOption === 'CASH' && (
-                      <>
-                        <div className="flex justify-between text-slate-300">
-                          <span>Pay at venue</span>
-                          <span className="font-semibold text-white">₹{pricing.totalAmount}</span>
-                        </div>
-                        <div className="flex justify-between text-slate-400">
-                          <span>Online advance</span>
-                          <span>₹0</span>
-                        </div>
-                      </>
                     )}
                   </>
                 )}

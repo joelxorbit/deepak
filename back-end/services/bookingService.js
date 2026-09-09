@@ -254,6 +254,7 @@ export const createBookingService = async ({
       advancePaid,
       balanceDue,
       pricingSnapshot: pricing.pricingSnapshot,
+      slotBreakdowns: pricing.slotBreakdowns || [],
       balancePayment: {
         isPaid: balanceDue === 0,
         paidAt: balanceDue === 0 ? initialPaidAt : null,

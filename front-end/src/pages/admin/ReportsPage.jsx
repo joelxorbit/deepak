@@ -468,9 +468,6 @@ export const ReportsPage = () => {
           <span className="bg-emerald-50 text-emerald-900 px-3 py-1.5 rounded-xl font-label-bold border border-emerald-200/60">
             Pay Now (Online): <strong>{paymentMethodBreakdown.payNowCount}</strong>
           </span>
-          <span className="bg-amber-50 text-amber-900 px-3 py-1.5 rounded-xl font-label-bold border border-amber-200/60">
-            Pay at Spot: <strong>{paymentMethodBreakdown.payAtSpotCount}</strong>
-          </span>
         </div>
       </div>
 

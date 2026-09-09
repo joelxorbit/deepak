@@ -16,7 +16,7 @@ export const CustomersPage = () => {
       const totalSpent = customerBookings.reduce((sum, b) => sum + (b.totalAmount || 354), 0) || (bookingCount * 354);
       
       const payNowCount = customerBookings.filter(b => b.paymentMethod === 'Pay Now').length;
-      const preferredPayment = payNowCount >= (customerBookings.length / 2) ? 'Pay Now (Online)' : 'Pay at Spot';
+      const preferredPayment = payNowCount >= (customerBookings.length / 2) ? 'Pay Now (Online)' : 'Other';
 
       return {
         ...c,

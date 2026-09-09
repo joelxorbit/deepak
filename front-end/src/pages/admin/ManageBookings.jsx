@@ -58,7 +58,6 @@ export const ManageBookings = () => {
       if (activeFilter === 'Advance Paid') return paymentStatus === 'Advance Paid';
       if (activeFilter === 'Balance Pending') return (b.balanceDue || 0) > 0 || paymentStatus === 'Advance Paid';
       if (activeFilter === 'Fully Paid') return paymentStatus === 'Fully Paid' || paymentStatus === 'Paid' || paymentStatus === 'Cash Received';
-      if (activeFilter === 'Cash Pending') return paymentStatus === 'Cash Pending' || b.paymentMethod === 'Pay at Spot';
 
       return true;
     });
@@ -99,8 +98,7 @@ export const ManageBookings = () => {
     { id: 'Cancelled', label: 'Cancelled' },
     { id: 'Advance Paid', label: 'Advance Paid' },
     { id: 'Balance Pending', label: 'Balance Pending' },
-    { id: 'Fully Paid', label: 'Fully Paid' },
-    { id: 'Cash Pending', label: 'Cash Pending' }
+    { id: 'Fully Paid', label: 'Fully Paid' }
   ];
 
   return (

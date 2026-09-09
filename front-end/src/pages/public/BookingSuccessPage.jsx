@@ -90,7 +90,22 @@ export const BookingSuccessPage = () => {
           <div className="pt-3 border-t border-black/10 space-y-1.5 text-sm">
             <div className="flex justify-between">
               <span className="text-on-surface-variant">Rate per Slot</span>
-              <span>₹{latestBooking.slotPrice || (slotsList.length > 0 ? Math.round(subtotal / slotsList.length) : 300)}</span>
+              <span>
+                {(() => {
+                  if (latestBooking.slotBreakdowns && latestBooking.slotBreakdowns.length > 0) {
+                    const rateCounts = {};
+                    latestBooking.slotBreakdowns.forEach(b => {
+                      rateCounts[b.ratePerHour] = (rateCounts[b.ratePerHour] || 0) + 1;
+                    });
+                    const parts = Object.entries(rateCounts).map(([rate, count]) => {
+                      if (count === 1) return `₹${rate}`;
+                      return `₹(${rate})*${count}`;
+                    });
+                    return parts.join(' + ');
+                  }
+                  return `₹${latestBooking.slotPrice || (slotsList.length > 0 ? Math.round(subtotal / slotsList.length) : 300)}`;
+                })()}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-on-surface-variant">Subtotal (GST-Free)</span>
@@ -105,7 +120,16 @@ export const BookingSuccessPage = () => {
           <div className="flex justify-between items-center pt-3 border-t border-black/10">
             <span className="text-on-surface-variant">Payment Method</span>
             <span className="font-label-bold text-xs uppercase px-3 py-1 bg-surface rounded-full border border-black/10">
-              {latestBooking.paymentMethod}
+              {(() => {
+                const method = latestBooking.paymentMethod;
+                if (method === 'Pay Now') {
+                  if (latestBooking.paymentStatus === 'Fully Paid') return 'Fully Paid';
+                  if (latestBooking.paymentStatus === 'Advance Paid') return 'Advance Paid';
+                  if (latestBooking.paymentOption === 'ADVANCE') return 'Advance Paid';
+                  if (latestBooking.paymentOption === 'FULL') return 'Fully Paid';
+                }
+                return method;
+              })()}
             </span>
           </div>
         </div>

@@ -71,17 +71,6 @@ export const AdminDashboard = ({ setCurrentTab }) => {
   
   const todayBookingsCount = dashboardStats?.todayBookingsCount ?? bookings.filter(b => (b.dateStr === todayStr || (typeof b.date === 'string' && b.date.startsWith(todayStr))) && b.status !== 'Cancelled').length;
   const weeklyBookingsCount = dashboardStats?.weeklyBookingsCount ?? bookings.filter(b => b.status !== 'Cancelled').length;
-  
-  const pendingPayAtSpotBookings = bookings.filter(b => 
-    b.paymentMethod === 'Pay at Spot' && 
-    (b.paymentStatus === 'Pending' || (!b.paymentStatus && b.status !== 'Cancelled')) && 
-    b.status !== 'Cancelled' && 
-    b.status !== 'Rejected'
-  );
-
-  const pendingPayAtSpotCount = dashboardStats?.pendingPayAtSpotCount ?? pendingPayAtSpotBookings.length;
-  const pendingPayAtSpotAmount = dashboardStats?.pendingPayAtSpotAmount ?? pendingPayAtSpotBookings.reduce((sum, b) => sum + (b.totalAmount || ((b.slots?.length || b.timeSlots?.length || 1) * 354)), 0);
-
   const totalCustomersCount = dashboardStats?.totalCustomersCount ?? customers.length;
 
   const totalEarnings = dashboardStats?.totalEarnings ?? bookings
@@ -126,15 +115,6 @@ export const AdminDashboard = ({ setCurrentTab }) => {
           icon="date_range"
           iconBg="bg-tertiary-container/30"
           iconColor="text-tertiary"
-        />
-
-        <StatCard
-          title="Pending Pay at Spot"
-          count={pendingPayAtSpotCount}
-          subtitle={`₹${pendingPayAtSpotAmount} pending collection`}
-          icon="pending_actions"
-          iconBg="bg-error-container/40"
-          iconColor="text-error"
         />
 
         <StatCard
