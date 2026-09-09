@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { TIME_SLOTS, isPastSlotForToday } from '../../utils/bookingUtils';
 
-export const TimeSlotPicker = memo(({ bookedSlots = [], heldSlots = [], selectedSlots = [], handleSlotToggle, bookingDate }) => {
+export const TimeSlotPicker = memo(({ bookedSlots = [], heldSlots = [], blockedSlots = [], selectedSlots = [], handleSlotToggle, bookingDate }) => {
   return (
     <div className="space-y-2.5">
       <div className="flex justify-between items-center">
@@ -30,6 +30,10 @@ export const TimeSlotPicker = memo(({ bookedSlots = [], heldSlots = [], selected
           <span>Booked</span>
         </div>
         <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded bg-amber-100 border border-amber-300"></span>
+          <span>Frozen</span>
+        </div>
+        <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded bg-slate-100 border border-slate-200"></span>
           <span>Passed</span>
         </div>
@@ -40,9 +44,10 @@ export const TimeSlotPicker = memo(({ bookedSlots = [], heldSlots = [], selected
         {TIME_SLOTS.map((slot) => {
           const isHeld = heldSlots.includes(slot);
           const isBooked = bookedSlots.includes(slot) || isHeld;
+          const isFrozen = blockedSlots.includes(slot);
           const isPast = isPastSlotForToday(slot, bookingDate);
           const isSelected = selectedSlots.includes(slot);
-          const isDisabled = (isBooked || isPast) && !isSelected;
+          const isDisabled = (isBooked || isFrozen || isPast) && !isSelected;
 
           return (
             <button
@@ -53,6 +58,8 @@ export const TimeSlotPicker = memo(({ bookedSlots = [], heldSlots = [], selected
               className={`py-2 px-2.5 rounded-xl text-xs transition-all flex flex-col items-center justify-center gap-0.5 border min-h-[46px] ${
                 isPast
                   ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through opacity-60'
+                  : isFrozen
+                  ? 'bg-amber-50 text-amber-700 border-amber-300 cursor-not-allowed opacity-90'
                   : isBooked
                   ? 'bg-rose-50 text-rose-800 border-rose-200 cursor-not-allowed opacity-75'
                   : isSelected
@@ -63,6 +70,10 @@ export const TimeSlotPicker = memo(({ bookedSlots = [], heldSlots = [], selected
               <span className="font-mono text-[11px] font-medium">{slot}</span>
               {isPast ? (
                 <span className="text-[9px] uppercase font-semibold text-slate-400">Passed</span>
+              ) : isFrozen ? (
+                <span className="text-[9px] uppercase font-semibold text-amber-600 flex items-center gap-0.5">
+                  <span className="material-symbols-outlined text-[10px]">lock</span> Frozen
+                </span>
               ) : isBooked ? (
                 <span className="text-[9px] uppercase font-semibold text-rose-600">Booked</span>
               ) : isSelected ? (
@@ -81,3 +92,4 @@ export const TimeSlotPicker = memo(({ bookedSlots = [], heldSlots = [], selected
 });
 
 TimeSlotPicker.displayName = 'TimeSlotPicker';
+

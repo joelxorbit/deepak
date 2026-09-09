@@ -97,14 +97,16 @@ export const getBlockedSlotsService = async () => {
 };
 
 // Phase 5: Block slot(s) or full-day closure (POST /api/availability/block)
-export const blockSlotService = async ({ dateStr, date, slot = null, slots = null, isFullDay = false, reason, sportId = 'all' }) => {
+export const blockSlotService = async ({ dateStr, date, slot = null, slots = null, isFullDay = false, reason, sportId = 'all', blockType = 'maintenance', paymentInfo = null }) => {
   const response = await api.post('/availability/block', {
     dateStr: dateStr || date,
     slot,
     slots,
     isFullDay,
     reason,
-    sportId
+    sportId,
+    blockType,
+    paymentInfo
   });
   return response.data.data;
 };

@@ -18,5 +18,7 @@ export const ROUTES = {
   ADMIN_ENQUIRIES: '/admin/enquiries',
   ADMIN_REPORTS: '/admin/reports',
 
+  ADMIN_FREEZE: '/admin/freeze',
+
   NOT_FOUND: '*'
 };

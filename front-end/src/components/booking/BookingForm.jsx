@@ -12,7 +12,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
   const navigateRouter = useNavigate();
   const navigate = navigateProp || navigateRouter;
 
-  const { createBooking, getBookedSlotsForDate, setIsTrackModalOpen, setIsCancelModalOpen } = useBooking();
+  const { createBooking, getBookedSlotsForDate, getAvailabilityForDate, setIsTrackModalOpen, setIsCancelModalOpen } = useBooking();
 
   const todayStr = getTodayString();
 
@@ -20,8 +20,11 @@ export const BookingForm = ({ navigate: navigateProp }) => {
   const [mobileNumber, setMobileNumber] = useState('');
   const [bookingDate, setBookingDate] = useState(todayStr);
   const [bookedSlots, setBookedSlots] = useState([]);
+  const [blockedSlots, setBlockedSlots] = useState([]);
+  const [isFullDayBlocked, setIsFullDayBlocked] = useState(false);
+  const [closureReason, setClosureReason] = useState('');
   const [selectedSlots, setSelectedSlots] = useState([]);
-  const [paymentOption, setPaymentOption] = useState('ADVANCE'); // 'ADVANCE', 'FULL', 'CASH'
+  const [paymentOption, setPaymentOption] = useState('ADVANCE');
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -95,27 +98,36 @@ export const BookingForm = ({ navigate: navigateProp }) => {
     };
   }, [serverPricing, selectedSlots.length]);
 
-  // Fetch booked slots asynchronously whenever bookingDate changes
+  // Fetch booked + blocked slots whenever bookingDate changes
   useEffect(() => {
     let isMounted = true;
     const fetchSlots = async () => {
       if (!bookingDate) return;
       try {
-        const slots = await getBookedSlotsForDate(bookingDate);
-        if (isMounted) {
-          setBookedSlots(Array.isArray(slots) ? slots : []);
+        const avail = await getAvailabilityForDate(bookingDate);
+        if (isMounted && avail) {
+          setBookedSlots(Array.isArray(avail.bookedSlots) ? avail.bookedSlots : []);
+          setBlockedSlots(Array.isArray(avail.blockedSlots) ? avail.blockedSlots : []);
+          setIsFullDayBlocked(Boolean(avail.isFullDayBlocked));
+          setClosureReason(avail.closureReason || '');
         }
       } catch (err) {
         if (isMounted) {
-          setBookedSlots([]);
+          // Fallback to just booked slots
+          try {
+            const slots = await getBookedSlotsForDate(bookingDate);
+            setBookedSlots(Array.isArray(slots) ? slots : []);
+          } catch {
+            setBookedSlots([]);
+          }
+          setBlockedSlots([]);
+          setIsFullDayBlocked(false);
         }
       }
     };
     fetchSlots();
-    return () => {
-      isMounted = false;
-    };
-  }, [bookingDate, getBookedSlotsForDate]);
+    return () => { isMounted = false; };
+  }, [bookingDate, getAvailabilityForDate, getBookedSlotsForDate]);
 
   // Restrict mobile input to numbers only up to 10 digits
   const handleMobileChange = useCallback((e) => {
@@ -367,9 +379,21 @@ export const BookingForm = ({ navigate: navigateProp }) => {
         <div className="lg:col-span-7 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
           
           <div className="space-y-4">
+            {/* Full Day Freeze Banner */}
+            {isFullDayBlocked && (
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-3 animate-fade-in">
+                <span className="material-symbols-outlined text-amber-600 text-xl shrink-0">lock</span>
+                <div>
+                  <p className="font-bold text-amber-800 text-sm">Arena Unavailable</p>
+                  <p className="text-amber-700 text-xs mt-0.5">{closureReason || 'This date is fully reserved for maintenance or a private event.'}</p>
+                </div>
+              </div>
+            )}
+
             {/* Controlled Internal Slot Scroll Only */}
             <TimeSlotPicker
               bookedSlots={bookedSlots}
+              blockedSlots={blockedSlots}
               selectedSlots={selectedSlots}
               handleSlotToggle={handleSlotToggle}
               bookingDate={bookingDate}
@@ -384,6 +408,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
                 <span>{pricingConfigError}</span>
               </div>
             )}
+
 
             {/* Payment Option Selector */}
             {selectedSlots.length > 0 && !pricingConfigError && (

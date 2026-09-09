@@ -102,7 +102,9 @@ export const blockSlotService = async ({
   sportId = 'all',
   isFullDay = false,
   reason = 'Admin maintenance / private booking',
-  blockedBy = 'admin'
+  blockedBy = 'admin',
+  blockType = 'maintenance',   // 'maintenance' | 'private_booking'
+  paymentInfo = null            // { name, phone, amount, note }
 }) => {
   const inputDate = dateStr || date;
   if (!inputDate) {
@@ -180,12 +182,14 @@ export const blockSlotService = async ({
     sportId,
     isFullDay: Boolean(isFullDay),
     reason: reason.trim(),
+    blockType: blockType || 'maintenance',
+    paymentInfo: paymentInfo || null,
     blockedBy: adminName,
     createdAt: new Date().toISOString()
   };
 
   await docRef.set(payload);
-  logger.info(`[AvailabilityService] Created block on ${cleanDateStr} (FullDay: ${payload.isFullDay}) by ${adminName}`);
+  logger.info(`[AvailabilityService] Created block on ${cleanDateStr} (FullDay: ${payload.isFullDay}, Type: ${payload.blockType}) by ${adminName}`);
 
   createAuditLog({
     action: AUDIT_ACTIONS.SLOT_BLOCK,
@@ -195,7 +199,8 @@ export const blockSlotService = async ({
       dateStr: cleanDateStr,
       slots: payload.slots,
       isFullDay: payload.isFullDay,
-      reason: payload.reason
+      reason: payload.reason,
+      blockType: payload.blockType
     }
   }).catch(err => logger.warn('Audit log write warning:', err));
 

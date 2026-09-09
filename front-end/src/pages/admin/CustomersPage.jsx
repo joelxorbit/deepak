@@ -81,10 +81,6 @@ export const CustomersPage = () => {
                     <span>Lifetime Spent:</span>
                     <strong className="text-primary font-bold">₹{c.totalSpent}</strong>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Payment Pref:</span>
-                    <span>{c.preferredPayment}</span>
-                  </div>
                 </div>
               </div>
             ))
@@ -104,7 +100,6 @@ export const CustomersPage = () => {
                 <th className="p-4">Mobile Number</th>
                 <th className="p-4">Total Matches</th>
                 <th className="p-4">Lifetime Spent (INR)</th>
-                <th className="p-4">Payment Preference</th>
                 <th className="p-4">Tier Status</th>
               </tr>
             </thead>
@@ -116,7 +111,6 @@ export const CustomersPage = () => {
                     <td className="p-4 font-mono text-xs text-on-surface-variant">{c.phone}</td>
                     <td className="p-4 font-bold text-primary">{c.totalBookingsCount} match(es)</td>
                     <td className="p-4 font-bold text-primary">₹{c.totalSpent}</td>
-                    <td className="p-4 text-xs text-on-surface-variant">{c.preferredPayment}</td>
                     <td className="p-4">
                       <span className={`text-xs font-label-bold px-3 py-1 rounded-full ${
                         c.isVip ? 'bg-amber-100 text-amber-900 font-bold' : 'bg-primary-container/20 text-on-primary-container'
@@ -128,7 +122,7 @@ export const CustomersPage = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="p-8 text-center text-on-surface-variant">
+                  <td colSpan="5" className="p-8 text-center text-on-surface-variant">
                     No customer records found matching "{searchTerm}".
                   </td>
                 </tr>
