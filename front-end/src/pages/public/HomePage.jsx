@@ -22,8 +22,17 @@ export const HomePage = () => {
   }, []);
 
   const todayStr = new Date().toISOString().split('T')[0];
-  const upcomingEvents = events.filter(e => !e.isArchived && e.status === 'Upcoming' && e.date >= todayStr);
-  const completedEvents = events.filter(e => !e.isArchived && (e.status === 'Completed' || e.category === 'Completed' || (e.date < todayStr && e.status !== 'Upcoming')));
+  const upcomingEvents = events.filter(e => {
+    if (e.isArchived || e.isPublished === false) return false;
+    if (e.status === 'Upcoming') return true;
+    if (e.category !== 'COMPLETED' && e.category !== 'Completed' && e.status !== 'Completed' && e.date >= todayStr) return true;
+    return false;
+  });
+  
+  const completedEvents = events.filter(e => {
+    if (e.isArchived || e.isPublished === false) return false;
+    return e.status === 'Completed' || e.category === 'COMPLETED' || e.category === 'Completed' || (e.date < todayStr && e.status !== 'Upcoming');
+  });
 
   useEffect(() => {
     if (upcomingEvents.length === 0 && completedEvents.length > 1) {
@@ -164,13 +173,12 @@ export const HomePage = () => {
       </section>
 
       {/* EVENT BANNER SECTION */}
-      {(upcomingEvents.length > 0 || completedEvents.length > 0) && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
-          <div 
-            onClick={() => navigate(ROUTES.EVENTS)}
-            className="bg-white rounded-3xl shadow-2xl shadow-emerald-900/5 border border-black/5 overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-1 hover:shadow-emerald-900/10"
-          >
-            {upcomingEvents.length > 0 ? (
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
+        <div 
+          onClick={() => navigate(ROUTES.EVENTS)}
+          className="bg-white rounded-3xl shadow-2xl shadow-emerald-900/5 border border-black/5 overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-1 hover:shadow-emerald-900/10"
+        >
+          {upcomingEvents.length > 0 ? (
               <div className="flex flex-col md:flex-row items-stretch">
                 <div className="w-full md:w-1/3 h-48 md:h-auto relative overflow-hidden">
                   <img 
@@ -208,7 +216,7 @@ export const HomePage = () => {
                   </div>
                 </div>
               </div>
-            ) : (
+            ) : completedEvents.length > 0 ? (
               <div className="flex flex-col md:flex-row items-stretch">
                 <div className="w-full md:w-1/3 h-48 md:h-auto relative overflow-hidden">
                   <img 
@@ -246,10 +254,30 @@ export const HomePage = () => {
                   )}
                 </div>
               </div>
+            ) : (
+              <div className="flex flex-col md:flex-row items-stretch bg-slate-900 text-white">
+                <div className="w-full md:w-1/3 h-48 md:h-auto relative overflow-hidden bg-emerald-900">
+                  <div className="w-full h-full flex items-center justify-center opacity-50">
+                    <span className="material-symbols-outlined text-8xl">sports_soccer</span>
+                  </div>
+                </div>
+                <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center space-y-4 relative overflow-hidden">
+                  <h3 className="font-extrabold text-2xl sm:text-3xl text-white group-hover:text-emerald-400 transition-colors relative z-10">
+                    Arena Events & Leagues
+                  </h3>
+                  <p className="text-sm text-slate-300 line-clamp-2 max-w-2xl relative z-10">
+                    Discover upcoming tournaments, showcases, and open leagues. Click here to explore our event calendar.
+                  </p>
+                  <div className="pt-2 relative z-10">
+                    <span className="inline-flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                      Explore Events <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
             )}
-          </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* 2. SPORTS & EVENTS WE HOST SHOWCASE */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
