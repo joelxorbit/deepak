@@ -13,16 +13,21 @@ export const AccountPage = () => {
   const { customer, isAuthenticated, isLoading: isAuthLoading, loginCustomer, loginWithGoogle, updateProfile, logoutCustomer, authError } = useCustomerAuth();
 
   useEffect(() => {
-    if (isAuthenticated && location.state?.from) {
+    if (isAuthenticated && customer?.phone && location.state?.from) {
       navigate(location.state.from, { replace: true });
     }
-  }, [isAuthenticated, location, navigate]);
+  }, [isAuthenticated, customer, location, navigate]);
 
   // Login form state (for unauthenticated users)
   const [loginPhone, setLoginPhone] = useState('');
   const [loginName, setLoginName] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState('');
+
+  // Missing Phone Modal state
+  const [missingPhone, setMissingPhone] = useState('');
+  const [isSubmittingPhone, setIsSubmittingPhone] = useState(false);
+  const [missingPhoneError, setMissingPhoneError] = useState('');
 
   // Bookings state
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'upcoming', 'past', 'cancelled', 'enquiries'
@@ -148,6 +153,25 @@ export const AccountPage = () => {
       setLoginError(err.message || 'Login failed. Please try again.');
     } finally {
       setIsLoggingIn(false);
+    }
+  };
+
+  const handleMissingPhoneSubmit = async (e) => {
+    e.preventDefault();
+    setMissingPhoneError('');
+    const cleanedPhone = missingPhone.replace(/\D/g, '').slice(0, 10);
+    if (!/^[6-9]\d{9}$/.test(cleanedPhone)) {
+      setMissingPhoneError('Please enter a valid 10-digit Indian Mobile Number.');
+      return;
+    }
+    
+    try {
+      setIsSubmittingPhone(true);
+      await updateProfile({ phone: cleanedPhone });
+    } catch (err) {
+      setMissingPhoneError(err.message || 'Failed to save mobile number.');
+    } finally {
+      setIsSubmittingPhone(false);
     }
   };
 
@@ -322,6 +346,58 @@ export const AccountPage = () => {
               <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </button>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is authenticated but missing phone number (e.g., from Google Login), render missing phone popup
+  if (isAuthenticated && (!customer?.phone || customer.phone.trim() === '')) {
+    return (
+      <div className="min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex items-center justify-center animate-fade-in">
+        <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 relative overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="text-center space-y-2">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto text-emerald-400 mb-4">
+              <span className="material-symbols-outlined text-2xl">phone_iphone</span>
+            </div>
+            <h2 className="text-xl font-bold tracking-tight text-white">Mobile Number Required</h2>
+            <p className="text-xs text-slate-400">Please provide your mobile number to complete your profile and enable booking confirmations.</p>
+          </div>
+
+          {missingPhoneError && (
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex items-center gap-2">
+              <span className="material-symbols-outlined text-base">error</span>
+              <span>{missingPhoneError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleMissingPhoneSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Mobile Number</label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-3 text-xs font-semibold text-slate-400">+91</span>
+                <input
+                  type="tel"
+                  placeholder="9876543210"
+                  value={missingPhone}
+                  onChange={(e) => setMissingPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  className="w-full bg-slate-950 border border-white/10 rounded-xl pl-12 pr-4 py-2.5 text-white text-xs placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 transition-all font-mono"
+                  required
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmittingPhone || missingPhone.length < 10}
+              className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-xs uppercase tracking-wider py-3 rounded-xl shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              <span>{isSubmittingPhone ? 'Saving...' : 'Save & Continue'}</span>
+              {!isSubmittingPhone && <span className="material-symbols-outlined text-base">arrow_forward</span>}
+            </button>
+          </form>
         </div>
       </div>
     );
