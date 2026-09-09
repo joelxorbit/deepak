@@ -42,6 +42,8 @@ export const RatesPage = () => {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [companionEditingId, setCompanionEditingId] = useState(null);
+  const [editingIsPeak, setEditingIsPeak] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // Form State
@@ -50,9 +52,6 @@ export const RatesPage = () => {
     sportId: 'all',
     ratePerHour: '',
     peakRatePerHour: '',
-    slotCategory: 'ALL',
-    daysOfWeek: ['ALL'],
-    timeSlots: ['ALL'],
     effectiveFrom: '',
     effectiveTo: '',
     status: 'active',
@@ -80,16 +79,25 @@ export const RatesPage = () => {
     loadRates();
   }, [loadRates]);
 
+  const toInputDate = (str) => {
+    if (!str) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    if (/^\d{2}-\d{2}-\d{4}$/.test(str)) {
+      const [d, m, y] = str.split('-');
+      return `${y}-${m}-${d}`;
+    }
+    return str;
+  };
+
   const openAddModal = () => {
     setEditingId(null);
+    setCompanionEditingId(null);
+    setEditingIsPeak(false);
     setFormData({
       ruleName: '',
       sportId: 'all',
       ratePerHour: '',
       peakRatePerHour: '',
-      slotCategory: 'CATEGORIZED', // Default to CATEGORIZED for easy dual-creation
-      daysOfWeek: ['ALL'],
-      timeSlots: ['ALL'],
       effectiveFrom: '',
       effectiveTo: '',
       status: 'active',
@@ -101,77 +109,60 @@ export const RatesPage = () => {
   };
 
   const openEditModal = (rule) => {
-    setEditingId(rule.id || rule._id);
-    
-    // Determine the category based on the slots
-    let category = 'ALL';
-    if (Array.isArray(rule.timeSlots) && rule.timeSlots.length > 0 && !rule.timeSlots.includes('ALL')) {
-      if (rule.timeSlots.includes('10:00 AM - 11:00 AM') && !rule.timeSlots.includes('06:00 PM - 07:00 PM')) {
-        category = 'NORMAL';
-      } else {
-        category = 'PEAK';
-      }
+    const isPeakRule = Boolean(rule.isPeak);
+    const ruleId = rule.id || rule._id;
+    setEditingId(ruleId);
+    setEditingIsPeak(isPeakRule);
+
+    // Look for the companion rule (matching dates, opposite isPeak)
+    const companion = rates.find(r => {
+      const rId = r.id || r._id;
+      if (rId === ruleId) return false;
+      const isOppositePeak = Boolean(r.isPeak) !== isPeakRule;
+      const matchDates = (r.effectiveFrom || '') === (rule.effectiveFrom || '') && 
+                         (r.effectiveTo || '') === (rule.effectiveTo || '');
+      return isOppositePeak && matchDates;
+    });
+
+    const companionId = companion ? (companion.id || companion._id) : null;
+    setCompanionEditingId(companionId);
+
+    let normalRate = '';
+    let peakRate = '';
+
+    if (isPeakRule) {
+      peakRate = rule.ratePerHour || '';
+      normalRate = companion ? companion.ratePerHour : (rates.find(r => !r.isPeak)?.ratePerHour || 600);
+    } else {
+      normalRate = rule.ratePerHour || '';
+      peakRate = companion ? companion.ratePerHour : (rates.find(r => r.isPeak)?.ratePerHour || 800);
     }
 
     setFormData({
       ruleName: rule.ruleName || '',
       sportId: rule.sportId || 'all',
-      ratePerHour: rule.ratePerHour || '',
-      peakRatePerHour: '', // Editing only edits one rule at a time
-      slotCategory: category,
-      daysOfWeek: Array.isArray(rule.daysOfWeek) ? rule.daysOfWeek : ['ALL'],
-      timeSlots: Array.isArray(rule.timeSlots) ? rule.timeSlots : ['ALL'],
-      effectiveFrom: rule.effectiveFrom || '',
-      effectiveTo: rule.effectiveTo || '',
+      ratePerHour: normalRate,
+      peakRatePerHour: peakRate,
+      effectiveFrom: toInputDate(rule.effectiveFrom),
+      effectiveTo: toInputDate(rule.effectiveTo),
       status: rule.status || 'active',
-      isPeak: Boolean(rule.isPeak),
+      isPeak: isPeakRule,
       priority: rule.priority || 0,
       notes: rule.notes || ''
     });
     setIsModalOpen(true);
   };
 
-  const handleDayToggle = (dayVal) => {
-    if (dayVal === 'ALL') {
-      setFormData(prev => ({ ...prev, daysOfWeek: ['ALL'] }));
-      return;
-    }
-    setFormData(prev => {
-      const current = prev.daysOfWeek.filter(d => d !== 'ALL');
-      const updated = current.includes(dayVal)
-        ? current.filter(d => d !== dayVal)
-        : [...current, dayVal];
-      return { ...prev, daysOfWeek: updated.length === 0 ? ['ALL'] : updated };
-    });
-  };
-
-  const handleSlotToggle = (slotVal) => {
-    if (slotVal === 'ALL') {
-      setFormData(prev => ({ ...prev, timeSlots: ['ALL'] }));
-      return;
-    }
-    setFormData(prev => {
-      const current = prev.timeSlots.filter(s => s !== 'ALL');
-      const updated = current.includes(slotVal)
-        ? current.filter(s => s !== slotVal)
-        : [...current, slotVal];
-      return { ...prev, timeSlots: updated.length === 0 ? ['ALL'] : updated };
-    });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (formData.slotCategory === 'CATEGORIZED') {
-      if (!formData.ratePerHour || !formData.peakRatePerHour) {
-        addToast('Both Normal and Peak rates are required.', 'error');
-        return;
-      }
-    } else {
-      if (!formData.ratePerHour || Number(formData.ratePerHour) <= 0) {
-        addToast('Rate per hour must be greater than ₹0.', 'error');
-        return;
-      }
+    if (!formData.ratePerHour || Number(formData.ratePerHour) <= 0) {
+      addToast('Normal Rate must be greater than ₹0.', 'error');
+      return;
+    }
+    if (!formData.peakRatePerHour || Number(formData.peakRatePerHour) <= 0) {
+      addToast('Peak Rate must be greater than ₹0.', 'error');
+      return;
     }
 
     try {
@@ -188,77 +179,61 @@ export const RatesPage = () => {
       
       const peakTimeSlots = TIME_SLOTS.filter(s => !normalTimeSlots.includes(s));
 
-      if (formData.slotCategory === 'CATEGORIZED') {
-        const payloadNormal = {
-          ruleName: `Price Rule - ₹${formData.ratePerHour} (Normal Hours)`,
-          sportId: 'all',
-          ratePerHour: Number(formData.ratePerHour),
-          daysOfWeek: ['ALL'],
-          timeSlots: normalTimeSlots,
-          effectiveFrom: formData.effectiveFrom || undefined,
-          effectiveTo: formData.effectiveTo || undefined,
-          status: 'active',
-          isPeak: false,
-          priority: (formData.effectiveFrom || formData.effectiveTo) ? 50 : 20,
-          notes: `Admin dual price update on ${new Date().toISOString().split('T')[0]}`
-        };
+      const payloadNormal = {
+        ruleName: `Price Rule - ₹${formData.ratePerHour} (Normal Hours)`,
+        sportId: 'all',
+        ratePerHour: Number(formData.ratePerHour),
+        daysOfWeek: ['ALL'],
+        timeSlots: normalTimeSlots,
+        effectiveFrom: formData.effectiveFrom || undefined,
+        effectiveTo: formData.effectiveTo || undefined,
+        status: 'active',
+        isPeak: false,
+        priority: (formData.effectiveFrom || formData.effectiveTo) ? 50 : 20,
+        notes: `Dynamic pricing rule updated on ${new Date().toISOString().split('T')[0]}`
+      };
 
-        const payloadPeak = {
-          ruleName: `Price Rule - ₹${formData.peakRatePerHour} (Peak Hours)`,
-          sportId: 'all',
-          ratePerHour: Number(formData.peakRatePerHour),
-          daysOfWeek: ['ALL'],
-          timeSlots: peakTimeSlots,
-          effectiveFrom: formData.effectiveFrom || undefined,
-          effectiveTo: formData.effectiveTo || undefined,
-          status: 'active',
-          isPeak: true,
-          priority: (formData.effectiveFrom || formData.effectiveTo) ? 50 : 20,
-          notes: `Admin dual price update on ${new Date().toISOString().split('T')[0]}`
-        };
+      const payloadPeak = {
+        ruleName: `Price Rule - ₹${formData.peakRatePerHour} (Peak Hours)`,
+        sportId: 'all',
+        ratePerHour: Number(formData.peakRatePerHour),
+        daysOfWeek: ['ALL'],
+        timeSlots: peakTimeSlots,
+        effectiveFrom: formData.effectiveFrom || undefined,
+        effectiveTo: formData.effectiveTo || undefined,
+        status: 'active',
+        isPeak: true,
+        priority: (formData.effectiveFrom || formData.effectiveTo) ? 50 : 20,
+        notes: `Dynamic pricing rule updated on ${new Date().toISOString().split('T')[0]}`
+      };
 
+      if (!editingId) {
+        // Create both
         await createRateRuleService(payloadNormal);
         await createRateRuleService(payloadPeak);
-        addToast('Categorized rate rules created successfully.', 'success');
+        addToast('Dynamic rate rules created successfully.', 'success');
       } else {
-        let computedTimeSlots = ['ALL'];
-        let isPeakRule = false;
-        
-        if (formData.slotCategory === 'NORMAL') {
-          computedTimeSlots = normalTimeSlots;
-          isPeakRule = false;
-        } else if (formData.slotCategory === 'PEAK') {
-          computedTimeSlots = peakTimeSlots;
-          isPeakRule = true;
-        }
+        // Update both
+        const normalRuleId = editingIsPeak ? companionEditingId : editingId;
+        const peakRuleId = editingIsPeak ? editingId : companionEditingId;
 
-        const categoryLabel = formData.slotCategory === 'NORMAL' ? ' (Normal Hours)' : formData.slotCategory === 'PEAK' ? ' (Peak Hours)' : '';
-
-        const payload = {
-          ruleName: `Price Rule - ₹${formData.ratePerHour}${categoryLabel}`,
-          sportId: 'all',
-          ratePerHour: Number(formData.ratePerHour),
-          daysOfWeek: ['ALL'],
-          timeSlots: computedTimeSlots,
-          effectiveFrom: formData.effectiveFrom || undefined,
-          effectiveTo: formData.effectiveTo || undefined,
-          status: 'active',
-          isPeak: isPeakRule,
-          priority: (formData.effectiveFrom || formData.effectiveTo) ? 50 : (formData.slotCategory === 'ALL' ? 10 : 20),
-          notes: `Admin price update on ${new Date().toISOString().split('T')[0]}`
-        };
-
-        if (editingId) {
-          await updateRateRuleService(editingId, payload);
-          addToast('Rate rule updated successfully.', 'success');
+        if (normalRuleId) {
+          await updateRateRuleService(normalRuleId, payloadNormal);
         } else {
-          await createRateRuleService(payload);
-          addToast('Rate rule created successfully.', 'success');
+          await createRateRuleService(payloadNormal);
         }
+
+        if (peakRuleId) {
+          await updateRateRuleService(peakRuleId, payloadPeak);
+        } else {
+          await createRateRuleService(payloadPeak);
+        }
+
+        addToast('Rate rules updated successfully.', 'success');
       }
       
       setIsModalOpen(false);
-      loadRates();
+      await loadRates();
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to save rate rule.';
       addToast(msg, 'error');
@@ -501,72 +476,42 @@ export const RatesPage = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              <div className={`grid grid-cols-1 ${formData.slotCategory === 'CATEGORIZED' ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-4`}>
+            <form onSubmit={handleSubmit} className="space-y-5 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Time Category *</label>
-                  <select
-                    value={formData.slotCategory}
-                    onChange={(e) => setFormData({ ...formData, slotCategory: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary"
-                    disabled={!!editingId}
-                  >
-                    {!editingId && <option value="CATEGORIZED">Categorized (Normal & Peak)</option>}
-                    <option value="ALL">All Slots (Universal)</option>
-                    <option value="NORMAL">Normal Hours (10:00 AM - 4:00 PM)</option>
-                    <option value="PEAK">Peak Hours (All Other Times)</option>
-                  </select>
+                  <label className="block font-bold text-slate-700 mb-1.5">Normal Rate / Hour (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    step="1"
+                    value={formData.ratePerHour}
+                    onChange={(e) => setFormData({ ...formData, ratePerHour: e.target.value })}
+                    placeholder="e.g. 600"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold focus:outline-none focus:border-primary"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">Applies to 10:00 AM – 04:00 PM</p>
                 </div>
-                
-                {formData.slotCategory === 'CATEGORIZED' ? (
-                  <>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Normal Rate / Hour (₹) *</label>
-                      <input
-                        type="number"
-                        required
-                        min="1"
-                        step="1"
-                        value={formData.ratePerHour}
-                        onChange={(e) => setFormData({ ...formData, ratePerHour: e.target.value })}
-                        placeholder="e.g. 1500"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold focus:outline-none focus:border-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-slate-700 mb-1">Peak Rate / Hour (₹) *</label>
-                      <input
-                        type="number"
-                        required
-                        min="1"
-                        step="1"
-                        value={formData.peakRatePerHour}
-                        onChange={(e) => setFormData({ ...formData, peakRatePerHour: e.target.value })}
-                        placeholder="e.g. 2000"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold focus:outline-none focus:border-primary"
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <div>
-                    <label className="block font-bold text-slate-700 mb-1">Price / Hour (₹) *</label>
-                    <input
-                      type="number"
-                      required
-                      min="1"
-                      step="1"
-                      value={formData.ratePerHour}
-                      onChange={(e) => setFormData({ ...formData, ratePerHour: e.target.value })}
-                      placeholder="e.g. 1500"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold focus:outline-none focus:border-primary"
-                    />
-                  </div>
-                )}
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1.5">Peak Rate / Hour (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    step="1"
+                    value={formData.peakRatePerHour}
+                    onChange={(e) => setFormData({ ...formData, peakRatePerHour: e.target.value })}
+                    placeholder="e.g. 800"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold focus:outline-none focus:border-primary"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">Applies to all other times</p>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Start Date (Optional)</label>
+                  <label className="block font-bold text-slate-700 mb-1.5">Start Date (Optional)</label>
                   <input
                     type="date"
                     value={formData.effectiveFrom}
@@ -575,7 +520,7 @@ export const RatesPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">End Date (Optional)</label>
+                  <label className="block font-bold text-slate-700 mb-1.5">End Date (Optional)</label>
                   <input
                     type="date"
                     value={formData.effectiveTo}
@@ -584,7 +529,6 @@ export const RatesPage = () => {
                   />
                 </div>
               </div>
-
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-black/5">
                 <button
@@ -599,7 +543,7 @@ export const RatesPage = () => {
                   disabled={submitting}
                   className="px-6 py-2.5 bg-primary hover:bg-primary-hover text-on-primary text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center gap-2"
                 >
-                  {submitting ? 'Saving Rule...' : editingId ? 'Update Rule' : 'Create Rule'}
+                  {submitting ? 'Saving Rule...' : editingId ? 'UPDATE RULE' : 'CREATE RULE'}
                 </button>
               </div>
             </form>
