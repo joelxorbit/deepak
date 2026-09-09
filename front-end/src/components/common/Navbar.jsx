@@ -95,7 +95,6 @@ export const Navbar = () => {
     { label: 'Home', path: ROUTES.HOME },
     { label: 'About', path: ROUTES.ABOUT },
     { label: 'Booking', path: ROUTES.BOOKING },
-    { label: 'My Account', path: ROUTES.ACCOUNT },
     { label: 'Events', path: ROUTES.EVENTS },
     { label: 'Contact', path: ROUTES.CONTACT }
   ];
@@ -153,8 +152,18 @@ export const Navbar = () => {
         </div>
 
         {/* Action Controls & Mobile Menu Toggle */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           
+          {/* My Account Icon */}
+          <button
+            onClick={() => navigate(ROUTES.ACCOUNT)}
+            aria-label="My Account"
+            title="My Account"
+            className="relative p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all border border-white/10 flex items-center justify-center"
+          >
+            <span className="material-symbols-outlined text-xl">person</span>
+          </button>
+
           {/* Customer Notification Bell (When Authenticated) */}
           {isAuthenticated && (
             <div className="relative">
