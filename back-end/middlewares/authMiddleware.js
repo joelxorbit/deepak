@@ -100,13 +100,32 @@ export const protectCustomer = requireCustomer;
 export const requireAnyAuth = async (req, res, next) => {
   try {
     let token = null;
+    const clientRole = req.headers['x-client-role'] || req.query.role;
 
-    if (req.cookies && req.cookies.elite_pitch_token) {
-      token = req.cookies.elite_pitch_token;
-    } else if (req.cookies && req.cookies.elite_pitch_customer_token) {
-      token = req.cookies.elite_pitch_customer_token;
-    } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    // 1. Authorization header takes highest priority
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
       token = req.headers.authorization.split(' ')[1];
+    } else if (clientRole === 'customer') {
+      // Prioritize customer cookie if customer role is requested
+      if (req.cookies && req.cookies.elite_pitch_customer_token) {
+        token = req.cookies.elite_pitch_customer_token;
+      } else if (req.cookies && req.cookies.elite_pitch_token) {
+        token = req.cookies.elite_pitch_token;
+      }
+    } else if (clientRole === 'admin') {
+      // Prioritize admin cookie if admin role is requested
+      if (req.cookies && req.cookies.elite_pitch_token) {
+        token = req.cookies.elite_pitch_token;
+      } else if (req.cookies && req.cookies.elite_pitch_customer_token) {
+        token = req.cookies.elite_pitch_customer_token;
+      }
+    } else {
+      // Default: customer cookie first to prevent accidental admin leak, then admin cookie
+      if (req.cookies && req.cookies.elite_pitch_customer_token) {
+        token = req.cookies.elite_pitch_customer_token;
+      } else if (req.cookies && req.cookies.elite_pitch_token) {
+        token = req.cookies.elite_pitch_token;
+      }
     }
 
     if (!token) {
@@ -123,6 +142,34 @@ export const requireAnyAuth = async (req, res, next) => {
       return sendError(res, 'Invalid authentication token.', null, 401);
     }
 
+    // Role-specific enforcement if clientRole was specified
+    if (clientRole === 'customer') {
+      const customerId = decoded.customerId || decoded.id;
+      if (customerId) {
+        const customer = await findCustomerById(customerId);
+        if (customer) {
+          req.customer = { ...customer, _id: customer.id, customerId: customer.id };
+          req.user = req.customer;
+          return next();
+        }
+      }
+      return sendError(res, 'Customer account required or access unauthorized.', null, 403);
+    }
+
+    if (clientRole === 'admin') {
+      if (decoded.adminId) {
+        const admin = await findAdminById(decoded.adminId);
+        if (admin && ['admin', 'superadmin'].includes(admin.role)) {
+          const { password, ...adminWithoutPassword } = admin;
+          req.admin = { ...adminWithoutPassword, _id: admin.id };
+          req.user = req.admin;
+          return next();
+        }
+      }
+      return sendError(res, 'Admin account required or access unauthorized.', null, 403);
+    }
+
+    // General resolution when no role hint specified
     if (decoded.adminId) {
       const admin = await findAdminById(decoded.adminId);
       if (admin && ['admin', 'superadmin'].includes(admin.role)) {

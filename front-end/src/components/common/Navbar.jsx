@@ -43,7 +43,7 @@ export const Navbar = () => {
       return;
     }
     try {
-      const count = await fetchUnreadCountService();
+      const count = await fetchUnreadCountService({ role: 'customer' });
       setUnreadCount(count);
     } catch (e) {
       // Suppress background poll errors
@@ -61,7 +61,7 @@ export const Navbar = () => {
     if (!isNotifOpen && isAuthenticated) {
       try {
         setLoadingNotifs(true);
-        const data = await fetchNotificationsService({ limit: 10 });
+        const data = await fetchNotificationsService({ limit: 10, role: 'customer' });
         setNotifications(data || []);
       } catch (e) {
         // Suppress notification load errors
@@ -73,7 +73,7 @@ export const Navbar = () => {
 
   const handleMarkOneRead = async (id) => {
     try {
-      await markNotificationReadService(id);
+      await markNotificationReadService(id, { role: 'customer' });
       setNotifications(prev => prev.map(n => (n.id === id || n._id === id) ? { ...n, isRead: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (e) {
@@ -83,7 +83,7 @@ export const Navbar = () => {
 
   const handleMarkAllRead = async () => {
     try {
-      await markAllNotificationsReadService();
+      await markAllNotificationsReadService({ role: 'customer' });
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (e) {

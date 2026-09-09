@@ -8,15 +8,35 @@ import { NOTIFICATION_RECIPIENT_TYPE } from '../utils/constants.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 
 const getRecipientContext = (req) => {
-  if (req.admin) {
-    return {
-      recipientType: NOTIFICATION_RECIPIENT_TYPE.ADMIN,
-      recipientId: 'admin',
-      recipientPhone: null,
-      recipientEmail: null,
-      user: req.admin.username || req.admin.name || 'admin'
-    };
+  const requestedRole = req.headers['x-client-role'] || req.query.role;
+
+  if (requestedRole === 'customer') {
+    if (req.customer) {
+      return {
+        recipientType: NOTIFICATION_RECIPIENT_TYPE.CUSTOMER,
+        recipientId: req.customer.id || req.customer._id || req.customer.customerId,
+        recipientPhone: req.customer.phone || null,
+        recipientEmail: req.customer.email || null,
+        user: req.customer.name || req.customer.customerName || 'customer'
+      };
+    }
+    return null;
   }
+
+  if (requestedRole === 'admin') {
+    if (req.admin) {
+      return {
+        recipientType: NOTIFICATION_RECIPIENT_TYPE.ADMIN,
+        recipientId: 'admin',
+        recipientPhone: null,
+        recipientEmail: null,
+        user: req.admin.username || req.admin.name || 'admin'
+      };
+    }
+    return null;
+  }
+
+  // If no explicit role was requested:
   if (req.customer) {
     return {
       recipientType: NOTIFICATION_RECIPIENT_TYPE.CUSTOMER,
@@ -26,6 +46,17 @@ const getRecipientContext = (req) => {
       user: req.customer.name || req.customer.customerName || 'customer'
     };
   }
+
+  if (req.admin) {
+    return {
+      recipientType: NOTIFICATION_RECIPIENT_TYPE.ADMIN,
+      recipientId: 'admin',
+      recipientPhone: null,
+      recipientEmail: null,
+      user: req.admin.username || req.admin.name || 'admin'
+    };
+  }
+
   return null;
 };
 

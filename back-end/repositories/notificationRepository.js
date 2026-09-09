@@ -60,6 +60,12 @@ export const createNotificationDoc = async ({
   return payload;
 };
 
+const normalizePhoneStr = (p) => {
+  if (!p) return null;
+  const cleaned = String(p).replace(/\D/g, '');
+  return cleaned.length > 10 ? cleaned.slice(-10) : cleaned;
+};
+
 /**
  * Matches notifications for an authenticated recipient (customer or admin).
  */
@@ -70,10 +76,20 @@ const matchesRecipient = (n, { recipientType, recipientId, recipientPhone, recip
     return true; // All admin notifications belong to the admin dashboard
   }
 
-  // For customer recipients: match by customerId, phone, or email
-  const matchId = recipientId && (n.recipientId === recipientId);
-  const matchPhone = recipientPhone && (n.recipientPhone === recipientPhone);
-  const matchEmail = recipientEmail && n.recipientEmail && (n.recipientEmail.toLowerCase() === recipientEmail.toLowerCase());
+  // For customer recipients: must match by customerId, phone, or email
+  const matchId = Boolean(recipientId && n.recipientId && (n.recipientId === recipientId));
+
+  const reqPhoneNorm = normalizePhoneStr(recipientPhone);
+  const notifPhoneNorm = normalizePhoneStr(n.recipientPhone);
+  const matchPhone = Boolean(
+    (recipientPhone && n.recipientPhone && recipientPhone === n.recipientPhone) ||
+    (reqPhoneNorm && notifPhoneNorm && reqPhoneNorm === notifPhoneNorm)
+  );
+
+  const matchEmail = Boolean(
+    recipientEmail && n.recipientEmail &&
+    (n.recipientEmail.toLowerCase().trim() === recipientEmail.toLowerCase().trim())
+  );
 
   return Boolean(matchId || matchPhone || matchEmail);
 };

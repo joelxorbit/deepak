@@ -115,25 +115,31 @@ export const markAllAsReadService = async ({ recipientType, recipientId, recipie
 export const notifyBookingCreated = async (booking) => {
   try {
     const bId = booking.bookingId || booking.id;
+    const sportName = booking.sportType || booking.sport || 'Turf Pitch';
+    const dateFormatted = booking.dateStr || (booking.date ? (typeof booking.date === 'string' && booking.date.includes('T') ? booking.date.split('T')[0] : String(booking.date)) : '');
+    const phone = booking.customerPhone || booking.phone || (booking.customer && (booking.customer.phone || booking.customer.customerPhone)) || null;
+    const email = booking.customerEmail || booking.email || (booking.customer && (booking.customer.email || booking.customer.customerEmail)) || null;
+    const customerName = booking.customerName || booking.fullName || (booking.customer && booking.customer.name) || 'Customer';
+    const slotsArr = Array.isArray(booking.slots) ? booking.slots : (Array.isArray(booking.timeSlots) ? booking.timeSlots : []);
 
     // Customer Notification
     await createNotificationDoc({
       recipientType: NOTIFICATION_RECIPIENT_TYPE.CUSTOMER,
-      recipientId: booking.customerId || null,
-      recipientPhone: booking.phone || null,
-      recipientEmail: booking.email || null,
+      recipientId: booking.customerId || (booking.customer && (booking.customer.id || booking.customer._id)) || null,
+      recipientPhone: phone,
+      recipientEmail: email,
       type: NOTIFICATION_TYPES.BOOKING_CREATED,
       title: 'Booking Confirmed',
-      message: `Your booking #${bId} for ${booking.sport} on ${booking.date} (${(booking.slots || []).join(', ')}) has been received.`,
+      message: `Your booking #${bId} for ${sportName} on ${dateFormatted} (${slotsArr.join(', ')}) has been received.`,
       bookingId: bId,
       idempotencyKey: `BOOKING_CREATED:${bId}:customer`,
       metadata: {
-        sport: booking.sport,
-        date: booking.date,
-        slots: booking.slots,
+        sport: sportName,
+        date: dateFormatted,
+        slots: slotsArr,
         totalAmount: booking.totalAmount,
-        advanceAmount: booking.advanceAmount,
-        balanceAmount: booking.balanceAmount
+        advanceAmount: booking.advancePaid || booking.advanceAmount,
+        balanceAmount: booking.balanceDue || booking.balanceAmount
       }
     });
 
@@ -143,14 +149,14 @@ export const notifyBookingCreated = async (booking) => {
       recipientId: 'admin',
       type: NOTIFICATION_TYPES.BOOKING_CREATED,
       title: 'New Booking Received',
-      message: `New booking #${bId} for ${booking.sport} on ${booking.date} by ${booking.fullName || booking.customerName || 'Customer'}.`,
+      message: `New booking #${bId} for ${sportName} on ${dateFormatted} by ${customerName}.`,
       bookingId: bId,
       idempotencyKey: `BOOKING_CREATED:${bId}:admin`,
       metadata: {
-        customerName: booking.fullName || booking.customerName,
-        phone: booking.phone,
-        sport: booking.sport,
-        date: booking.date,
+        customerName,
+        phone,
+        sport: sportName,
+        date: dateFormatted,
         totalAmount: booking.totalAmount
       }
     });
@@ -166,17 +172,20 @@ export const notifyPaymentReceived = async (booking, paymentDetails = {}) => {
   try {
     const bId = booking.bookingId || booking.id;
     const paymentId = paymentDetails.paymentId || paymentDetails.razorpay_payment_id || 'verified';
-    const isFull = booking.paymentStatus === 'Paid' || paymentDetails.paymentType === 'full';
+    const isFull = booking.paymentStatus === 'Paid' || paymentDetails.paymentType === 'full' || booking.balanceDue === 0;
     const notifType = isFull ? NOTIFICATION_TYPES.FULL_PAYMENT_RECEIVED : NOTIFICATION_TYPES.ADVANCE_PAYMENT_RECEIVED;
     const title = isFull ? 'Payment Completed' : 'Advance Payment Received';
-    const amount = paymentDetails.amount || (isFull ? booking.totalAmount : booking.advancePaid || booking.advanceAmount);
+    const amount = paymentDetails.amount || (isFull ? booking.totalAmount : (booking.advancePaid || booking.advanceAmount));
+    const phone = booking.customerPhone || booking.phone || (booking.customer && (booking.customer.phone || booking.customer.customerPhone)) || null;
+    const email = booking.customerEmail || booking.email || (booking.customer && (booking.customer.email || booking.customer.customerEmail)) || null;
+    const customerName = booking.customerName || booking.fullName || (booking.customer && booking.customer.name) || 'Customer';
 
     // Customer Notification
     await createNotificationDoc({
       recipientType: NOTIFICATION_RECIPIENT_TYPE.CUSTOMER,
-      recipientId: booking.customerId || null,
-      recipientPhone: booking.phone || null,
-      recipientEmail: booking.email || null,
+      recipientId: booking.customerId || (booking.customer && (booking.customer.id || booking.customer._id)) || null,
+      recipientPhone: phone,
+      recipientEmail: email,
       type: notifType,
       title,
       message: `Payment of ₹${amount} for booking #${bId} has been successfully verified.`,
@@ -186,7 +195,7 @@ export const notifyPaymentReceived = async (booking, paymentDetails = {}) => {
         amount,
         paymentId,
         paymentStatus: booking.paymentStatus,
-        balanceAmount: booking.balanceAmount
+        balanceAmount: booking.balanceDue || booking.balanceAmount
       }
     });
 
@@ -196,7 +205,7 @@ export const notifyPaymentReceived = async (booking, paymentDetails = {}) => {
       recipientId: 'admin',
       type: notifType,
       title: `Payment Verified: #${bId}`,
-      message: `Payment of ₹${amount} received for booking #${bId} (${booking.fullName || booking.customerName || 'Customer'}).`,
+      message: `Payment of ₹${amount} received for booking #${bId} (${customerName}).`,
       bookingId: bId,
       idempotencyKey: `${notifType}:${bId}:${paymentId}:admin`,
       metadata: {
@@ -218,21 +227,25 @@ export const notifyAdminCancellation = async (booking, reason) => {
   try {
     const bId = booking.bookingId || booking.id;
     const cancelReason = reason || 'Administrative decision';
+    const phone = booking.customerPhone || booking.phone || (booking.customer && (booking.customer.phone || booking.customer.customerPhone)) || null;
+    const email = booking.customerEmail || booking.email || (booking.customer && (booking.customer.email || booking.customer.customerEmail)) || null;
+    const sportName = booking.sportType || booking.sport || 'Turf Pitch';
+    const dateFormatted = booking.dateStr || (booking.date ? (typeof booking.date === 'string' && booking.date.includes('T') ? booking.date.split('T')[0] : String(booking.date)) : '');
 
     await createNotificationDoc({
       recipientType: NOTIFICATION_RECIPIENT_TYPE.CUSTOMER,
-      recipientId: booking.customerId || null,
-      recipientPhone: booking.phone || null,
-      recipientEmail: booking.email || null,
+      recipientId: booking.customerId || (booking.customer && (booking.customer.id || booking.customer._id)) || null,
+      recipientPhone: phone,
+      recipientEmail: email,
       type: NOTIFICATION_TYPES.BOOKING_CANCELLED_BY_ADMIN,
       title: 'Booking Cancelled',
-      message: `Your booking #${bId} for ${booking.sport} on ${booking.date} has been cancelled by administration. Reason: ${cancelReason}`,
+      message: `Your booking #${bId} for ${sportName} on ${dateFormatted} has been cancelled by administration. Reason: ${cancelReason}`,
       bookingId: bId,
       idempotencyKey: `BOOKING_CANCELLED_BY_ADMIN:${bId}:customer`,
       metadata: {
         reason: cancelReason,
-        sport: booking.sport,
-        date: booking.date
+        sport: sportName,
+        date: dateFormatted
       }
     });
   } catch (err) {

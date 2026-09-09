@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
 import { useBooking } from '../context/BookingContext';
 import { NotificationCenter } from '../components/admin/NotificationCenter';
@@ -7,6 +7,7 @@ import { NotificationCenter } from '../components/admin/NotificationCenter';
 export const AdminLayout = ({ children }) => {
   const { logoutAdmin } = useBooking();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -27,6 +28,9 @@ export const AdminLayout = ({ children }) => {
     { id: 'freeze', path: ROUTES.ADMIN_FREEZE, label: 'Freeze Manager', icon: 'ac_unit' },
   ];
 
+  const currentNavItem = navItems.find(item => location.pathname === item.path || location.pathname.startsWith(item.path + '/')) || navItems[0];
+  const currentTitle = currentNavItem ? currentNavItem.label : 'Dashboard';
+
   return (
     <div className="min-h-screen bg-surface-container-low text-on-background flex flex-col md:flex-row font-body-md">
       {/* Mobile Top Header (Visible < 768px) */}
@@ -43,8 +47,8 @@ export const AdminLayout = ({ children }) => {
           <span className="font-display-lg text-lg tracking-tight text-white font-bold">ELITE PITCH</span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <NotificationCenter />
+        <div className="flex items-center gap-2.5">
+          <NotificationCenter variant="dark" />
           <button
             onClick={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
             aria-label="Toggle Mobile Menu"
@@ -171,21 +175,55 @@ export const AdminLayout = ({ children }) => {
           <button
             onClick={handleLogout}
             title={!isHovered ? 'Logout' : undefined}
-            className="flex-1 flex items-center gap-3.5 px-3 py-2.5 rounded-2xl font-label-bold text-sm text-error hover:bg-error/10 transition-colors"
+            className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-2xl font-label-bold text-sm text-error hover:bg-error/10 transition-colors"
           >
             <span className="material-symbols-outlined text-2xl shrink-0">logout</span>
             <span className={`whitespace-nowrap transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0 w-0 pointer-events-none'}`}>
               Logout
             </span>
           </button>
-          {isHovered && <NotificationCenter />}
         </div>
       </aside>
 
-      {/* Main Content Viewport */}
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
-        {children}
-      </main>
+      {/* Desktop Main Layout: Top Header + Content */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* Desktop Admin Top Header Bar */}
+        <header className="hidden md:flex sticky top-0 z-20 bg-white border-b border-slate-200/80 px-8 py-3.5 items-center justify-between shadow-xs">
+          {/* Left: Active Section Info / Breadcrumb */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Admin Portal</span>
+            </div>
+            <span className="text-slate-300">/</span>
+            <span className="text-sm font-extrabold text-slate-800 tracking-tight">{currentTitle}</span>
+          </div>
+
+          {/* Right: Rounded Notification Icon + Admin Profile */}
+          <div className="flex items-center gap-4">
+            {/* Rounded Notification Icon */}
+            <NotificationCenter variant="light" />
+
+            <div className="h-6 w-[1px] bg-slate-200" />
+
+            {/* Admin Profile Chip */}
+            <div className="flex items-center gap-2.5 pl-1">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-extrabold text-xs flex items-center justify-center shadow-xs ring-2 ring-emerald-50">
+                A
+              </div>
+              <div className="text-left hidden lg:block">
+                <p className="text-xs font-extrabold text-slate-800 leading-tight">Admin</p>
+                <p className="text-[10px] text-slate-400 font-medium leading-tight">Elite Turf</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content Viewport */}
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+          {children}
+        </main>
+      </div>
     </div>
   );
 };

@@ -13,9 +13,23 @@ export const api = axios.create({
 // Request Interceptor to attach Bearer token if present in localStorage
 api.interceptors.request.use(
   (config) => {
+    const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
     const customerToken = localStorage.getItem('elite_pitch_customer_token');
     const adminToken = localStorage.getItem('elite_pitch_admin_token');
-    const token = customerToken || adminToken;
+
+    let token = null;
+    const clientRole = config.headers?.['X-Client-Role'];
+
+    if (clientRole === 'admin') {
+      token = adminToken;
+    } else if (clientRole === 'customer') {
+      token = customerToken;
+    } else if (isAdminRoute) {
+      token = adminToken;
+    } else {
+      token = customerToken;
+    }
+
     if (token && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -6,7 +6,7 @@ import {
   markAllNotificationsReadService
 } from '../../services/notificationService';
 
-export const NotificationCenter = () => {
+export const NotificationCenter = ({ variant = 'light' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -14,7 +14,7 @@ export const NotificationCenter = () => {
 
   const loadUnreadCount = useCallback(async () => {
     try {
-      const count = await fetchUnreadCountService();
+      const count = await fetchUnreadCountService({ role: 'admin' });
       setUnreadCount(count);
     } catch (e) {
       // Ignore background poll errors
@@ -33,7 +33,7 @@ export const NotificationCenter = () => {
     if (nextState) {
       try {
         setLoading(true);
-        const data = await fetchNotificationsService({ limit: 15 });
+        const data = await fetchNotificationsService({ limit: 20, role: 'admin' });
         setNotifications(data || []);
       } catch (e) {
         // Ignore
@@ -45,7 +45,7 @@ export const NotificationCenter = () => {
 
   const handleMarkOneRead = async (id) => {
     try {
-      await markNotificationReadService(id);
+      await markNotificationReadService(id, { role: 'admin' });
       setNotifications(prev => prev.map(n => (n.id === id || n._id === id) ? { ...n, isRead: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (e) {
@@ -55,7 +55,7 @@ export const NotificationCenter = () => {
 
   const handleMarkAllRead = async () => {
     try {
-      await markAllNotificationsReadService();
+      await markAllNotificationsReadService({ role: 'admin' });
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (e) {
@@ -63,52 +63,69 @@ export const NotificationCenter = () => {
     }
   };
 
+  const isDark = variant === 'dark';
+
   return (
     <div className="relative">
+      {/* ── Rounded Notification Icon Button ── */}
       <button
         onClick={handleToggle}
-        aria-label="Notifications"
-        className="relative p-2 min-h-[44px] min-w-[44px] rounded-2xl bg-white/10 text-white hover:bg-white/20 transition-colors flex items-center justify-center"
+        aria-label="Admin Notifications"
+        title="Admin Notifications"
+        className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 active:scale-95 shadow-xs ${
+          isDark
+            ? 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
+            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 border border-slate-200/80 hover:border-slate-300'
+        }`}
       >
-        <span className="material-symbols-outlined text-2xl">notifications</span>
+        <span className="material-symbols-outlined text-xl transition-transform hover:scale-110">
+          {unreadCount > 0 ? 'notifications_active' : 'notifications'}
+        </span>
         {unreadCount > 0 && (
-          <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-surface-dark animate-pulse"></span>
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-emerald-500 text-white font-extrabold text-[10px] flex items-center justify-center ring-2 ring-white animate-pulse shadow-sm">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
         )}
       </button>
 
+      {/* ── Dropdown Panel ── */}
       {isOpen && (
         <>
           <div 
             onClick={() => setIsOpen(false)}
             className="fixed inset-0 z-40"
-          ></div>
+          />
 
-          <div className="absolute right-0 mt-3 w-84 sm:w-96 bg-white rounded-3xl shadow-2xl border border-black/5 z-50 overflow-hidden animate-slide-up text-on-surface">
-            <div className="p-4 bg-surface-container-low border-b border-black/5 flex justify-between items-center">
+          <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-3xl shadow-2xl border border-slate-200/80 z-50 overflow-hidden animate-slide-up text-slate-800">
+            {/* Header */}
+            <div className="p-4 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-xl">notifications_active</span>
-                <h3 className="font-bold text-sm">System Notifications</h3>
+                <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-base">notifications</span>
+                </div>
+                <h3 className="font-extrabold text-xs uppercase tracking-wider text-slate-700">Admin Alerts</h3>
               </div>
               <div className="flex items-center gap-2">
                 {unreadCount > 0 && (
                   <>
-                    <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                      {unreadCount} unread
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                      {unreadCount} new
                     </span>
                     <button
                       onClick={handleMarkAllRead}
-                      className="text-[11px] font-semibold text-primary hover:underline"
+                      className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline transition-colors"
                     >
-                      Read all
+                      Mark all as read
                     </button>
                   </>
                 )}
               </div>
             </div>
 
-            <div className="divide-y divide-black/5 max-h-80 overflow-y-auto">
+            {/* List */}
+            <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto">
               {loading ? (
-                <div className="p-6 text-center text-xs text-on-surface-variant">
+                <div className="p-6 text-center text-xs text-slate-400">
                   Loading notifications...
                 </div>
               ) : notifications.length > 0 ? (
@@ -116,29 +133,34 @@ export const NotificationCenter = () => {
                   const id = n.id || n._id;
                   const isUnread = !n.isRead;
                   const time = typeof n.createdAt === 'string'
-                    ? new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    ? new Date(n.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
                     : 'Recently';
 
                   return (
                     <div
                       key={id}
                       onClick={() => isUnread && handleMarkOneRead(id)}
-                      className={`p-4 space-y-1 hover:bg-surface-container-lowest transition-colors cursor-pointer ${
-                        isUnread ? 'bg-primary/5' : ''
+                      className={`p-3.5 space-y-1 transition-colors cursor-pointer hover:bg-slate-50/80 ${
+                        isUnread ? 'bg-emerald-50/40' : ''
                       }`}
                     >
                       <div className="flex justify-between items-start gap-2">
-                        <h4 className={`font-bold text-xs ${isUnread ? 'text-primary' : 'text-on-surface'}`}>
-                          {n.title}
-                        </h4>
-                        <span className="text-[10px] text-on-surface-variant whitespace-nowrap">{time}</span>
+                        <div className="flex items-center gap-1.5">
+                          {isUnread && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                          )}
+                          <h4 className={`font-bold text-xs ${isUnread ? 'text-slate-900 font-extrabold' : 'text-slate-600'}`}>
+                            {n.title}
+                          </h4>
+                        </div>
+                        <span className="text-[10px] text-slate-400 whitespace-nowrap">{time}</span>
                       </div>
-                      <p className="text-xs text-on-surface-variant leading-relaxed">{n.message}</p>
+                      <p className="text-xs text-slate-600 leading-relaxed pl-3">{n.message}</p>
                     </div>
                   );
                 })
               ) : (
-                <div className="p-6 text-center text-xs text-on-surface-variant">
+                <div className="p-6 text-center text-xs text-slate-400">
                   No notifications yet.
                 </div>
               )}
