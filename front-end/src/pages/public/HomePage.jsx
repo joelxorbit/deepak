@@ -24,14 +24,15 @@ export const HomePage = () => {
   const todayStr = new Date().toISOString().split('T')[0];
   const upcomingEvents = events.filter(e => {
     if (e.isArchived || e.isPublished === false) return false;
-    if (e.status === 'Upcoming') return true;
+    // An event is Upcoming if its category/status is Upcoming AND the date hasn't passed
+    if ((e.status === 'Upcoming' || e.category === 'Upcoming') && e.date >= todayStr) return true;
     if (e.category !== 'COMPLETED' && e.category !== 'Completed' && e.status !== 'Completed' && e.date >= todayStr) return true;
     return false;
   });
   
   const completedEvents = events.filter(e => {
     if (e.isArchived || e.isPublished === false) return false;
-    return e.status === 'Completed' || e.category === 'COMPLETED' || e.category === 'Completed' || (e.date < todayStr && e.status !== 'Upcoming');
+    return e.status === 'Completed' || e.category === 'COMPLETED' || e.category === 'Completed' || e.date < todayStr;
   });
 
   useEffect(() => {

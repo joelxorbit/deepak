@@ -311,7 +311,16 @@ export const EventsPage = () => {
             ))}
           </div>
         )}
-
+        {/* 5. EMPTY STATE FALLBACK */}
+        {upcomingEvents.length === 0 && !featuredCompleted && secondaryCompleted.length === 0 && (
+          <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center space-y-4">
+            <span className="material-symbols-outlined text-6xl text-slate-300">event_busy</span>
+            <h3 className="text-2xl font-extrabold text-slate-800">No Events Scheduled</h3>
+            <p className="text-slate-500 max-w-md mx-auto">
+              We currently don't have any upcoming tournaments or showcases listed. Please check back later or contact us to organize your own private event.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* EVENT ENQUIRY / REGISTRATION MODAL */}
