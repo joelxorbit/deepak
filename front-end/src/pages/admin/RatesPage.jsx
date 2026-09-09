@@ -35,9 +35,6 @@ export const RatesPage = () => {
 
   const [rates, setRates] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
-  const [filterSport, setFilterSport] = useState('ALL');
-  const [filterStatus, setFilterStatus] = useState('ALL');
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,17 +60,14 @@ export const RatesPage = () => {
   const loadRates = useCallback(async () => {
     try {
       setLoading(true);
-      const params = {};
-      if (filterSport !== 'ALL') params.sportId = filterSport;
-      if (filterStatus !== 'ALL') params.status = filterStatus;
-      const data = await fetchRateRulesService(params);
+      const data = await fetchRateRulesService();
       setRates(Array.isArray(data) ? data : []);
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to load rate rules.', 'error');
     } finally {
       setLoading(false);
     }
-  }, [filterSport, filterStatus, addToast]);
+  }, [addToast]);
 
   useEffect(() => {
     loadRates();
@@ -247,28 +241,17 @@ export const RatesPage = () => {
     return <span className="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-0.5 rounded-full">Tier 5: Sport Baseline</span>;
   };
 
-  const filteredRates = rates.filter(r => {
-    if (search) {
-      const q = search.toLowerCase();
-      const matchName = r.ruleName?.toLowerCase().includes(q);
-      const matchSport = r.sportId?.toLowerCase().includes(q);
-      const matchNotes = r.notes?.toLowerCase().includes(q);
-      if (!matchName && !matchSport && !matchNotes) return false;
-    }
-    return true;
-  });
-
   // Group legacy split companion rules into a single row, or display single rules
   const displayRates = React.useMemo(() => {
     const list = [];
     const seenCompanionIds = new Set();
 
-    for (const rule of filteredRates) {
+    for (const rule of rates) {
       const id = rule.id || rule._id;
       if (seenCompanionIds.has(id)) continue;
 
       // Check if there is an old legacy companion rule
-      const companion = filteredRates.find(r => {
+      const companion = rates.find(r => {
         const rId = r.id || r._id;
         if (rId === id || seenCompanionIds.has(rId)) return false;
         const isOppositePeak = Boolean(r.isPeak) !== Boolean(rule.isPeak);
@@ -302,7 +285,7 @@ export const RatesPage = () => {
       }
     }
     return list;
-  }, [filteredRates]);
+  }, [rates]);
 
   return (
     <div className="space-y-6 animate-fade-in text-on-surface">
@@ -322,44 +305,6 @@ export const RatesPage = () => {
           <span className="material-symbols-outlined text-xl">add</span>
           Create Rate Rule
         </button>
-      </div>
-
-      {/* Filter Bar */}
-      <div className="bg-white p-4 rounded-3xl border border-black/5 shadow-sm flex flex-col md:flex-row items-center gap-4 justify-between">
-        <div className="relative w-full md:w-80">
-          <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-lg">search</span>
-          <input
-            type="text"
-            placeholder="Search rate rules..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-xl text-xs font-body-md focus:outline-none focus:border-primary"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <select
-            value={filterSport}
-            onChange={(e) => setFilterSport(e.target.value)}
-            className="bg-surface-container-low border border-outline-variant rounded-xl px-3 py-2 text-xs font-label-bold focus:outline-none focus:border-primary"
-          >
-            <option value="ALL">All Sports</option>
-            <option value="football-5v5">Football 5v5</option>
-            <option value="football-7v7">Football 7v7</option>
-            <option value="cricket">Cricket</option>
-            <option value="badminton">Badminton</option>
-          </select>
-
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-surface-container-low border border-outline-variant rounded-xl px-3 py-2 text-xs font-label-bold focus:outline-none focus:border-primary"
-          >
-            <option value="ALL">All Statuses</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
-          </select>
-        </div>
       </div>
 
       {/* Rules Table */}

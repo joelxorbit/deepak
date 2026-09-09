@@ -19,13 +19,13 @@ export const AdminLayout = ({ children }) => {
   const navItems = [
     { id: 'dashboard', path: ROUTES.ADMIN_DASHBOARD, label: 'Dashboard', icon: 'dashboard' },
     { id: 'bookings', path: ROUTES.ADMIN_BOOKINGS, label: 'Manage Bookings', icon: 'event_available' },
-    { id: 'history', path: ROUTES.ADMIN_HISTORY, label: 'Booking History', icon: 'history' },
-    { id: 'reports', path: ROUTES.ADMIN_REPORTS, label: 'Reports & Analytics', icon: 'analytics' },
-    { id: 'customers', path: ROUTES.ADMIN_CUSTOMERS, label: 'Customers', icon: 'group' },
-    { id: 'rates', path: ROUTES.ADMIN_RATES, label: 'Rates & Pricing', icon: 'currency_rupee' },
-    { id: 'enquiries', path: ROUTES.ADMIN_ENQUIRIES, label: 'Enquiries', icon: 'mail' },
-    { id: 'events', path: ROUTES.ADMIN_EVENTS, label: 'Events Console', icon: 'event' },
     { id: 'freeze', path: ROUTES.ADMIN_FREEZE, label: 'Freeze Manager', icon: 'ac_unit' },
+    { id: 'history', path: ROUTES.ADMIN_HISTORY, label: 'Booking History', icon: 'history' },
+    { id: 'customers', path: ROUTES.ADMIN_CUSTOMERS, label: 'Customers', icon: 'group' },
+    { id: 'enquiries', path: ROUTES.ADMIN_ENQUIRIES, label: 'Enquiries', icon: 'mail' },
+    { id: 'rates', path: ROUTES.ADMIN_RATES, label: 'Rates & Pricing', icon: 'currency_rupee' },
+    { id: 'events', path: ROUTES.ADMIN_EVENTS, label: 'Events Console', icon: 'event' },
+    { id: 'reports', path: ROUTES.ADMIN_REPORTS, label: 'Reports & Analytics', icon: 'analytics' },
   ];
 
   const currentNavItem = navItems.find(item => location.pathname === item.path || location.pathname.startsWith(item.path + '/')) || navItems[0];

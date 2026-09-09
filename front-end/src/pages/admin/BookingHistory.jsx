@@ -1,6 +1,43 @@
 import React, { useState } from 'react';
 import { useBooking } from '../../context/BookingContext';
 
+const getPaymentStatus = (b) => {
+  // 1. Explicit canonical status
+  if (b.paymentStatus === 'Fully Paid' || b.paymentStatus === 'Paid' || b.paymentStatus === 'Cash Received') {
+    return 'Fully Paid';
+  }
+  if (b.paymentStatus === 'Advance Paid') {
+    return 'Advance Paid';
+  }
+  if (b.paymentStatus === 'Cash Pending') {
+    return 'Cash Pending';
+  }
+
+  // 2. Financial balances & options
+  const balanceDue = Number(b.balanceDue ?? -1);
+  const advancePaid = Number(b.advancePaid ?? 0);
+
+  if (balanceDue === 0) {
+    return 'Fully Paid';
+  }
+  if (b.paymentOption === 'FULL') {
+    return 'Fully Paid';
+  }
+  if (b.paymentOption === 'ADVANCE' || (advancePaid > 0 && balanceDue > 0)) {
+    return 'Advance Paid';
+  }
+  if (b.paymentOption === 'CASH' || b.paymentMethod === 'Pay at Spot') {
+    return 'Cash Pending';
+  }
+
+  // 3. Fallback on legacy paymentMethod
+  if (b.paymentMethod === 'Pay Now') {
+    return balanceDue > 0 ? 'Advance Paid' : 'Fully Paid';
+  }
+
+  return b.paymentStatus || 'Pending';
+};
+
 export const BookingHistory = () => {
   const { bookings } = useBooking();
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,7 +79,7 @@ export const BookingHistory = () => {
                 <th className="p-4">Phone Number</th>
                 <th className="p-4">Date</th>
                 <th className="p-4">Time Slots</th>
-                <th className="p-4">Payment Method</th>
+                <th className="p-4">Payment Status</th>
                 <th className="p-4">Final Status</th>
               </tr>
             </thead>
@@ -53,6 +90,7 @@ export const BookingHistory = () => {
                 const mobileNumber = b.mobileNumber || b.customerPhone || b.customer?.phone || 'N/A';
                 const displayDate = typeof b.date === 'string' ? b.date.split('T')[0] : b.dateStr || 'N/A';
                 const slotsList = Array.isArray(b.slots) ? b.slots : (Array.isArray(b.timeSlots) ? b.timeSlots : []);
+                const payStatus = getPaymentStatus(b);
 
                 return (
                   <tr key={displayId}>
@@ -61,7 +99,21 @@ export const BookingHistory = () => {
                     <td className="p-4 text-on-surface-variant">{mobileNumber}</td>
                     <td className="p-4">{displayDate}</td>
                     <td className="p-4 text-xs">{slotsList.join(', ')}</td>
-                    <td className="p-4">{b.paymentMethod}</td>
+                    <td className="p-4">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-label-bold ${
+                        payStatus === 'Fully Paid'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : payStatus === 'Advance Paid'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          payStatus === 'Fully Paid' ? 'bg-emerald-500' :
+                          payStatus === 'Advance Paid' ? 'bg-blue-500' : 'bg-amber-500'
+                        }`}></span>
+                        {payStatus}
+                      </span>
+                    </td>
                     <td className="p-4">
                       <span className={`text-xs font-label-bold px-3 py-1 rounded-full ${
                         b.status === 'Confirmed' || b.status === 'Completed' ? 'bg-primary-container/20 text-on-primary-container' :
