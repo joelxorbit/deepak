@@ -202,7 +202,7 @@ export const EventsPage = () => {
                         <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
                           {event.description}
                         </p>
-
+                      </div>
                     </div>
                   </div>
                 );
