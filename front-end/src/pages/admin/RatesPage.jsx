@@ -49,6 +49,7 @@ export const RatesPage = () => {
     ruleName: '',
     sportId: 'all',
     ratePerHour: '',
+    slotCategory: 'ALL',
     daysOfWeek: ['ALL'],
     timeSlots: ['ALL'],
     effectiveFrom: '',
@@ -84,6 +85,7 @@ export const RatesPage = () => {
       ruleName: '',
       sportId: 'all',
       ratePerHour: '',
+      slotCategory: 'ALL',
       daysOfWeek: ['ALL'],
       timeSlots: ['ALL'],
       effectiveFrom: '',
@@ -98,10 +100,22 @@ export const RatesPage = () => {
 
   const openEditModal = (rule) => {
     setEditingId(rule.id || rule._id);
+    
+    // Determine the category based on the slots
+    let category = 'ALL';
+    if (Array.isArray(rule.timeSlots) && rule.timeSlots.length > 0 && !rule.timeSlots.includes('ALL')) {
+      if (rule.timeSlots.includes('10:00 AM - 11:00 AM') && !rule.timeSlots.includes('06:00 PM - 07:00 PM')) {
+        category = 'NORMAL';
+      } else {
+        category = 'PEAK';
+      }
+    }
+
     setFormData({
       ruleName: rule.ruleName || '',
       sportId: rule.sportId || 'all',
       ratePerHour: rule.ratePerHour || '',
+      slotCategory: category,
       daysOfWeek: Array.isArray(rule.daysOfWeek) ? rule.daysOfWeek : ['ALL'],
       timeSlots: Array.isArray(rule.timeSlots) ? rule.timeSlots : ['ALL'],
       effectiveFrom: rule.effectiveFrom || '',
@@ -151,17 +165,45 @@ export const RatesPage = () => {
 
     try {
       setSubmitting(true);
+      
+      let computedTimeSlots = ['ALL'];
+      let isPeakRule = false;
+      
+      if (formData.slotCategory === 'NORMAL') {
+        computedTimeSlots = [
+          "10:00 AM - 11:00 AM",
+          "11:00 AM - 12:00 PM",
+          "12:00 PM - 01:00 PM",
+          "01:00 PM - 02:00 PM",
+          "02:00 PM - 03:00 PM",
+          "03:00 PM - 04:00 PM"
+        ];
+        isPeakRule = false;
+      } else if (formData.slotCategory === 'PEAK') {
+        computedTimeSlots = TIME_SLOTS.filter(s => ![
+          "10:00 AM - 11:00 AM",
+          "11:00 AM - 12:00 PM",
+          "12:00 PM - 01:00 PM",
+          "01:00 PM - 02:00 PM",
+          "02:00 PM - 03:00 PM",
+          "03:00 PM - 04:00 PM"
+        ].includes(s));
+        isPeakRule = true;
+      }
+
+      const categoryLabel = formData.slotCategory === 'NORMAL' ? ' (Normal Hours)' : formData.slotCategory === 'PEAK' ? ' (Peak Hours)' : '';
+
       const payload = {
-        ruleName: `Price Rule - ₹${formData.ratePerHour}`,
+        ruleName: `Price Rule - ₹${formData.ratePerHour}${categoryLabel}`,
         sportId: 'all',
         ratePerHour: Number(formData.ratePerHour),
         daysOfWeek: ['ALL'],
-        timeSlots: ['ALL'],
+        timeSlots: computedTimeSlots,
         effectiveFrom: formData.effectiveFrom || undefined,
         effectiveTo: formData.effectiveTo || undefined,
         status: 'active',
-        isPeak: false,
-        priority: (formData.effectiveFrom || formData.effectiveTo) ? 50 : 10,
+        isPeak: isPeakRule,
+        priority: (formData.effectiveFrom || formData.effectiveTo) ? 50 : (formData.slotCategory === 'ALL' ? 10 : 20),
         notes: `Admin price update on ${new Date().toISOString().split('T')[0]}`
       };
 
@@ -417,7 +459,19 @@ export const RatesPage = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Time Category *</label>
+                  <select
+                    value={formData.slotCategory}
+                    onChange={(e) => setFormData({ ...formData, slotCategory: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary"
+                  >
+                    <option value="ALL">All Slots (Universal)</option>
+                    <option value="NORMAL">Normal Hours (10:00 AM - 4:00 PM)</option>
+                    <option value="PEAK">Peak Hours (All Other Times)</option>
+                  </select>
+                </div>
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Price / Hour (₹) *</label>
                   <input
@@ -431,7 +485,9 @@ export const RatesPage = () => {
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold focus:outline-none focus:border-primary"
                   />
                 </div>
+              </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">Start Date (Optional)</label>
                   <input
@@ -441,7 +497,6 @@ export const RatesPage = () => {
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-primary"
                   />
                 </div>
-
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">End Date (Optional)</label>
                   <input

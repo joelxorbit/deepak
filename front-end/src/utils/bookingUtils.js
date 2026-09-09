@@ -1,6 +1,8 @@
 import { getFormattedDateString } from './dateUtils';
 
 export const TIME_SLOTS = [
+  "04:00 AM - 05:00 AM",
+  "05:00 AM - 06:00 AM",
   "06:00 AM - 07:00 AM",
   "07:00 AM - 08:00 AM",
   "08:00 AM - 09:00 AM",
