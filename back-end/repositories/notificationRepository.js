@@ -1,5 +1,6 @@
 import { getNotificationsCollection } from '../config/firestoreCollections.js';
 import { NOTIFICATION_RECIPIENT_TYPE } from '../utils/constants.js';
+import { cacheManager } from '../utils/cacheManager.js';
 import { logger } from '../utils/logger.js';
 
 /**
@@ -56,6 +57,7 @@ export const createNotificationDoc = async ({
   };
 
   await docRef.set(payload);
+  cacheManager.flush();
   logger.info(`[NotificationRepository] Created notification ${docRef.id} for ${recipientType} (${payload.recipientId || payload.recipientPhone || 'admin'}) - Type: ${type}`);
   return payload;
 };
@@ -106,7 +108,19 @@ export const getNotificationsForRecipientDoc = async ({
   limit = 50
 }) => {
   const collection = getNotificationsCollection();
-  const snapshot = await collection.get();
+  
+  // Bounded query (limit 100) instead of downloading entire collection
+  let snapshot;
+  try {
+    let query = collection;
+    if (recipientType) {
+      query = query.where('recipientType', '==', recipientType);
+    }
+    snapshot = await query.limit(100).get();
+  } catch (err) {
+    logger.warn(`[NotificationRepository] Filtered query failed, fallback: ${err.message}`);
+    snapshot = await collection.limit(50).get();
+  }
 
   let docs = snapshot.docs.map(doc => ({ id: doc.id, _id: doc.id, ...doc.data() }));
 
@@ -126,7 +140,7 @@ export const getNotificationsForRecipientDoc = async ({
 };
 
 /**
- * Gets count of unread notifications for a recipient.
+ * Gets count of unread notifications for a recipient with 60-second in-memory caching.
  */
 export const getUnreadNotificationCountDoc = async ({
   recipientType,
@@ -134,15 +148,33 @@ export const getUnreadNotificationCountDoc = async ({
   recipientPhone = null,
   recipientEmail = null
 }) => {
-  const collection = getNotificationsCollection();
-  const snapshot = await collection.get();
+  const cacheKey = `notif_unread_${recipientType}_${recipientId || ''}_${recipientPhone || ''}_${recipientEmail || ''}`;
+  const cachedCount = cacheManager.get(cacheKey);
+  if (typeof cachedCount === 'number') {
+    return cachedCount;
+  }
 
-  const docs = snapshot.docs.map(doc => doc.data());
-  const unread = docs.filter(n => 
-    matchesRecipient(n, { recipientType, recipientId, recipientPhone, recipientEmail }) && !n.isRead
-  );
+  let unread = 0;
+  try {
+    const collection = getNotificationsCollection();
+    // Bounded limit query for unread notifications only
+    let query = collection.where('isRead', '==', false);
+    if (recipientType) {
+      query = query.where('recipientType', '==', recipientType);
+    }
+    const snapshot = await query.limit(50).get();
+    const docs = snapshot.docs.map(doc => doc.data());
+    unread = docs.filter(n => 
+      matchesRecipient(n, { recipientType, recipientId, recipientPhone, recipientEmail }) && !n.isRead
+    ).length;
+  } catch (err) {
+    logger.warn(`[NotificationRepository] getUnreadNotificationCountDoc query error: ${err.message}`);
+    unread = 0;
+  }
 
-  return unread.length;
+  // Cache count for 60 seconds to protect Firestore free tier quota
+  cacheManager.set(cacheKey, unread, 60000);
+  return unread;
 };
 
 /**
@@ -170,6 +202,7 @@ export const markNotificationAsReadDoc = async (id) => {
     updatedAt: now
   });
 
+  cacheManager.flush();
   const updated = await docRef.get();
   return { id: updated.id, _id: updated.id, ...updated.data() };
 };
@@ -184,7 +217,7 @@ export const markAllNotificationsAsReadDoc = async ({
   recipientEmail = null
 }) => {
   const collection = getNotificationsCollection();
-  const snapshot = await collection.get();
+  const snapshot = await collection.where('isRead', '==', false).limit(100).get();
 
   const now = new Date().toISOString();
   let updatedCount = 0;
@@ -201,6 +234,7 @@ export const markAllNotificationsAsReadDoc = async ({
     }
   }
 
+  cacheManager.flush();
   logger.info(`[NotificationRepository] Marked ${updatedCount} notifications as read for ${recipientType}`);
   return { updatedCount };
 };

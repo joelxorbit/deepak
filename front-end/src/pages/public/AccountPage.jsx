@@ -139,7 +139,10 @@ export const AccountPage = () => {
       const data = await getCustomerBookingsApi(filter);
       setBookings(Array.isArray(data) ? data : []);
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to load booking history.';
+      let msg = err.response?.data?.message || 'Failed to load booking history.';
+      if (msg.includes('RESOURCE_EXHAUSTED') || msg.includes('Quota exceeded') || err.response?.status === 503) {
+        msg = 'Firebase daily free-tier quota (Spark Plan) has been reached. Please wait for the daily quota reset or upgrade the Firebase project to the Blaze (pay-as-you-go) plan.';
+      }
       setBookingsError(msg);
       setBookings([]);
     } finally {
@@ -623,15 +626,29 @@ export const AccountPage = () => {
             ))}
           </div>
         ) : bookingsError ? (
-          <div className="p-6 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-center space-y-3">
-            <span className="material-symbols-outlined text-rose-400 text-3xl">error</span>
-            <p className="text-xs text-rose-300">{bookingsError}</p>
-            <button
-              onClick={() => fetchBookings(activeTab)}
-              className="px-4 py-1.5 bg-rose-500/20 text-rose-200 text-xs rounded-lg hover:bg-rose-500/30 transition-all font-medium"
-            >
-              Retry
-            </button>
+          <div className="p-8 rounded-3xl bg-slate-900/90 border border-amber-500/30 text-center space-y-4 max-w-xl mx-auto shadow-xl">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto text-amber-400">
+              <span className="material-symbols-outlined text-2xl">
+                {bookingsError.includes('quota') || bookingsError.includes('Spark') ? 'cloud_off' : 'error'}
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              <h4 className="text-sm font-bold text-white">
+                {bookingsError.includes('quota') || bookingsError.includes('Spark') ? 'Database Daily Quota Reached' : 'Unable to Retrieve Bookings'}
+              </h4>
+              <p className="text-xs text-slate-300 leading-relaxed max-w-md mx-auto">
+                {bookingsError}
+              </p>
+            </div>
+            <div className="pt-2 flex items-center justify-center gap-3">
+              <button
+                onClick={() => fetchBookings(activeTab)}
+                className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-sm">refresh</span>
+                <span>Retry</span>
+              </button>
+            </div>
           </div>
         ) : bookings.length === 0 ? (
           <div className="p-12 rounded-3xl bg-slate-900/40 border border-white/5 text-center space-y-4">

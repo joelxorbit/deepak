@@ -13,6 +13,7 @@ export const NotificationCenter = ({ variant = 'light' }) => {
   const [loading, setLoading] = useState(false);
 
   const loadUnreadCount = useCallback(async () => {
+    if (document.hidden) return;
     try {
       const count = await fetchUnreadCountService({ role: 'admin' });
       setUnreadCount(count);
@@ -23,8 +24,19 @@ export const NotificationCenter = ({ variant = 'light' }) => {
 
   useEffect(() => {
     loadUnreadCount();
-    const interval = setInterval(loadUnreadCount, 30000); // 30s poll
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      if (!document.hidden) loadUnreadCount();
+    }, 60000); // 60s poll
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) loadUnreadCount();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [loadUnreadCount]);
 
   const handleToggle = async () => {

@@ -38,8 +38,8 @@ export const Navbar = () => {
 
   // Fetch unread notification count if customer is authenticated
   const loadUnreadCount = useCallback(async () => {
-    if (!isAuthenticated) {
-      setUnreadCount(0);
+    if (!isAuthenticated || document.hidden) {
+      if (!isAuthenticated) setUnreadCount(0);
       return;
     }
     try {
@@ -52,8 +52,19 @@ export const Navbar = () => {
 
   useEffect(() => {
     loadUnreadCount();
-    const interval = setInterval(loadUnreadCount, 30000); // 30s poll
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      if (!document.hidden) loadUnreadCount();
+    }, 60000); // 60s poll
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) loadUnreadCount();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [loadUnreadCount]);
 
   const handleOpenNotifications = async () => {

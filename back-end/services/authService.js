@@ -410,8 +410,60 @@ export const getCustomerBookingsService = async (customer, filter = 'all') => {
   const customerPhone = normalizePhone(customer.phone);
   const customerEmail = (customer.email || '').trim().toLowerCase();
 
-  const bookingsSnap = await getBookingsCollection().get();
-  const rawBookings = bookingsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const cacheKey = `cust_bookings_${customerId}_${customerPhone || ''}_${customerEmail || ''}`;
+  const cachedBookings = cacheManager.get(cacheKey);
+
+  let rawBookings = [];
+  if (cachedBookings && Array.isArray(cachedBookings)) {
+    rawBookings = cachedBookings;
+  } else {
+    const bookingsMap = new Map();
+
+    // 1. Query by customer ID (most specific)
+    if (customerId) {
+      try {
+        const idSnap = await getBookingsCollection().where('customerId', '==', customerId).get();
+        idSnap.docs.forEach(d => bookingsMap.set(d.id, { id: d.id, ...d.data() }));
+      } catch (e) {
+        logger.warn(`[AuthService] Targeted customerId query failed: ${e.message}`);
+      }
+    }
+
+    // 2. Query by customer phone
+    if (customerPhone) {
+      try {
+        const phoneSnap = await getBookingsCollection().where('customerPhone', '==', customerPhone).get();
+        phoneSnap.docs.forEach(d => bookingsMap.set(d.id, { id: d.id, ...d.data() }));
+      } catch (e) {
+        logger.warn(`[AuthService] Targeted customerPhone query failed: ${e.message}`);
+      }
+    }
+
+    // 3. Query by customer email if empty
+    if (bookingsMap.size === 0 && customerEmail) {
+      try {
+        const emailSnap = await getBookingsCollection().where('customerEmail', '==', customerEmail).get();
+        emailSnap.docs.forEach(d => bookingsMap.set(d.id, { id: d.id, ...d.data() }));
+      } catch (e) {
+        logger.warn(`[AuthService] Targeted customerEmail query failed: ${e.message}`);
+      }
+    }
+
+    // 4. Bounded fallback (limit 100 instead of unbounded whole collection get)
+    if (bookingsMap.size === 0) {
+      try {
+        const fallbackSnap = await getBookingsCollection().limit(100).get();
+        fallbackSnap.docs.forEach(d => bookingsMap.set(d.id, { id: d.id, ...d.data() }));
+      } catch (e) {
+        logger.error(`[AuthService] Fallback bookings query failed: ${e.message}`);
+        throw e;
+      }
+    }
+
+    rawBookings = Array.from(bookingsMap.values());
+    // Cache for 30 seconds
+    cacheManager.set(cacheKey, rawBookings, 30000);
+  }
 
   // Filter bookings belonging to this customer by ID, normalized phone, or email
   const userBookings = rawBookings.filter(b => {
