@@ -120,6 +120,12 @@ export const InvoiceModal = ({ booking, onClose }) => {
                 <span>Subtotal:</span>
                 <span className="font-medium">₹{subtotal}</span>
               </div>
+              {booking.discountAmount > 0 && (
+                <div className="flex justify-between text-emerald-700">
+                  <span>Coupon ({booking.couponCode}):</span>
+                  <span className="font-medium">-₹{booking.discountAmount}</span>
+                </div>
+              )}
               <div className="flex justify-between font-bold text-base pt-2 border-t border-black/10 text-primary">
                 <span>Grand Total:</span>
                 <span>₹{totalAmount}</span>

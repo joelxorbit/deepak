@@ -123,6 +123,12 @@ export const BookingDetailsDrawer = ({ booking, onClose, onPrintInvoice }) => {
                 <span className="font-medium text-amber-700">₹{balanceDue}</span>
               </div>
             )}
+            {booking.discountAmount > 0 && (
+              <div className="flex justify-between border-b border-black/5 pb-2 text-emerald-700">
+                <span>Coupon ({booking.couponCode || 'Applied'})</span>
+                <span className="font-semibold">-₹{booking.discountAmount}</span>
+              </div>
+            )}
             <div className="flex justify-between pt-1">
               <span className="text-on-surface-variant font-bold">Total Amount</span>
               <span className="font-bold text-primary text-base">₹{totalAmount}</span>

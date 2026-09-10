@@ -1,10 +1,13 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useBooking } from '../../context/BookingContext';
 import { StatCard } from '../../components/admin/StatCard';
 import { BookingTable } from '../../components/admin/BookingTable';
 import { getTodayString } from '../../utils/dateUtils';
+import { ROUTES } from '../../constants/routes';
 
 export const AdminDashboard = ({ setCurrentTab }) => {
+  const navigate = useNavigate();
   const {
     bookings,
     customers,
@@ -140,14 +143,15 @@ export const AdminDashboard = ({ setCurrentTab }) => {
       <div className="bg-white p-6 rounded-3xl border border-black/5 shadow-sm space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="font-headline-md text-headline-md text-xl font-bold text-on-surface">Recent Reservations</h2>
-          {setCurrentTab && (
-            <button
-              onClick={() => setCurrentTab('manage-bookings')}
-              className="text-primary font-label-bold text-xs hover:underline flex items-center gap-1"
-            >
-              View All &rarr;
-            </button>
-          )}
+          <button
+            onClick={() => {
+              if (setCurrentTab) setCurrentTab('manage-bookings');
+              else navigate(ROUTES.ADMIN_BOOKINGS);
+            }}
+            className="text-primary font-label-bold text-xs hover:underline flex items-center gap-1"
+          >
+            View All &rarr;
+          </button>
         </div>
 
         <BookingTable bookings={bookings.slice(0, 5)} showActions={false} />

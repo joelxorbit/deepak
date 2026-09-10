@@ -55,24 +55,26 @@ export const CouponsPage = () => {
   };
 
   const handleToggleStatus = async (coupon) => {
+    const targetId = coupon.id || coupon._id;
     try {
-      const updated = await toggleCouponStatusService(coupon.id);
+      const updated = await toggleCouponStatusService(targetId);
       addToast(`Coupon "${coupon.code}" ${updated.status === 'active' ? 'activated' : 'deactivated'}.`, 'success');
-      setCoupons(prev => prev.map(c => c.id === coupon.id ? { ...c, status: updated.status } : c));
+      setCoupons(prev => prev.map(c => (c.id === targetId || c._id === targetId) ? { ...c, status: updated.status } : c));
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to update coupon status.', 'error');
     }
   };
 
   const handleDelete = async (coupon) => {
+    const targetId = coupon.id || coupon._id;
     if (!window.confirm(`Are you sure you want to delete coupon "${coupon.code}"? Existing bookings will keep their recorded discount.`)) {
       return;
     }
 
     try {
-      await deleteCouponService(coupon.id);
+      await deleteCouponService(targetId);
       addToast(`Coupon "${coupon.code}" deleted successfully.`, 'success');
-      setCoupons(prev => prev.filter(c => c.id !== coupon.id));
+      setCoupons(prev => prev.filter(c => c.id !== targetId && c._id !== targetId));
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to delete coupon.', 'error');
     }
@@ -207,7 +209,7 @@ export const CouponsPage = () => {
                   const isActive = coupon.status === 'active' && !isExpired;
 
                   return (
-                    <tr key={coupon.id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={coupon.id || coupon._id} className="hover:bg-slate-50 transition-colors">
                       {/* Code */}
                       <td className="p-4 pl-6 space-y-1">
                         <div className="flex items-center gap-2">
