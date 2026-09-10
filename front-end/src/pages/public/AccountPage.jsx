@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCustomerAuth } from '../../context/CustomerAuthContext';
 import { getCustomerBookingsApi } from '../../services/authService';
@@ -52,6 +53,27 @@ export const AccountPage = () => {
   // Booking Details Modal state
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [downloadingPdfId, setDownloadingPdfId] = useState(null);
+
+  // Lock background body scroll and dismiss on Escape when any modal is open
+  useEffect(() => {
+    if (selectedBooking || isEditModalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          if (selectedBooking) setSelectedBooking(null);
+          if (isEditModalOpen) setIsEditModalOpen(false);
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [selectedBooking, isEditModalOpen]);
 
   /**
    * Handle Google Sign-In using Firebase Client SDK.
@@ -719,17 +741,27 @@ export const AccountPage = () => {
       </div>
 
       {/* EDIT PROFILE MODAL */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6">
+      {isEditModalOpen && createPortal(
+        <div 
+          className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsEditModalOpen(false);
+          }}
+        >
+          <div 
+            className="bg-slate-900 border border-white/10 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto custom-scrollbar"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <span className="material-symbols-outlined text-emerald-400">edit</span>
                 Edit Profile
               </h3>
               <button
+                type="button"
                 onClick={() => setIsEditModalOpen(false)}
                 className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-all"
+                title="Close"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
@@ -815,104 +847,121 @@ export const AccountPage = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* BOOKING DETAILS MODAL */}
-      {selectedBooking && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+      {selectedBooking && createPortal(
+        <div 
+          className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelectedBooking(null);
+          }}
+        >
+          <div 
+            className="bg-slate-900 border border-white/10 rounded-3xl w-full max-w-lg shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[90vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Sticky Header */}
+            <div className="flex items-center justify-between border-b border-white/10 px-6 py-4 bg-slate-900 shrink-0">
               <div>
-                <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Booking Receipt</span>
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Booking Receipt</span>
                 <h3 className="text-lg font-bold font-mono text-emerald-400">{selectedBooking.bookingId}</h3>
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedBooking(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-all"
+                className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all"
+                title="Close"
               >
-                <span className="material-symbols-outlined">close</span>
+                <span className="material-symbols-outlined text-xl">close</span>
               </button>
             </div>
 
-            {/* Status overview */}
-            <div className="flex items-center justify-between bg-slate-950 p-4 rounded-2xl border border-white/5">
-              <div>
-                <span className="text-[10px] text-slate-500 uppercase block font-medium">Status</span>
-                <div className="mt-0.5">{renderStatusBadge(selectedBooking.status)}</div>
-              </div>
-              <div>
-                <span className="text-[10px] text-slate-500 uppercase block font-medium">Payment State</span>
-                <div className="mt-0.5">{renderPaymentBadge(selectedBooking.paymentStatus, selectedBooking.balanceDue)}</div>
-              </div>
-            </div>
-
-            {/* Match Information */}
-            <div className="space-y-3 text-xs">
-              <h4 className="font-bold text-white uppercase tracking-wider text-[11px] text-emerald-400">Match Reservation</h4>
-              <div className="grid grid-cols-2 gap-3 bg-slate-950/50 p-3.5 rounded-xl border border-white/5">
+            {/* Scrollable Content Body */}
+            <div className="p-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar text-xs">
+              {/* Status overview */}
+              <div className="flex items-center justify-between bg-slate-950 p-4 rounded-2xl border border-white/5">
                 <div>
-                  <span className="text-slate-500 block text-[10px]">Turf / Sport</span>
-                  <span className="font-bold text-white">{selectedBooking.sportType || 'Football (5v5)'}</span>
+                  <span className="text-[10px] text-slate-400 uppercase block font-medium">Status</span>
+                  <div className="mt-0.5">{renderStatusBadge(selectedBooking.status)}</div>
                 </div>
                 <div>
-                  <span className="text-slate-500 block text-[10px]">Date</span>
-                  <span className="font-bold text-white">{selectedBooking.dateStr || selectedBooking.date?.split('T')[0]}</span>
+                  <span className="text-[10px] text-slate-400 uppercase block font-medium">Payment State</span>
+                  <div className="mt-0.5">{renderPaymentBadge(selectedBooking.paymentStatus, selectedBooking.balanceDue)}</div>
                 </div>
-                <div className="col-span-2">
-                  <span className="text-slate-500 block text-[10px]">Reserved Hours</span>
-                  <span className="font-bold font-mono text-slate-200">
-                    {Array.isArray(selectedBooking.timeSlots) ? selectedBooking.timeSlots.join(', ') : selectedBooking.slots?.join(', ')}
-                  </span>
+              </div>
+
+              {/* Match Information */}
+              <div className="space-y-2">
+                <h4 className="font-bold text-white uppercase tracking-wider text-[11px] text-emerald-400">Match Reservation</h4>
+                <div className="grid grid-cols-2 gap-3 bg-slate-950/60 p-3.5 rounded-xl border border-white/5">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Turf / Sport</span>
+                    <span className="font-bold text-white">{selectedBooking.sportType || 'Football (5v5)'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Date</span>
+                    <span className="font-bold text-white">{selectedBooking.dateStr || selectedBooking.date?.split('T')[0]}</span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-slate-400 block text-[10px]">Reserved Hours</span>
+                    <span className="font-bold font-mono text-slate-200">
+                      {Array.isArray(selectedBooking.timeSlots) ? selectedBooking.timeSlots.join(', ') : selectedBooking.slots?.join(', ')}
+                    </span>
+                  </div>
                 </div>
+              </div>
+
+              {/* Payment & Financial Breakdown (Strictly GST-Free) */}
+              <div className="space-y-2">
+                <h4 className="font-bold text-white uppercase tracking-wider text-[11px] text-emerald-400">Financial Breakdown</h4>
+                <div className="bg-slate-950 p-4 rounded-xl border border-white/5 space-y-2">
+                  <div className="flex justify-between text-slate-300">
+                    <span>Total Amount</span>
+                    <span className="font-bold text-white">₹{selectedBooking.totalAmount}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-300">
+                    <span>Advance Paid</span>
+                    <span className="font-bold text-emerald-400">₹{selectedBooking.advancePaid || 0}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-300 pt-2 border-t border-white/5">
+                    <span>Balance Due at Turf</span>
+                    <span className={`font-bold ${selectedBooking.balanceDue > 0 ? 'text-amber-400' : 'text-slate-400'}`}>
+                      ₹{selectedBooking.balanceDue || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-slate-400 pt-1 text-[11px]">
+                    <span>Payment Status</span>
+                    <span className="font-semibold text-emerald-400">
+                      {selectedBooking.paymentOption === 'ADVANCE' || selectedBooking.paymentStatus === 'Advance Paid' || selectedBooking.paymentMethod === 'Advance Paid'
+                        ? 'Advance Paid'
+                        : (selectedBooking.paymentOption === 'FULL' || selectedBooking.paymentStatus === 'Fully Paid' || selectedBooking.paymentMethod === 'Fully Paid' || selectedBooking.paymentStatus === 'Paid'
+                          ? 'Fully Paid'
+                          : (selectedBooking.paymentStatus || 'Cash Pending'))}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Instructions */}
+              <div className="p-3.5 bg-emerald-500/5 border border-emerald-500/10 rounded-xl text-[11px] text-slate-300 space-y-1">
+                <span className="font-bold text-emerald-400 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">info</span>
+                  Venue Instructions
+                </span>
+                <p>Please arrive at the arena 10 minutes prior to your reserved slot. Clean turf boots or trainers are recommended.</p>
               </div>
             </div>
 
-            {/* Payment & Financial Breakdown (Strictly GST-Free) */}
-            <div className="space-y-3 text-xs">
-              <h4 className="font-bold text-white uppercase tracking-wider text-[11px] text-emerald-400">Financial Breakdown</h4>
-              <div className="bg-slate-950 p-4 rounded-xl border border-white/5 space-y-2">
-                <div className="flex justify-between text-slate-300">
-                  <span>Total Amount</span>
-                  <span className="font-bold text-white">₹{selectedBooking.totalAmount}</span>
-                </div>
-                <div className="flex justify-between text-slate-300">
-                  <span>Advance Paid</span>
-                  <span className="font-bold text-emerald-400">₹{selectedBooking.advancePaid || 0}</span>
-                </div>
-                <div className="flex justify-between text-slate-300 pt-2 border-t border-white/5">
-                  <span>Balance Due at Turf</span>
-                  <span className={`font-bold ${selectedBooking.balanceDue > 0 ? 'text-amber-400' : 'text-slate-400'}`}>
-                    ₹{selectedBooking.balanceDue || 0}
-                  </span>
-                </div>
-                <div className="flex justify-between text-slate-400 pt-1 text-[11px]">
-                  <span>Payment Status</span>
-                  <span className="font-semibold text-emerald-400">
-                    {selectedBooking.paymentOption === 'ADVANCE' || selectedBooking.paymentStatus === 'Advance Paid' || selectedBooking.paymentMethod === 'Advance Paid'
-                      ? 'Advance Paid'
-                      : (selectedBooking.paymentOption === 'FULL' || selectedBooking.paymentStatus === 'Fully Paid' || selectedBooking.paymentMethod === 'Fully Paid' || selectedBooking.paymentStatus === 'Paid'
-                        ? 'Fully Paid'
-                        : (selectedBooking.paymentStatus || 'Cash Pending'))}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Instructions */}
-            <div className="p-3.5 bg-emerald-500/5 border border-emerald-500/10 rounded-xl text-[11px] text-slate-300 space-y-1">
-              <span className="font-bold text-emerald-400 flex items-center gap-1">
-                <span className="material-symbols-outlined text-sm">info</span>
-                Venue Instructions
-              </span>
-              <p>Please arrive at the arena 10 minutes prior to your reserved slot. Clean turf boots or trainers are recommended.</p>
-            </div>
-
-            <div className="pt-2 space-y-2">
+            {/* Sticky Action Buttons Footer */}
+            <div className="p-4 sm:p-5 border-t border-white/10 bg-slate-900 shrink-0 space-y-2">
               <button
+                type="button"
                 onClick={() => handleDownloadPdf(selectedBooking.bookingId)}
                 disabled={downloadingPdfId === selectedBooking.bookingId}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
+                className="w-full py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-base">
                   {downloadingPdfId === selectedBooking.bookingId ? 'progress_activity' : 'picture_as_pdf'}
@@ -921,6 +970,7 @@ export const AccountPage = () => {
               </button>
 
               <button
+                type="button"
                 onClick={() => setSelectedBooking(null)}
                 className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl transition-all"
               >
@@ -928,7 +978,8 @@ export const AccountPage = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

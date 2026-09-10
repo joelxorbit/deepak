@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useBooking } from '../../context/BookingContext';
 
 export const TrackBookingModal = () => {
@@ -7,6 +8,26 @@ export const TrackBookingModal = () => {
   const [results, setResults] = useState(null);
   const [searched, setSearched] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Lock background body scroll and listen for Escape key when open
+  useEffect(() => {
+    if (isTrackModalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          handleClose();
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isTrackModalOpen]);
 
   if (!isTrackModalOpen) return null;
 
@@ -38,9 +59,17 @@ export const TrackBookingModal = () => {
     setErrorMessage('');
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 relative text-slate-900">
+  return createPortal(
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleClose();
+      }}
+    >
+      <div 
+        className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 relative text-slate-900 max-h-[90vh] overflow-y-auto custom-scrollbar"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button 
           onClick={handleClose}
           aria-label="Close track booking modal"
@@ -147,6 +176,7 @@ export const TrackBookingModal = () => {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

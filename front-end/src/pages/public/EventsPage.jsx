@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useBooking } from '../../context/BookingContext';
 import { useCustomerAuth } from '../../context/CustomerAuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -25,6 +26,26 @@ export const EventsPage = () => {
     contactPreference: 'any',
     message: ''
   });
+
+  // Lock background body scroll and dismiss on Escape when event modal is open
+  useEffect(() => {
+    if (isModalOpen && selectedEvent) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          handleCloseModal();
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isModalOpen, selectedEvent]);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -324,9 +345,17 @@ export const EventsPage = () => {
       </div>
 
       {/* EVENT ENQUIRY / REGISTRATION MODAL */}
-      {isModalOpen && selectedEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl border border-black/10 shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-5 relative max-h-[90vh] overflow-y-auto">
+      {isModalOpen && selectedEvent && createPortal(
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleCloseModal();
+          }}
+        >
+          <div 
+            className="bg-white rounded-3xl border border-black/10 shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-5 relative max-h-[90vh] overflow-y-auto custom-scrollbar"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-start border-b border-black/5 pb-4">
               <div>
                 <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
@@ -337,8 +366,10 @@ export const EventsPage = () => {
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={handleCloseModal}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                title="Close"
               >
                 <span className="material-symbols-outlined text-2xl">close</span>
               </button>
@@ -448,7 +479,8 @@ export const EventsPage = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>
