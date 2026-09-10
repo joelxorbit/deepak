@@ -51,15 +51,12 @@ export const downloadBookingTicketPdf = async (req, res, next) => {
 
       let isOwner = false;
 
-      if (bookingCustomerId) {
-        // Canonical customerId ownership check
-        isOwner = (String(bookingCustomerId) === String(authCustomerId));
-      } else {
-        // Legacy booking fallback: verify against authenticated customer session phone or email
-        isOwner = Boolean(
-          (authPhone && bookingPhone && String(bookingPhone) === String(authPhone)) ||
-          (authEmail && bookingEmail && String(bookingEmail).toLowerCase() === String(authEmail).toLowerCase())
-        );
+      if (bookingCustomerId && authCustomerId && String(bookingCustomerId) === String(authCustomerId)) {
+        isOwner = true;
+      } else if (authPhone && bookingPhone && String(bookingPhone) === String(authPhone)) {
+        isOwner = true;
+      } else if (authEmail && bookingEmail && String(bookingEmail).toLowerCase() === String(authEmail).toLowerCase()) {
+        isOwner = true;
       }
 
       if (!isOwner) {

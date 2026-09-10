@@ -62,8 +62,10 @@ export const createBookingService = async ({
   // Authoritative Server-Side Price Calculation (never trust client amounts, strictly GST-free)
   let chosenOption = paymentOption;
   if (!chosenOption) {
-    if (paymentMethod === PAYMENT_METHODS.PAY_NOW || paymentMethod === 'Pay Now') {
+    if (paymentMethod === PAYMENT_METHODS.PAY_NOW || paymentMethod === 'Pay Now' || paymentMethod === 'Fully Paid' || paymentMethod === PAYMENT_METHODS.FULLY_PAID) {
       chosenOption = PAYMENT_OPTIONS.FULL;
+    } else if (paymentMethod === 'Advance Paid' || paymentMethod === PAYMENT_METHODS.ADVANCE_PAID) {
+      chosenOption = PAYMENT_OPTIONS.ADVANCE;
     } else {
       chosenOption = PAYMENT_OPTIONS.CASH;
     }
@@ -194,7 +196,17 @@ export const createBookingService = async ({
     }
 
     // 7. Payment State & Breakdown Assembly
-    const isPayNow = paymentMethod === PAYMENT_METHODS.PAY_NOW || paymentMethod === 'Pay Now';
+    const isPayNow = 
+      paymentMethod === PAYMENT_METHODS.PAY_NOW || 
+      paymentMethod === 'Pay Now' ||
+      paymentMethod === 'Advance Paid' ||
+      paymentMethod === 'Fully Paid' ||
+      paymentMethod === PAYMENT_METHODS.ADVANCE_PAID ||
+      paymentMethod === PAYMENT_METHODS.FULLY_PAID ||
+      paymentMethod === 'Paid' ||
+      Boolean(razorpay_payment_id) ||
+      (chosenOption === PAYMENT_OPTIONS.ADVANCE && paymentMethod !== PAYMENT_METHODS.PAY_AT_SPOT && paymentMethod !== 'Cash' && paymentMethod !== 'Cash Pending') ||
+      (chosenOption === PAYMENT_OPTIONS.FULL && paymentMethod !== PAYMENT_METHODS.PAY_AT_SPOT && paymentMethod !== 'Cash' && paymentMethod !== 'Cash Pending');
     let initialPaymentStatus;
     let initialPaidAt = null;
     let initialPaymentCollectedBy = null;

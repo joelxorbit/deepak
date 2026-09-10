@@ -105,6 +105,8 @@ export const requireAnyAuth = async (req, res, next) => {
     // 1. Authorization header takes highest priority
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
       token = req.headers.authorization.split(' ')[1];
+    } else if (req.query && req.query.token) {
+      token = req.query.token;
     } else if (clientRole === 'customer') {
       // Prioritize customer cookie if customer role is requested
       if (req.cookies && req.cookies.elite_pitch_customer_token) {

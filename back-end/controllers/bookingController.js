@@ -13,6 +13,8 @@ import {
 } from '../services/bookingService.js';
 import { calculateBookingPrice } from '../services/rateService.js';
 import { sendSuccess } from '../utils/response.js';
+import jwt from 'jsonwebtoken';
+import { ENV } from '../config/env.js';
 
 export const previewBookingPrice = async (req, res, next) => {
   try {
@@ -33,7 +35,38 @@ export const previewBookingPrice = async (req, res, next) => {
 export const createBooking = async (req, res, next) => {
   try {
     const booking = await createBookingService(req.body);
-    return sendSuccess(res, 'Booking created successfully', booking, 201);
+
+    // Issue customer session token so the booker can immediately access their ticket PDF and booking details
+    let customerToken = null;
+    const targetCustomerId = booking.customerId || (booking.customer && (booking.customer.id || booking.customer._id));
+    if (targetCustomerId) {
+      customerToken = jwt.sign(
+        {
+          customerId: targetCustomerId,
+          id: targetCustomerId,
+          phone: booking.customerPhone || booking.mobileNumber || '',
+          role: 'customer',
+          authProvider: 'booking'
+        },
+        ENV.JWT_SECRET,
+        { expiresIn: ENV.JWT_EXPIRES_IN || '7d' }
+      );
+
+      res.cookie('elite_pitch_customer_token', customerToken, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: ENV.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      });
+    }
+
+    const responseData = {
+      ...booking,
+      customerToken,
+      token: customerToken
+    };
+
+    return sendSuccess(res, 'Booking created successfully', responseData, 201);
   } catch (error) {
     next(error);
   }

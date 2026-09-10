@@ -8,6 +8,10 @@ export const BOOKING_STATUS = {
 export const PAYMENT_METHODS = {
   PAY_NOW: 'Pay Now',
   PAY_AT_SPOT: 'Pay at Spot',
+  ADVANCE_PAID: 'Advance Paid',
+  FULLY_PAID: 'Fully Paid',
+  CASH_PENDING: 'Cash Pending',
+  ONLINE: 'Online',
   UPI: 'UPI',
   GPAY: 'GPay',
   CASH: 'Cash',

@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { PAYMENT_METHODS, TIME_SLOTS_ORDER } from '../utils/constants.js';
+import { PAYMENT_METHODS, PAYMENT_STATUS, TIME_SLOTS_ORDER } from '../utils/constants.js';
 
 const consecutiveSlotsValidator = (slots, helpers) => {
   if (!Array.isArray(slots) || slots.length === 0) return slots;
@@ -56,8 +56,10 @@ export const createBookingSchema = Joi.object({
     'array.min': 'At least one Time Slot must be selected'
   }),
 
-  paymentMethod: Joi.string().valid(...Object.values(PAYMENT_METHODS)).required().messages({
-    'any.only': 'Payment Method must be either "Pay Now" or "Pay at Spot"',
+  paymentMethod: Joi.string().valid(
+    ...Object.values(PAYMENT_METHODS),
+    ...Object.values(PAYMENT_STATUS)
+  ).required().messages({
     'string.empty': 'Payment Method is required'
   }),
 

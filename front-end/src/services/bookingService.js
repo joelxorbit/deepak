@@ -118,23 +118,50 @@ export const unblockSlotService = async (blockId) => {
 };
 
 // Phase 8: Download Ticket PDF (GET /api/bookings/:bookingId/ticket.pdf)
-export const downloadTicketPdfService = async (bookingId) => {
+export const downloadTicketPdfService = async (bookingId, token = null) => {
   if (!bookingId) throw new Error('Booking ID is required to download ticket.');
   const cleanId = String(bookingId).trim();
-  const response = await api.get(`/bookings/${encodeURIComponent(cleanId)}/ticket.pdf`, {
-    responseType: 'blob'
-  });
+  const authToken = token || localStorage.getItem('elite_pitch_customer_token') || localStorage.getItem('elite_pitch_admin_token');
 
-  const blob = new Blob([response.data], { type: 'application/pdf' });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', `Elite-Pitch-Ticket-${cleanId}.pdf`);
-  document.body.appendChild(link);
-  link.click();
-  link.parentNode.removeChild(link);
-  window.URL.revokeObjectURL(url);
-  return true;
+  const config = {
+    responseType: 'blob',
+    headers: {}
+  };
+
+  if (authToken) {
+    config.headers.Authorization = `Bearer ${authToken}`;
+  }
+
+  const queryParam = authToken ? `?token=${encodeURIComponent(authToken)}` : '';
+
+  try {
+    const response = await api.get(`/bookings/${encodeURIComponent(cleanId)}/ticket.pdf${queryParam}`, config);
+
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Elite-Pitch-Ticket-${cleanId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    return true;
+  } catch (err) {
+    if (err.response?.data instanceof Blob) {
+      try {
+        const errorText = await err.response.data.text();
+        const parsed = JSON.parse(errorText);
+        if (parsed?.message) {
+          err.message = parsed.message;
+          if (err.response) err.response.data = parsed;
+        }
+      } catch (e) {
+        // Keep original error
+      }
+    }
+    throw err;
+  }
 };
 
 

@@ -54,7 +54,14 @@ export const BookingProvider = ({ children }) => {
     return localStorage.getItem('elite_pitch_admin_auth') === 'true';
   });
 
-  const [latestBooking, setLatestBooking] = useState(null);
+  const [latestBooking, setLatestBooking] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('elite_pitch_latest_booking');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
   const [error, setError] = useState(null);
 
   // Concurrency & Race Condition Guards
@@ -150,7 +157,21 @@ export const BookingProvider = ({ children }) => {
       setError(null);
       const holderId = getHolderId();
       const newBooking = await createBookingService({ ...bookingData, holderId });
+
+      // If customer session token was issued, store it for authenticated requests
+      if (newBooking?.customerToken) {
+        localStorage.setItem('elite_pitch_customer_token', newBooking.customerToken);
+      }
+      if (newBooking?.customer) {
+        localStorage.setItem('elite_pitch_customer_profile', JSON.stringify(newBooking.customer));
+      }
+
       setLatestBooking(newBooking);
+      try {
+        sessionStorage.setItem('elite_pitch_latest_booking', JSON.stringify(newBooking));
+      } catch (e) {
+        // Ignore quota errors
+      }
 
       if (isAdminLoggedIn) {
         setBookings(prev => [newBooking, ...prev]);
@@ -158,20 +179,9 @@ export const BookingProvider = ({ children }) => {
 
       return newBooking;
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to create booking. Please try again.';
+      const msg = err.response?.data?.message || err.message || 'Failed to create booking. Please try again.';
       setError(msg);
-      const fallbackBooking = {
-        id: `BK-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-0001`,
-        customerName: bookingData.customerName,
-        mobileNumber: bookingData.mobileNumber,
-        date: bookingData.date,
-        slots: bookingData.slots,
-        paymentMethod: bookingData.paymentMethod,
-        paymentStatus: bookingData.paymentMethod === 'Pay Now' ? 'Paid' : 'Pending',
-        status: bookingData.paymentMethod === 'Pay Now' ? 'Confirmed' : 'Pending'
-      };
-      setLatestBooking(fallbackBooking);
-      return fallbackBooking;
+      throw err;
     } finally {
       setIsCreatingBooking(false);
     }
