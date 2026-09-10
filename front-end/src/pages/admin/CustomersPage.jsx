@@ -12,11 +12,12 @@ export const CustomersPage = () => {
         (b.customerId === c.id || b.customerPhone === c.phone || b.mobileNumber === c.phone)
       );
 
-      const bookingCount = customerBookings.length || c.totalBookings || 1;
-      const totalSpent = customerBookings.reduce((sum, b) => sum + (b.totalAmount || 354), 0) || (bookingCount * 354);
+      const bookingCount = customerBookings.length || c.totalBookings || 0;
+      const totalSpent = customerBookings.reduce((sum, b) => sum + (b.totalAmount || b.subtotal || 0), 0);
       
-      const payNowCount = customerBookings.filter(b => b.paymentMethod === 'Pay Now').length;
-      const preferredPayment = payNowCount >= (customerBookings.length / 2) ? 'Pay Now (Online)' : 'Other';
+      const fullyPaidCount = customerBookings.filter(b => b.paymentOption === 'FULL' || b.paymentStatus === 'Fully Paid' || b.paymentMethod === 'Fully Paid' || b.paymentStatus === 'Paid' || b.paymentMethod === 'Pay Now').length;
+      const advanceCount = customerBookings.filter(b => b.paymentOption === 'ADVANCE' || b.paymentStatus === 'Advance Paid' || b.paymentMethod === 'Advance Paid').length;
+      const preferredPayment = fullyPaidCount >= advanceCount ? 'Fully Paid' : 'Advance Paid';
 
       return {
         ...c,

@@ -105,7 +105,8 @@ export const TrackBookingModal = () => {
                 const customerPhone = booking.customerPhone || booking.mobileNumber || booking.customer?.phone || 'N/A';
                 const dateStr = typeof booking.date === 'string' ? booking.date.split('T')[0] : booking.dateStr;
                 const slotsList = booking.timeSlots || booking.slots || [];
-                const totalAmt = booking.totalAmount || (slotsList.length * 354);
+                const totalAmt = booking.totalAmount || booking.subtotal || 0;
+                const paymentStatus = booking.paymentOption === 'ADVANCE' || booking.paymentStatus === 'Advance Paid' || booking.paymentMethod === 'Advance Paid' ? 'Advance Paid' : (booking.paymentOption === 'FULL' || booking.paymentStatus === 'Fully Paid' || booking.paymentMethod === 'Fully Paid' || booking.paymentStatus === 'Paid' || booking.paymentMethod === 'Pay Now' ? 'Fully Paid' : (booking.paymentStatus || 'Cash Pending'));
 
                 return (
                   <div key={displayId} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
@@ -124,7 +125,7 @@ export const TrackBookingModal = () => {
                       <p><strong className="text-slate-900 font-medium">Phone:</strong> {customerPhone}</p>
                       <p><strong className="text-slate-900 font-medium">Date:</strong> {dateStr}</p>
                       <p><strong className="text-slate-900 font-medium">Slots:</strong> {slotsList.join(', ')}</p>
-                      <p><strong className="text-slate-900 font-medium">Payment:</strong> {booking.paymentMethod}</p>
+                      <p><strong className="text-slate-900 font-medium">Payment Status:</strong> {paymentStatus}</p>
                       <p><strong className="text-slate-900 font-medium">Total:</strong> <span className="font-semibold text-emerald-600">₹{totalAmt}</span></p>
                     </div>
                   </div>

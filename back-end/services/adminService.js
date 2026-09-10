@@ -100,12 +100,12 @@ export const fetchAdminDashboardStatsService = async () => {
   );
 
   const pendingPayAtSpotCount = pendingPayAtSpotBookings.length;
-  const pendingPayAtSpotAmount = pendingPayAtSpotBookings.reduce((sum, b) => sum + (b.totalAmount || (b.timeSlots?.length || 1) * 354), 0);
+  const pendingPayAtSpotAmount = pendingPayAtSpotBookings.reduce((sum, b) => sum + (b.totalAmount || b.subtotal || 0), 0);
 
-  // Total Booking Earnings (sum totalAmount for non-cancelled bookings)
+  // Total Booking Earnings (sum totalAmount for non-cancelled, non-rejected bookings)
   const totalEarnings = allBookings
     .filter(b => b.status !== BOOKING_STATUS.CANCELLED && b.status !== BOOKING_STATUS.REJECTED)
-    .reduce((sum, b) => sum + (b.totalAmount || (b.timeSlots?.length || 1) * 354), 0);
+    .reduce((sum, b) => sum + (b.totalAmount || b.subtotal || 0), 0);
 
   const totalCustomersCount = customersSnap.size;
 

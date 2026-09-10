@@ -887,8 +887,14 @@ export const AccountPage = () => {
                   </span>
                 </div>
                 <div className="flex justify-between text-slate-400 pt-1 text-[11px]">
-                  <span>Payment Method</span>
-                  <span>{selectedBooking.paymentMethod || 'Online'}</span>
+                  <span>Payment Status</span>
+                  <span className="font-semibold text-emerald-400">
+                    {selectedBooking.paymentOption === 'ADVANCE' || selectedBooking.paymentStatus === 'Advance Paid' || selectedBooking.paymentMethod === 'Advance Paid'
+                      ? 'Advance Paid'
+                      : (selectedBooking.paymentOption === 'FULL' || selectedBooking.paymentStatus === 'Fully Paid' || selectedBooking.paymentMethod === 'Fully Paid' || selectedBooking.paymentStatus === 'Paid'
+                        ? 'Fully Paid'
+                        : (selectedBooking.paymentStatus || 'Cash Pending'))}
+                  </span>
                 </div>
               </div>
             </div>

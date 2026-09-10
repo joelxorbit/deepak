@@ -10,10 +10,15 @@ export const InvoiceModal = ({ booking, onClose }) => {
   const slotsList = Array.isArray(booking.slots) ? booking.slots : (Array.isArray(booking.timeSlots) ? booking.timeSlots : []);
   
   const slotCount = booking.slotCount || slotsList.length || 1;
-  const slotPrice = booking.slotPrice || 300;
-  const subtotal = booking.subtotal || (slotCount * slotPrice);
+  const slotPrice = booking.slotPrice || (booking.totalAmount ? Math.round(booking.totalAmount / slotCount) : 600);
+  const subtotal = booking.subtotal || booking.totalAmount || (slotCount * slotPrice);
   const totalAmount = booking.totalAmount || subtotal;
-  const paymentStatus = booking.paymentStatus || (booking.paymentMethod === 'Pay Now' ? 'Paid' : 'Pending');
+  
+  const isAdvance = booking.paymentOption === 'ADVANCE' || booking.paymentStatus === 'Advance Paid' || booking.paymentMethod === 'Advance Paid';
+  const isFullyPaid = booking.paymentOption === 'FULL' || booking.paymentStatus === 'Fully Paid' || booking.paymentMethod === 'Fully Paid' || booking.paymentStatus === 'Paid' || booking.paymentMethod === 'Pay Now';
+  const paymentStatus = isAdvance ? 'Advance Paid' : (isFullyPaid ? 'Fully Paid' : (booking.paymentStatus || 'Cash Pending'));
+  const advancePaid = booking.advancePaid !== undefined ? booking.advancePaid : (isAdvance ? 200 : (isFullyPaid ? totalAmount : 0));
+  const balanceDue = booking.balanceDue !== undefined ? booking.balanceDue : Math.max(0, totalAmount - advancePaid);
 
   const handlePrint = () => {
     window.print();
@@ -106,8 +111,9 @@ export const InvoiceModal = ({ booking, onClose }) => {
           {/* Totals & Tax Breakdown */}
           <div className="flex justify-between items-end border-t border-black/10 pt-4 text-xs">
             <div className="space-y-1 text-on-surface-variant">
-              <p>Payment Method: <strong className="text-on-surface">{booking.paymentMethod}</strong></p>
               <p>Payment Status: <strong className="text-primary">{paymentStatus}</strong></p>
+              {isAdvance && <p>Advance Paid: <strong className="text-emerald-700">₹{advancePaid}</strong></p>}
+              {balanceDue > 0 && <p>Balance Due at Turf: <strong className="text-amber-700">₹{balanceDue}</strong></p>}
             </div>
             <div className="w-48 space-y-1.5 text-right">
               <div className="flex justify-between">

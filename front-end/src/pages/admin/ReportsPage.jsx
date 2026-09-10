@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useBooking } from '../../context/BookingContext';
 import { StatCard } from '../../components/admin/StatCard';
 import { TIME_SLOTS } from '../../utils/bookingUtils';
+import { getTodayString } from '../../utils/dateUtils';
 
 // --- CUSTOM ZERO-DEPENDENCY SVG EXECUTIVE CHARTS ---
 
@@ -190,7 +191,7 @@ export const ReportsPage = () => {
   const [dateFilter, setDateFilter] = useState('All');
 
   const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
+  const todayStr = getTodayString();
 
   // Synchronized Filtered Dataset (Used by KPI Cards, Charts, Secondary Metrics, and CSV Exporter)
   const filteredBookings = useMemo(() => {
@@ -217,27 +218,27 @@ export const ReportsPage = () => {
   const totalGrossRevenue = useMemo(() => {
     return filteredBookings
       .filter(b => b.status !== 'Cancelled' && b.status !== 'Rejected')
-      .reduce((sum, b) => sum + (b.totalAmount || ((b.slots?.length || b.timeSlots?.length || 1) * 354)), 0);
+      .reduce((sum, b) => sum + (b.totalAmount || b.subtotal || 0), 0);
   }, [filteredBookings]);
 
   const revenueToday = useMemo(() => {
     return bookings
       .filter(b => (b.dateStr === todayStr || (typeof b.date === 'string' && b.date.startsWith(todayStr))) && b.status !== 'Cancelled' && b.status !== 'Rejected')
-      .reduce((sum, b) => sum + (b.totalAmount || ((b.slots?.length || b.timeSlots?.length || 1) * 354)), 0);
+      .reduce((sum, b) => sum + (b.totalAmount || b.subtotal || 0), 0);
   }, [bookings, todayStr]);
 
   const revenueThisWeek = useMemo(() => {
     const pastWeek = new Date(now.getTime() - 7 * 86400000);
     return bookings
       .filter(b => new Date(b.createdAt || b.date) >= pastWeek && b.status !== 'Cancelled' && b.status !== 'Rejected')
-      .reduce((sum, b) => sum + (b.totalAmount || ((b.slots?.length || b.timeSlots?.length || 1) * 354)), 0);
+      .reduce((sum, b) => sum + (b.totalAmount || b.subtotal || 0), 0);
   }, [bookings, now]);
 
   const revenueLast30Days = useMemo(() => {
     const pastMonth = new Date(now.getTime() - 30 * 86400000);
     return bookings
       .filter(b => new Date(b.createdAt || b.date) >= pastMonth && b.status !== 'Cancelled' && b.status !== 'Rejected')
-      .reduce((sum, b) => sum + (b.totalAmount || ((b.slots?.length || b.timeSlots?.length || 1) * 354)), 0);
+      .reduce((sum, b) => sum + (b.totalAmount || b.subtotal || 0), 0);
   }, [bookings, now]);
 
   const totalBookingsCount = filteredBookings.length;
@@ -266,7 +267,7 @@ export const ReportsPage = () => {
       if (b.status !== 'Cancelled' && b.status !== 'Rejected') {
         const dStr = typeof b.date === 'string' ? b.date.split('T')[0] : b.dateStr;
         if (map[dStr] !== undefined) {
-          map[dStr] += (b.totalAmount || ((b.slots?.length || b.timeSlots?.length || 1) * 354));
+          map[dStr] += (b.totalAmount || b.subtotal || 0);
         }
       }
     });
@@ -331,19 +332,23 @@ export const ReportsPage = () => {
     return { newCustomersCount: newCount, returningCustomersCount: returningCount };
   }, [customers, filteredBookings]);
 
-  // Secondary Compact Payment Method Insight
-  const paymentMethodBreakdown = useMemo(() => {
-    let payNowCount = 0;
-    let payAtSpotCount = 0;
+  // Secondary Compact Payment Breakdown Insight
+  const paymentBreakdown = useMemo(() => {
+    let fullyPaidCount = 0;
+    let advancePaidCount = 0;
+    let cashPendingCount = 0;
 
     filteredBookings.forEach(b => {
       if (b.status !== 'Cancelled' && b.status !== 'Rejected') {
-        if (b.paymentMethod === 'Pay Now') payNowCount += 1;
-        else payAtSpotCount += 1;
+        const isAdvance = b.paymentOption === 'ADVANCE' || b.paymentStatus === 'Advance Paid' || b.paymentMethod === 'Advance Paid';
+        const isFull = b.paymentOption === 'FULL' || b.paymentStatus === 'Fully Paid' || b.paymentMethod === 'Fully Paid' || b.paymentStatus === 'Paid' || b.paymentMethod === 'Pay Now';
+        if (isAdvance) advancePaidCount += 1;
+        else if (isFull) fullyPaidCount += 1;
+        else cashPendingCount += 1;
       }
     });
 
-    return { payNowCount, payAtSpotCount };
+    return { fullyPaidCount, advancePaidCount, cashPendingCount };
   }, [filteredBookings]);
 
   // CSV Exporter (Uses synchronized filtered dataset & structured filenames)
@@ -458,16 +463,24 @@ export const ReportsPage = () => {
         )}
       </div>
 
-      {/* COMPACT PAYMENT METHOD SECONDARY INSIGHT */}
+      {/* COMPACT PAYMENT BREAKDOWN SECONDARY INSIGHT */}
       <div className="bg-white p-5 rounded-3xl border border-black/5 shadow-sm flex flex-wrap items-center justify-between gap-4 text-xs">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-primary text-xl">account_balance_wallet</span>
-          <span className="font-bold text-on-surface">Payment Method Breakdown:</span>
+          <span className="font-bold text-on-surface">Payment Breakdown:</span>
         </div>
         <div className="flex items-center gap-3">
           <span className="bg-emerald-50 text-emerald-900 px-3 py-1.5 rounded-xl font-label-bold border border-emerald-200/60">
-            Pay Now (Online): <strong>{paymentMethodBreakdown.payNowCount}</strong>
+            Fully Paid: <strong>{paymentBreakdown.fullyPaidCount}</strong>
           </span>
+          <span className="bg-blue-50 text-blue-900 px-3 py-1.5 rounded-xl font-label-bold border border-blue-200/60">
+            Advance Paid: <strong>{paymentBreakdown.advancePaidCount}</strong>
+          </span>
+          {paymentBreakdown.cashPendingCount > 0 && (
+            <span className="bg-amber-50 text-amber-900 px-3 py-1.5 rounded-xl font-label-bold border border-amber-200/60">
+              Cash Pending: <strong>{paymentBreakdown.cashPendingCount}</strong>
+            </span>
+          )}
         </div>
       </div>
 

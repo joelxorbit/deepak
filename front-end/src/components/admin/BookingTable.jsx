@@ -50,9 +50,9 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
           const mobileNumber = b.mobileNumber || b.customerPhone || b.customer?.phone || 'N/A';
           const displayDate = formatDate(b.date || b.dateStr);
           const slotsList = Array.isArray(b.slots) ? b.slots : (Array.isArray(b.timeSlots) ? b.timeSlots : []);
-          const totalAmt = b.totalAmount || b.subtotal || (slotsList.length * 354);
-          const paymentStatus = b.paymentStatus || (b.paymentMethod === 'Pay Now' ? 'Paid' : 'Pending');
-          const isPendingPayment = paymentStatus === 'Pending' || paymentStatus === 'Advance Paid';
+          const totalAmt = b.totalAmount || b.subtotal || 0;
+          const paymentStatus = b.paymentStatus || (b.paymentOption === 'ADVANCE' || b.paymentMethod === 'Advance Paid' ? 'Advance Paid' : (b.paymentOption === 'FULL' || b.paymentMethod === 'Fully Paid' || b.paymentMethod === 'Pay Now' || b.paymentStatus === 'Paid' ? 'Fully Paid' : 'Cash Pending'));
+          const isPendingPayment = paymentStatus === 'Cash Pending' || paymentStatus === 'Pending' || paymentStatus === 'Advance Paid';
           const isReviewed = Boolean(b.isReviewed);
 
           return (
@@ -184,9 +184,9 @@ export const BookingTable = memo(({ bookings = [], onApprove, onReject, onCancel
               const displayDate = formatDate(b.date || b.dateStr);
               const dateParts = displayDate.split(' ');
               const slotsList = Array.isArray(b.slots) ? b.slots : (Array.isArray(b.timeSlots) ? b.timeSlots : []);
-              const totalAmt = b.totalAmount || b.subtotal || (slotsList.length * 354);
-              const paymentStatus = b.paymentStatus || (b.paymentMethod === 'Pay Now' ? 'Paid' : 'Pending');
-              const isPendingPayment = paymentStatus === 'Pending' || paymentStatus === 'Advance Paid';
+              const totalAmt = b.totalAmount || b.subtotal || 0;
+              const paymentStatus = b.paymentStatus || (b.paymentOption === 'ADVANCE' || b.paymentMethod === 'Advance Paid' ? 'Advance Paid' : (b.paymentOption === 'FULL' || b.paymentMethod === 'Fully Paid' || b.paymentMethod === 'Pay Now' || b.paymentStatus === 'Paid' ? 'Fully Paid' : 'Cash Pending'));
+              const isPendingPayment = paymentStatus === 'Cash Pending' || paymentStatus === 'Pending' || paymentStatus === 'Advance Paid';
               const isReviewed = Boolean(b.isReviewed);
               const isCancelled = b.status === 'Cancelled' || b.status === 'Rejected';
 

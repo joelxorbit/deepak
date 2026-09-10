@@ -51,31 +51,43 @@ export const NORMAL_HOUR_SLOTS = [
 
 export const isNormalHourSlot = (slot) => {
   if (!slot || typeof slot !== 'string') return false;
-  return NORMAL_HOUR_SLOTS.includes(slot.trim());
+  const trimmed = slot.trim();
+  if (NORMAL_HOUR_SLOTS.includes(trimmed)) return true;
+
+  // Numerical start hour check (10:00 AM to 04:00 PM: hours 10, 11, 12, 13, 14, 15)
+  const match = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (match) {
+    let hour = parseInt(match[1], 10);
+    const period = match[3].toUpperCase();
+    if (period === 'PM' && hour < 12) hour += 12;
+    if (period === 'AM' && hour === 12) hour = 0;
+    return hour >= 10 && hour < 16;
+  }
+  return false;
 };
 
 export const resolveRulePriceForSlot = (rule, slot) => {
   if (!rule) return null;
-  // If rule specifies peakRatePerHour and it differs/is configured
-  if (rule.peakRatePerHour !== undefined && rule.peakRatePerHour !== null && isValidAmount(rule.peakRatePerHour)) {
-    const isNormal = isNormalHourSlot(slot);
-    if (isNormal) {
-      return {
-        ratePerHour: roundToCurrency(rule.ratePerHour),
-        isPeak: false
-      };
-    } else {
-      return {
-        ratePerHour: roundToCurrency(rule.peakRatePerHour),
-        isPeak: true
-      };
-    }
-  }
+  const isNormal = isNormalHourSlot(slot);
 
-  return {
-    ratePerHour: roundToCurrency(rule.ratePerHour),
-    isPeak: Boolean(rule.isPeak)
-  };
+  const normalRate = isValidAmount(rule.ratePerHour) ? Number(rule.ratePerHour) : 600;
+  const peakRate = (rule.peakRatePerHour !== undefined && rule.peakRatePerHour !== null && isValidAmount(rule.peakRatePerHour))
+    ? Number(rule.peakRatePerHour)
+    : ((rule.weekendRatePerHour !== undefined && rule.weekendRatePerHour !== null && isValidAmount(rule.weekendRatePerHour))
+        ? Number(rule.weekendRatePerHour)
+        : (normalRate === 600 ? 800 : normalRate));
+
+  if (isNormal) {
+    return {
+      ratePerHour: roundToCurrency(normalRate),
+      isPeak: false
+    };
+  } else {
+    return {
+      ratePerHour: roundToCurrency(peakRate),
+      isPeak: true
+    };
+  }
 };
 
 export const isWeekend = (dayCode) => {

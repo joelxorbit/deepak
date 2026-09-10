@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useBooking } from '../../context/BookingContext';
 import { StatCard } from '../../components/admin/StatCard';
 import { BookingTable } from '../../components/admin/BookingTable';
+import { getTodayString } from '../../utils/dateUtils';
 
 export const AdminDashboard = ({ setCurrentTab }) => {
   const {
@@ -67,7 +68,7 @@ export const AdminDashboard = ({ setCurrentTab }) => {
     );
   }
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getTodayString();
   
   const todayBookingsCount = dashboardStats?.todayBookingsCount ?? bookings.filter(b => (b.dateStr === todayStr || (typeof b.date === 'string' && b.date.startsWith(todayStr))) && b.status !== 'Cancelled').length;
   const weeklyBookingsCount = dashboardStats?.weeklyBookingsCount ?? bookings.filter(b => b.status !== 'Cancelled').length;
@@ -75,7 +76,7 @@ export const AdminDashboard = ({ setCurrentTab }) => {
 
   const totalEarnings = dashboardStats?.totalEarnings ?? bookings
     .filter(b => b.status !== 'Cancelled' && b.status !== 'Rejected')
-    .reduce((sum, b) => sum + (b.totalAmount || ((b.slots?.length || b.timeSlots?.length || 1) * 354)), 0);
+    .reduce((sum, b) => sum + (b.totalAmount || b.subtotal || 0), 0);
 
   const unreadEnquiriesCount = dashboardStats?.unreadEnquiriesCount ?? 0;
 

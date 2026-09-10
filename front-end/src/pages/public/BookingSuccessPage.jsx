@@ -118,17 +118,12 @@ export const BookingSuccessPage = () => {
           </div>
 
           <div className="flex justify-between items-center pt-3 border-t border-black/10">
-            <span className="text-on-surface-variant">Payment Method</span>
+            <span className="text-on-surface-variant">Payment Status</span>
             <span className="font-label-bold text-xs uppercase px-3 py-1 bg-surface rounded-full border border-black/10">
               {(() => {
-                const method = latestBooking.paymentMethod;
-                if (method === 'Pay Now') {
-                  if (latestBooking.paymentStatus === 'Fully Paid') return 'Fully Paid';
-                  if (latestBooking.paymentStatus === 'Advance Paid') return 'Advance Paid';
-                  if (latestBooking.paymentOption === 'ADVANCE') return 'Advance Paid';
-                  if (latestBooking.paymentOption === 'FULL') return 'Fully Paid';
-                }
-                return method;
+                if (latestBooking.paymentOption === 'ADVANCE' || latestBooking.paymentStatus === 'Advance Paid' || latestBooking.paymentMethod === 'Advance Paid') return 'Advance Paid';
+                if (latestBooking.paymentOption === 'FULL' || latestBooking.paymentStatus === 'Fully Paid' || latestBooking.paymentMethod === 'Fully Paid' || latestBooking.paymentStatus === 'Paid' || latestBooking.paymentMethod === 'Pay Now') return 'Fully Paid';
+                return latestBooking.paymentStatus || latestBooking.paymentMethod || 'Cash Pending';
               })()}
             </span>
           </div>

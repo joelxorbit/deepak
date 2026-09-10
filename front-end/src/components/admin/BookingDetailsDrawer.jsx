@@ -16,8 +16,13 @@ export const BookingDetailsDrawer = ({ booking, onClose, onPrintInvoice }) => {
   const slotsList = Array.isArray(booking.slots) ? booking.slots : (Array.isArray(booking.timeSlots) ? booking.timeSlots : []);
   
   const slotCount = booking.slotCount || slotsList.length || 1;
-  const totalAmount = booking.totalAmount || (slotCount * 354);
-  const paymentStatus = booking.paymentStatus || (booking.paymentMethod === 'Pay Now' ? 'Paid' : 'Pending');
+  const totalAmount = booking.totalAmount || booking.subtotal || 0;
+  
+  const isAdvance = booking.paymentOption === 'ADVANCE' || booking.paymentStatus === 'Advance Paid' || booking.paymentMethod === 'Advance Paid';
+  const isFullyPaid = booking.paymentOption === 'FULL' || booking.paymentStatus === 'Fully Paid' || booking.paymentMethod === 'Fully Paid' || booking.paymentStatus === 'Paid' || booking.paymentMethod === 'Pay Now';
+  const paymentStatus = isAdvance ? 'Advance Paid' : (isFullyPaid ? 'Fully Paid' : (booking.paymentStatus || 'Cash Pending'));
+  const advancePaid = booking.advancePaid !== undefined ? booking.advancePaid : (isAdvance ? 200 : (isFullyPaid ? totalAmount : 0));
+  const balanceDue = booking.balanceDue !== undefined ? booking.balanceDue : Math.max(0, totalAmount - advancePaid);
 
   const handleApprove = async () => {
     await approveBooking(displayId);
@@ -82,7 +87,9 @@ export const BookingDetailsDrawer = ({ booking, onClose, onPrintInvoice }) => {
             </span>
 
             <span className={`text-xs font-label-bold px-3 py-1.5 rounded-full ${
-              paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900'
+              paymentStatus === 'Fully Paid' ? 'bg-emerald-100 text-emerald-900' :
+              paymentStatus === 'Advance Paid' ? 'bg-blue-100 text-blue-900' :
+              'bg-amber-100 text-amber-900'
             }`}>
               Payment: {paymentStatus}
             </span>
@@ -103,9 +110,19 @@ export const BookingDetailsDrawer = ({ booking, onClose, onPrintInvoice }) => {
               <span className="font-medium text-on-surface">{displayDate}</span>
             </div>
             <div className="flex justify-between border-b border-black/5 pb-2">
-              <span className="text-on-surface-variant">Payment Method</span>
-              <span className="font-medium text-on-surface">{booking.paymentMethod}</span>
+              <span className="text-on-surface-variant">Payment Status</span>
+              <span className="font-bold text-on-surface">{paymentStatus}</span>
             </div>
+            <div className="flex justify-between border-b border-black/5 pb-2">
+              <span className="text-on-surface-variant">Advance Paid</span>
+              <span className="font-medium text-emerald-700">₹{advancePaid}</span>
+            </div>
+            {balanceDue > 0 && (
+              <div className="flex justify-between border-b border-black/5 pb-2">
+                <span className="text-on-surface-variant">Balance Due</span>
+                <span className="font-medium text-amber-700">₹{balanceDue}</span>
+              </div>
+            )}
             <div className="flex justify-between pt-1">
               <span className="text-on-surface-variant font-bold">Total Amount</span>
               <span className="font-bold text-primary text-base">₹{totalAmount}</span>
@@ -146,13 +163,13 @@ export const BookingDetailsDrawer = ({ booking, onClose, onPrintInvoice }) => {
             </div>
           )}
 
-          {paymentStatus === 'Pending' && (
+          {(paymentStatus === 'Pending' || paymentStatus === 'Cash Pending' || paymentStatus === 'Advance Paid') && (
             <button
               onClick={handleMarkPaid}
               className="w-full min-h-[44px] py-3 bg-emerald-600 text-white font-label-bold text-xs rounded-xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-1.5 shadow-sm"
             >
               <span className="material-symbols-outlined text-base">payments</span>
-              Mark Payment as Paid
+              Mark Payment as Fully Paid
             </button>
           )}
 

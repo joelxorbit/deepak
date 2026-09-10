@@ -268,7 +268,8 @@ export const CalendarPage = () => {
               const customerName = b.customerName || b.customer?.name || 'N/A';
               const mobileNumber = b.mobileNumber || b.customerPhone || b.customer?.phone || 'N/A';
               const slotsList = Array.isArray(b.slots) ? b.slots : (Array.isArray(b.timeSlots) ? b.timeSlots : []);
-              const totalAmt = b.totalAmount || (slotsList.length * 354);
+              const totalAmt = b.totalAmount || b.subtotal || 0;
+              const paymentStatus = b.paymentOption === 'ADVANCE' || b.paymentStatus === 'Advance Paid' || b.paymentMethod === 'Advance Paid' ? 'Advance Paid' : (b.paymentOption === 'FULL' || b.paymentStatus === 'Fully Paid' || b.paymentMethod === 'Fully Paid' || b.paymentStatus === 'Paid' || b.paymentMethod === 'Pay Now' ? 'Fully Paid' : (b.paymentStatus || 'Cash Pending'));
 
               const statusColors = {
                 Confirmed: 'border-l-4 border-l-emerald-500 bg-emerald-50/50',
@@ -311,7 +312,7 @@ export const CalendarPage = () => {
                   </div>
 
                   <div className="pt-2 border-t border-black/5 flex justify-between items-center text-xs">
-                    <span className="text-on-surface-variant font-medium">Payment: {b.paymentMethod}</span>
+                    <span className="text-on-surface-variant font-medium">Payment: {paymentStatus}</span>
                     <span className="font-label-bold uppercase text-[11px]">{b.status}</span>
                   </div>
                 </div>

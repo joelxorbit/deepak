@@ -229,7 +229,10 @@ export const BookingForm = ({ navigate: navigateProp }) => {
     }
 
     const isOnline = paymentOption === 'ADVANCE' || paymentOption === 'FULL';
-    const effectivePaymentMethod = isOnline ? 'Pay Now' : 'Pay at Spot';
+    const isAdvance = paymentOption === 'ADVANCE';
+    const resolvedPaymentStatus = isAdvance ? 'Advance Paid' : (paymentOption === 'FULL' ? 'Fully Paid' : 'Cash Pending');
+    const advanceAmount = isAdvance ? (serverPricing.payableNow || 200) : (paymentOption === 'FULL' ? serverPricing.totalAmount : 0);
+    const balanceAmount = Math.max(0, serverPricing.totalAmount - advanceAmount);
 
     try {
       setIsSubmitting(true);
@@ -239,7 +242,10 @@ export const BookingForm = ({ navigate: navigateProp }) => {
         date: bookingDate,
         slots: selectedSlots,
         paymentOption,
-        paymentMethod: effectivePaymentMethod,
+        paymentStatus: resolvedPaymentStatus,
+        paymentMethod: resolvedPaymentStatus,
+        advancePaid: advanceAmount,
+        balanceDue: balanceAmount,
         slotPrice: serverPricing.effectiveRatePerHour,
         slotCount: serverPricing.slotCount,
         subtotal: serverPricing.subtotal,
@@ -255,6 +261,25 @@ export const BookingForm = ({ navigate: navigateProp }) => {
           sportId: 'football-5v5',
           paymentOption
         });
+
+        // If in simulated dev mode or Razorpay script is not loaded
+        if (orderData.id?.startsWith('order_dev_') || typeof window.Razorpay === 'undefined') {
+          const devPaymentId = `pay_dev_${Date.now()}`;
+          await verifyRazorpayPayment({
+            razorpay_order_id: orderData.id || `order_dev_${Date.now()}`,
+            razorpay_payment_id: devPaymentId,
+            razorpay_signature: 'dev_signature'
+          });
+
+          const booking = await createBooking({
+            ...bookingDetails,
+            paymentStatus: resolvedPaymentStatus,
+            paymentMethod: resolvedPaymentStatus,
+            razorpay_payment_id: devPaymentId
+          });
+          if (booking) navigate(ROUTES.BOOKING_SUCCESS);
+          return;
+        }
         
         const options = {
           key: 'rzp_test_SyHdQL7pK1tlnG',
@@ -274,7 +299,8 @@ export const BookingForm = ({ navigate: navigateProp }) => {
               
               const booking = await createBooking({
                 ...bookingDetails,
-                paymentStatus: 'Paid',
+                paymentStatus: resolvedPaymentStatus,
+                paymentMethod: resolvedPaymentStatus,
                 razorpay_payment_id: response.razorpay_payment_id
               });
               if (booking) navigate(ROUTES.BOOKING_SUCCESS);
@@ -304,6 +330,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
         if (booking) navigate(ROUTES.BOOKING_SUCCESS);
       }
     } catch (err) {
+      console.error('Booking error:', err);
       setErrorMsg('Failed to process booking. Please try again.');
       setIsSubmitting(false);
     }
