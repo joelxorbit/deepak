@@ -14,6 +14,7 @@ import { canAccessBooking } from '../utils/authUtils.js';
 import { BOOKING_STATUS } from '../utils/constants.js';
 import { ENV } from '../config/env.js';
 import { logger } from '../utils/logger.js';
+import { cacheManager } from '../utils/cacheManager.js';
 
 /**
  * Sanitizes customer record for secure client-facing responses

@@ -1,4 +1,4 @@
-﻿import request from 'supertest';
+import request from 'supertest';
 import app from '../app.js';
 import { getDb } from '../config/firebase.js';
 
@@ -127,5 +127,40 @@ describe('Booking Success Flow & Ticket PDF Download Test Suite', () => {
 
     expect(res.status).toBe(403);
     expect(res.body.success).toBe(false);
+  });
+
+  it('7. Successfully retrieves customer bookings via GET /api/auth/bookings without cacheManager error', async () => {
+    const res = await request(app)
+      .get('/api/auth/bookings')
+      .set('Authorization', `Bearer ${customerSessionToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(res.body.data.length).toBeGreaterThanOrEqual(1);
+
+    const booking = res.body.data.find(b => b.bookingId === createdBookingId);
+    expect(booking).toBeDefined();
+    expect(booking.bookingId).toBe(createdBookingId);
+    expect(booking.advancePaid).toBe(200);
+    expect(booking.totalAmount).toBe(1200);
+  });
+
+  it('8. Successfully filters bookings with ?filter=upcoming and verifies caching', async () => {
+    const res = await request(app)
+      .get('/api/auth/bookings?filter=upcoming')
+      .set('Authorization', `Bearer ${customerSessionToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+
+    // Second call should hit the cache seamlessly
+    const cachedRes = await request(app)
+      .get('/api/auth/bookings?filter=upcoming')
+      .set('Authorization', `Bearer ${customerSessionToken}`);
+
+    expect(cachedRes.status).toBe(200);
+    expect(cachedRes.body.success).toBe(true);
   });
 });
