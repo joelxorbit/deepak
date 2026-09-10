@@ -7,7 +7,7 @@ import { sendSuccess } from '../utils/response.js';
 
 export const createOrder = async (req, res, next) => {
   try {
-    const { amount, receipt, date, slots, sportId, paymentOption, bookingId } = req.body;
+    const { amount, receipt, date, slots, sportId, paymentOption, bookingId, couponCode } = req.body;
 
     const orderData = await createPaymentOrderService({
       date,
@@ -16,7 +16,8 @@ export const createOrder = async (req, res, next) => {
       paymentOption,
       rawAmount: amount,
       receipt,
-      bookingId
+      bookingId,
+      couponCode
     });
 
     return sendSuccess(res, 'Payment order created successfully', orderData, 201);
@@ -44,13 +45,14 @@ export const verifyPayment = async (req, res, next) => {
 
 export const previewPricingController = async (req, res, next) => {
   try {
-    const { date, slots, sportId, paymentOption } = req.body;
+    const { date, slots, sportId, paymentOption, couponCode } = req.body;
 
     const pricing = await calculateBookingPrice({
       date,
       slots,
       sportId,
-      paymentOption
+      paymentOption,
+      couponCode
     });
 
     return sendSuccess(res, 'Pricing breakdown calculated successfully', pricing);

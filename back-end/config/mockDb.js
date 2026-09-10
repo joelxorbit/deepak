@@ -39,6 +39,7 @@ export class MockDb {
         const parsed = JSON.parse(raw);
         if (!parsed.admins) parsed.admins = [{ id: 'admin1', username: 'admin', password: '.60OEmt/9qcwXO5Urwn5YP856QdJwKzeaRi', role: 'admin' }];
         if (!parsed.rates || parsed.rates.length === 0) parsed.rates = INITIAL_RATES;
+        if (!parsed.coupons) parsed.coupons = [];
         if (!parsed.settings) parsed.settings = [{ id: 'paymentSettings', fixedAdvanceAmount: 200 }];
         if (!parsed.bookings) parsed.bookings = [];
         if (!parsed.customers) parsed.customers = [];
@@ -66,6 +67,7 @@ export class MockDb {
       blocked_slots: [],
       settings: [{ id: 'paymentSettings', fixedAdvanceAmount: 200 }],
       rates: INITIAL_RATES,
+      coupons: [],
       audit_logs: [],
       idempotency_keys: []
     };

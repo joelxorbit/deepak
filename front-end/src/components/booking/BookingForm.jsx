@@ -8,6 +8,7 @@ import { ROUTES } from '../../constants/routes';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { createRazorpayOrder, verifyRazorpayPayment } from '../../services/paymentService';
 import { previewBookingPriceService } from '../../services/bookingService';
+import { validateCouponService } from '../../services/couponService';
 
 export const BookingForm = ({ navigate: navigateProp }) => {
   const navigateRouter = useNavigate();
@@ -42,7 +43,14 @@ export const BookingForm = ({ navigate: navigateProp }) => {
   const [isPricingLoading, setIsPricingLoading] = useState(false);
   const [pricingConfigError, setPricingConfigError] = useState('');
 
-  // Fetch server pricing breakdown dynamically whenever slots, date, or payment option change
+  // Optional Coupon Code state
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState('');
+  const [couponSuccess, setCouponSuccess] = useState('');
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+
+  // Fetch server pricing breakdown dynamically whenever slots, date, payment option, or coupon change
   useEffect(() => {
     let isMounted = true;
     if (!bookingDate || selectedSlots.length === 0) {
@@ -60,7 +68,8 @@ export const BookingForm = ({ navigate: navigateProp }) => {
           date: bookingDate,
           slots: selectedSlots,
           sportId: 'football-5v5',
-          paymentOption
+          paymentOption,
+          couponCode: appliedCoupon ? appliedCoupon.code : null
         });
         if (isMounted) {
           setServerPricing(priceData);
@@ -84,7 +93,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
     return () => {
       isMounted = false;
     };
-  }, [bookingDate, selectedSlots, paymentOption]);
+  }, [bookingDate, selectedSlots, paymentOption, appliedCoupon]);
 
   const pricing = useMemo(() => {
     if (serverPricing) {
@@ -92,13 +101,17 @@ export const BookingForm = ({ navigate: navigateProp }) => {
         ...serverPricing,
         slotPrice: serverPricing.effectiveRatePerHour || 0,
         payableNow: serverPricing.payableNow || 0,
-        balanceDue: serverPricing.balanceDue || 0
+        balanceDue: serverPricing.balanceDue || 0,
+        discountAmount: serverPricing.discountAmount || 0,
+        couponCode: serverPricing.couponCode || null
       };
     }
     return {
       slotPrice: 0,
       slotCount: selectedSlots.length,
       subtotal: 0,
+      discountAmount: 0,
+      couponCode: null,
       totalAmount: 0,
       fixedAdvanceAmount: 0,
       advanceRequired: 0,
@@ -171,12 +184,57 @@ export const BookingForm = ({ navigate: navigateProp }) => {
     });
   }, [bookedSlots, blockedSlots]);
 
+  const handleApplyCoupon = async (e) => {
+    if (e) e.preventDefault();
+    const cleanCode = couponInput.trim().toUpperCase();
+    if (!cleanCode) {
+      setCouponError('Please enter a coupon code.');
+      setCouponSuccess('');
+      return;
+    }
+
+    try {
+      setIsValidatingCoupon(true);
+      setCouponError('');
+      setCouponSuccess('');
+      const result = await validateCouponService(cleanCode, serverPricing?.subtotal || 0);
+      if (result && result.isValid) {
+        setAppliedCoupon({
+          code: result.coupon.code,
+          discountAmount: result.discountAmount
+        });
+        setCouponSuccess(result.message || `Coupon "${result.coupon.code}" applied!`);
+        setCouponError('');
+      } else {
+        setCouponError(result?.message || 'Invalid coupon code.');
+        setAppliedCoupon(null);
+      }
+    } catch (err) {
+      setCouponError(err.response?.data?.message || 'Invalid or expired coupon code.');
+      setCouponSuccess('');
+      setAppliedCoupon(null);
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponError('');
+    setCouponSuccess('');
+  };
+
   const handleReset = useCallback(() => {
     setFullName(customer?.name !== 'Player' && customer?.name !== 'Guest Player' ? customer?.name || '' : '');
     setMobileNumber(customer?.phone || '');
     setBookingDate(todayStr);
     setSelectedSlots([]);
     setPaymentOption('ADVANCE');
+    setCouponInput('');
+    setAppliedCoupon(null);
+    setCouponError('');
+    setCouponSuccess('');
     setErrorMsg('');
     setIsSubmitting(false);
   }, [todayStr, customer]);
@@ -249,6 +307,8 @@ export const BookingForm = ({ navigate: navigateProp }) => {
         slotPrice: serverPricing.effectiveRatePerHour,
         slotCount: serverPricing.slotCount,
         subtotal: serverPricing.subtotal,
+        discountAmount: serverPricing.discountAmount || 0,
+        couponCode: serverPricing.couponCode || appliedCoupon?.code || undefined,
         totalAmount: serverPricing.totalAmount
       };
 
@@ -259,7 +319,8 @@ export const BookingForm = ({ navigate: navigateProp }) => {
           date: bookingDate,
           slots: selectedSlots,
           sportId: 'football-5v5',
-          paymentOption
+          paymentOption,
+          couponCode: serverPricing.couponCode || appliedCoupon?.code || undefined
         });
 
         // If in simulated dev mode or Razorpay script is not loaded
@@ -468,6 +529,94 @@ export const BookingForm = ({ navigate: navigateProp }) => {
               </div>
             )}
 
+            {/* Optional Coupon Code Input */}
+            {selectedSlots.length > 0 && !pricingConfigError && (
+              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 space-y-2 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="couponCodeInput" className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-sm text-primary">confirmation_number</span>
+                    Coupon Code <span className="text-[10px] font-normal text-slate-400">(Optional)</span>
+                  </label>
+                  {appliedCoupon && (
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="material-symbols-outlined text-xs">check_circle</span>
+                      Applied
+                    </span>
+                  )}
+                </div>
+
+                {!appliedCoupon ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="couponCodeInput"
+                      type="text"
+                      placeholder="e.g. WELCOME100"
+                      value={couponInput}
+                      onChange={(e) => {
+                        setCouponInput(e.target.value.toUpperCase());
+                        if (couponError) setCouponError('');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleApplyCoupon();
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 text-xs font-mono uppercase rounded-xl border border-slate-300 focus:outline-none focus:border-primary bg-white placeholder:font-sans placeholder:normal-case placeholder:text-slate-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={isValidatingCoupon || !couponInput.trim()}
+                      className="px-4 py-2 bg-primary hover:bg-primary-hover disabled:opacity-50 text-on-primary text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1 shrink-0"
+                    >
+                      {isValidatingCoupon ? (
+                        <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                      ) : (
+                        'Apply'
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-emerald-600 text-lg">local_offer</span>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-bold text-xs text-emerald-900">{appliedCoupon.code}</span>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-200/60 px-1.5 py-0.5 rounded">
+                            -₹{appliedCoupon.discountAmount} OFF
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      title="Remove coupon"
+                    >
+                      <span className="material-symbols-outlined text-base">close</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Feedback error/success message */}
+                {couponError && (
+                  <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 p-2 rounded-xl flex items-center gap-1.5 animate-fade-in">
+                    <span className="material-symbols-outlined text-sm text-amber-600 shrink-0">warning</span>
+                    <span>{couponError}</span>
+                  </p>
+                )}
+                {couponSuccess && !couponError && (
+                  <p className="text-[11px] text-emerald-700 bg-emerald-50 p-1.5 rounded-lg flex items-center gap-1 animate-fade-in">
+                    <span className="material-symbols-outlined text-xs text-emerald-600">check</span>
+                    <span>{couponSuccess}</span>
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Compact Pricing Summary */}
             {selectedSlots.length > 0 && !pricingConfigError && (
               <div className="p-3.5 rounded-2xl bg-slate-950 text-white border border-white/10 space-y-1.5 animate-fade-in text-xs">
@@ -498,6 +647,21 @@ export const BookingForm = ({ navigate: navigateProp }) => {
                             return parts.join(' + ');
                           })()}
                         </span>
+                      </div>
+                    )}
+                    {pricing.discountAmount > 0 && (
+                      <div className="flex justify-between text-slate-300">
+                        <span>Subtotal</span>
+                        <span>₹{pricing.subtotal}</span>
+                      </div>
+                    )}
+                    {pricing.discountAmount > 0 && (
+                      <div className="flex justify-between text-emerald-400 font-medium">
+                        <span className="flex items-center gap-1">
+                          <span className="material-symbols-outlined text-xs">local_offer</span>
+                          Coupon ({pricing.couponCode || appliedCoupon?.code})
+                        </span>
+                        <span>-₹{pricing.discountAmount}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-slate-300">

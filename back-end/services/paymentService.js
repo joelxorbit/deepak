@@ -46,26 +46,35 @@ export const createPaymentOrderService = async ({
   paymentOption = PAYMENT_OPTIONS.FULL,
   rawAmount = null,
   receipt = null,
-  bookingId = null
+  bookingId = null,
+  couponCode = null
 }) => {
-  let payableAmount;
+  let payableAmount = 0;
   let pricingResult = null;
 
+  // 1. Authoritative Server-Side Calculation from existing booking
   if (bookingId) {
-    // 1. Existing Booking Lookup
-    const bookingSnap = await getBookingsCollection()
-      .where('bookingId', '==', bookingId)
-      .limit(1)
-      .get();
+    let bookingData = null;
+    const docDirect = await getBookingsCollection().doc(bookingId).get();
+    if (docDirect.exists) {
+      bookingData = docDirect.data();
+    } else {
+      const bookingSnap = await getBookingsCollection()
+        .where('bookingId', '==', bookingId)
+        .limit(1)
+        .get();
+      if (!bookingSnap.empty) {
+        bookingData = bookingSnap.docs[0].data();
+      }
+    }
 
-    if (bookingSnap.empty) {
+    if (!bookingData) {
       const error = new Error(`Booking ${bookingId} not found.`);
       error.statusCode = 404;
       throw error;
     }
-    const bookingData = bookingSnap.docs[0].data();
     if (paymentOption === PAYMENT_OPTIONS.ADVANCE) {
-      payableAmount = bookingData.advancePaid || bookingData.pricingSnapshot?.advanceRequired || bookingData.totalAmount;
+      payableAmount = bookingData.pricingSnapshot?.advanceRequired || 200;
     } else {
       payableAmount = bookingData.balanceDue > 0 ? bookingData.balanceDue : bookingData.totalAmount;
     }
@@ -81,7 +90,8 @@ export const createPaymentOrderService = async ({
       sportId,
       date,
       slots,
-      paymentOption
+      paymentOption,
+      couponCode
     });
 
     payableAmount = pricingResult.payableNow;

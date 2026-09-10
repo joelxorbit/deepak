@@ -9,6 +9,7 @@ import authRoutes from '../authRoutes.js';
 import paymentRoutes from '../paymentRoutes.js';
 import notificationRoutes from '../notificationRoutes.js';
 import rateRoutes from '../rateRoutes.js';
+import couponRoutes from '../couponRoutes.js';
 
 const router = express.Router();
 
@@ -22,5 +23,6 @@ router.use('/enquiries', enquiryRoutes);
 router.use('/payments', paymentRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/rates', rateRoutes);
+router.use('/coupons', couponRoutes);
 
 export default router;

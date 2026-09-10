@@ -1,8 +1,8 @@
 import { api } from '../utils/api';
 
 // Preview booking price from server (POST /api/bookings/price-preview)
-export const previewBookingPriceService = async ({ date, slots, sportId = 'football-5v5', paymentOption = 'ADVANCE' }) => {
-  const response = await api.post('/bookings/price-preview', { date, slots, sportId, paymentOption });
+export const previewBookingPriceService = async ({ date, slots, sportId = 'football-5v5', paymentOption = 'ADVANCE', couponCode = null }) => {
+  const response = await api.post('/bookings/price-preview', { date, slots, sportId, paymentOption, couponCode });
   return response.data.data;
 };
 

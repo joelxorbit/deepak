@@ -16,12 +16,13 @@ import { sendSuccess } from '../utils/response.js';
 
 export const previewBookingPrice = async (req, res, next) => {
   try {
-    const { date, slots, sportId, paymentOption } = req.body;
+    const { date, slots, sportId, paymentOption, couponCode } = req.body;
     const pricing = await calculateBookingPrice({
       date,
       slots,
       sportId,
-      paymentOption
+      paymentOption,
+      couponCode
     });
     return sendSuccess(res, 'Price preview calculated successfully', pricing);
   } catch (error) {

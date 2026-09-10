@@ -77,7 +77,8 @@ export const createBookingSchema = Joi.object({
   paymentStatus: Joi.string().optional(),
   razorpay_payment_id: Joi.string().allow(null, '').optional(),
   holderId: Joi.string().allow(null, '').optional(),
-  holdId: Joi.string().allow(null, '').optional()
+  holdId: Joi.string().allow(null, '').optional(),
+  couponCode: Joi.string().trim().allow(null, '').optional()
 }).or('mobileNumber', 'customerPhone').or('slots', 'timeSlots').unknown(true);
 
 export const adminCancelBookingSchema = Joi.object({

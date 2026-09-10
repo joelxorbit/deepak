@@ -21,6 +21,7 @@ import { normalizeSlots } from '../utils/slotNormalizer.js';
 import { createAuditLog } from '../repositories/auditRepository.js';
 import { cacheManager } from '../utils/cacheManager.js';
 import { logger } from '../utils/logger.js';
+import { validateCouponCode } from './couponService.js';
 
 const DAYS_OF_WEEK = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
@@ -336,7 +337,8 @@ export const calculateBookingPrice = async ({
   sportId = 'football-5v5',
   date,
   slots,
-  paymentOption = PAYMENT_OPTIONS.FULL
+  paymentOption = PAYMENT_OPTIONS.FULL,
+  couponCode = null
 }) => {
   if (!date) {
     const error = new Error('Booking date is required to calculate pricing.');
@@ -393,8 +395,24 @@ export const calculateBookingPrice = async ({
   }
 
   subtotal = roundToCurrency(subtotal);
-  // Authoritative totalAmount is exactly equal to subtotal (strictly GST-free)
-  const totalAmount = subtotal;
+
+  // Coupon Discount Evaluation
+  let discountAmount = 0;
+  let appliedCoupon = null;
+
+  if (couponCode && typeof couponCode === 'string' && couponCode.trim()) {
+    const couponValidation = await validateCouponCode(couponCode, subtotal);
+    if (!couponValidation.isValid) {
+      const error = new Error(couponValidation.message);
+      error.statusCode = 400;
+      throw error;
+    }
+    discountAmount = roundToCurrency(couponValidation.discountAmount);
+    appliedCoupon = couponValidation.coupon;
+  }
+
+  // Authoritative totalAmount is subtotal minus discountAmount (strictly GST-free)
+  const totalAmount = roundToCurrency(Math.max(0, subtotal - discountAmount));
   const effectiveRatePerHour = roundToCurrency(subtotal / slotCount);
 
   // Authoritative Fixed Advance Resolution strictly from Firestore settings (settings/paymentSettings.fixedAdvanceAmount), fallback to 200
@@ -437,6 +455,8 @@ export const calculateBookingPrice = async ({
     slotPrice: effectiveRatePerHour,
     slotCount,
     subtotal,
+    discountAmount,
+    couponCode: appliedCoupon ? appliedCoupon.code : null,
     totalAmount,
     fixedAdvanceAmount,
     advanceRequired,
@@ -454,6 +474,9 @@ export const calculateBookingPrice = async ({
     slotPrice: effectiveRatePerHour,
     effectiveRatePerHour,
     subtotal,
+    discountAmount,
+    couponCode: appliedCoupon ? appliedCoupon.code : null,
+    coupon: appliedCoupon,
     totalAmount,
     fixedAdvanceAmount,
     advanceRequired,

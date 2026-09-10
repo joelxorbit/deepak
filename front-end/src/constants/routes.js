@@ -15,6 +15,7 @@ export const ROUTES = {
   ADMIN_CUSTOMERS: '/admin/customers',
   ADMIN_EVENTS: '/admin/events',
   ADMIN_RATES: '/admin/rates',
+  ADMIN_COUPONS: '/admin/coupons',
   ADMIN_ENQUIRIES: '/admin/enquiries',
   ADMIN_REPORTS: '/admin/reports',
 

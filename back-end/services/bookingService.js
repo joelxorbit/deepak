@@ -48,7 +48,8 @@ export const createBookingService = async ({
   paymentStatus: requestedPaymentStatus = null,
   razorpay_payment_id = null,
   holderId = null,
-  holdId = null
+  holdId = null,
+  couponCode = null
 }) => {
   const mobileNumber = rawMobile || rawPhone;
   const slots = rawSlots || rawTimeSlots;
@@ -72,7 +73,8 @@ export const createBookingService = async ({
     sportId,
     date,
     slots: normalizedSlotsList,
-    paymentOption: chosenOption
+    paymentOption: chosenOption,
+    couponCode
   });
 
   const createdBooking = await db.runTransaction(async (transaction) => {
@@ -250,6 +252,8 @@ export const createBookingService = async ({
       slotPrice: pricing.effectiveRatePerHour,
       slotCount: pricing.slotCount,
       subtotal: pricing.subtotal,
+      discountAmount: pricing.discountAmount || 0,
+      couponCode: pricing.couponCode || null,
       totalAmount: pricing.totalAmount,
       advancePaid,
       balanceDue,

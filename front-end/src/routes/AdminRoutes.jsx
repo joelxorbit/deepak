@@ -11,6 +11,7 @@ const BookingHistory = lazy(() => import('../pages/admin/BookingHistory').then(m
 const CustomersPage = lazy(() => import('../pages/admin/CustomersPage').then(m => ({ default: m.CustomersPage })));
 const AdminEventsPage = lazy(() => import('../pages/admin/AdminEventsPage').then(m => ({ default: m.AdminEventsPage })));
 const RatesPage = lazy(() => import('../pages/admin/RatesPage').then(m => ({ default: m.RatesPage })));
+const CouponsPage = lazy(() => import('../pages/admin/CouponsPage').then(m => ({ default: m.CouponsPage })));
 const EnquiriesPage = lazy(() => import('../pages/admin/EnquiriesPage').then(m => ({ default: m.EnquiriesPage })));
 const ReportsPage = lazy(() => import('../pages/admin/ReportsPage').then(m => ({ default: m.ReportsPage })));
 const FreezePage = lazy(() => import('../pages/admin/FreezePage').then(m => ({ default: m.FreezePage })));
@@ -48,6 +49,7 @@ export const AdminRoutes = () => {
             <Route path="reports" element={<ReportsPage />} />
             <Route path="customers" element={<CustomersPage />} />
             <Route path="rates" element={<RatesPage />} />
+            <Route path="coupons" element={<CouponsPage />} />
             <Route path="enquiries" element={<EnquiriesPage />} />
             <Route path="events" element={<AdminEventsPage />} />
             <Route path="freeze" element={<FreezePage />} />

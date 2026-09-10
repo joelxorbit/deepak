@@ -24,6 +24,7 @@ export const AdminLayout = ({ children }) => {
     { id: 'customers', path: ROUTES.ADMIN_CUSTOMERS, label: 'Customers', icon: 'group' },
     { id: 'enquiries', path: ROUTES.ADMIN_ENQUIRIES, label: 'Enquiries', icon: 'mail' },
     { id: 'rates', path: ROUTES.ADMIN_RATES, label: 'Rates & Pricing', icon: 'currency_rupee' },
+    { id: 'coupons', path: ROUTES.ADMIN_COUPONS, label: 'Coupons', icon: 'confirmation_number' },
     { id: 'events', path: ROUTES.ADMIN_EVENTS, label: 'Events Console', icon: 'event' },
     { id: 'reports', path: ROUTES.ADMIN_REPORTS, label: 'Reports & Analytics', icon: 'analytics' },
   ];

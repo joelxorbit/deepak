@@ -14,6 +14,7 @@ export const getEnquiriesCollection = () => getDb().collection(FIRESTORE_COLLECT
 // Reserved Collection Getters (For future phases 2-9)
 export const getSettingsCollection = () => getDb().collection(FIRESTORE_COLLECTIONS.SETTINGS);
 export const getRatesCollection = () => getDb().collection(FIRESTORE_COLLECTIONS.RATES);
+export const getCouponsCollection = () => getDb().collection(FIRESTORE_COLLECTIONS.COUPONS);
 export const getSlotHoldsCollection = () => getDb().collection(FIRESTORE_COLLECTIONS.SLOT_HOLDS);
 export const getBlockedSlotsCollection = () => getDb().collection(FIRESTORE_COLLECTIONS.BLOCKED_SLOTS);
 export const getNotificationsCollection = () => getDb().collection(FIRESTORE_COLLECTIONS.NOTIFICATIONS);
