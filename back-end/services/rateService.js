@@ -70,12 +70,34 @@ export const resolveRulePriceForSlot = (rule, slot) => {
   if (!rule) return null;
   const isNormal = isNormalHourSlot(slot);
 
-  const normalRate = isValidAmount(rule.ratePerHour) ? Number(rule.ratePerHour) : 600;
-  const peakRate = (rule.peakRatePerHour !== undefined && rule.peakRatePerHour !== null && isValidAmount(rule.peakRatePerHour))
-    ? Number(rule.peakRatePerHour)
-    : ((rule.weekendRatePerHour !== undefined && rule.weekendRatePerHour !== null && isValidAmount(rule.weekendRatePerHour))
-        ? Number(rule.weekendRatePerHour)
-        : (normalRate === 600 ? 800 : normalRate));
+  const r1 = isValidAmount(rule.ratePerHour) ? Number(rule.ratePerHour) : null;
+  const r2 = isValidAmount(rule.peakRatePerHour) ? Number(rule.peakRatePerHour) : null;
+  const r3 = isValidAmount(rule.weekendRatePerHour) ? Number(rule.weekendRatePerHour) : null;
+
+  let normalRate = 600;
+  let peakRate = 800;
+
+  if (rule.isPeak && r1) {
+    peakRate = Math.max(r1, r2 || 0, r3 || 0);
+    normalRate = Math.min(r1, r2 && r2 > 0 ? r2 : r1);
+  } else {
+    normalRate = r1 || 600;
+    peakRate = Math.max(
+      r2 && r2 > 0 ? r2 : 0,
+      r3 && r3 > 0 ? r3 : 0,
+      rule.isPeak ? normalRate : (normalRate === 600 ? 800 : normalRate)
+    );
+  }
+
+  if (peakRate < normalRate && rule.isPeak) {
+    peakRate = normalRate;
+  }
+  if (!isValidAmount(peakRate) || peakRate <= 0) {
+    peakRate = 800;
+  }
+  if (!isValidAmount(normalRate) || normalRate <= 0) {
+    normalRate = 600;
+  }
 
   if (isNormal) {
     return {
