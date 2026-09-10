@@ -33,8 +33,11 @@ router.post('/', requireAdmin, eventValidationRules, validateRequest, addEvent);
 router.post('/upload', requireAdmin, uploadBannerValidationRules, validateRequest, uploadBanner);
 router.put('/:id', requireAdmin, updateEventValidationRules, validateRequest, updateEvent);
 router.patch('/:id/publish', requireAdmin, publishEvent);
+router.post('/:id/publish', requireAdmin, publishEvent);
 router.patch('/:id/unpublish', requireAdmin, unpublishEvent);
+router.post('/:id/unpublish', requireAdmin, unpublishEvent);
 router.post('/:id/archive', requireAdmin, archiveEvent);
+router.patch('/:id/archive', requireAdmin, archiveEvent);
 router.delete('/:id', requireAdmin, deleteEvent);
 
 export default router;

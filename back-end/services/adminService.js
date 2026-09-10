@@ -86,7 +86,7 @@ export const fetchAdminDashboardStatsService = async () => {
     getEnquiriesCollection().get()
   ]);
 
-  const allBookings = bookingsSnap.docs.map(doc => doc.data()).filter(b => !b.isDeleted);
+  const allBookings = bookingsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(b => !b.isDeleted);
 
   const todayBookingsCount = allBookings.filter(b => b.dateStr === todayStr && b.status !== BOOKING_STATUS.CANCELLED).length;
   const weeklyBookingsCount = allBookings.filter(b => b.createdAt >= startOfWeekStr && b.status !== BOOKING_STATUS.CANCELLED).length;
