@@ -6,6 +6,7 @@ import {
   approveBookingService,
   rejectBookingService,
   markBookingAsPaidService,
+  payBalanceBookingService,
   getBookedSlotsService,
   getBookingsService,
   getAvailabilityService,
@@ -285,6 +286,19 @@ export const BookingProvider = ({ children }) => {
     }
   }, []);
 
+  const payBookingBalance = useCallback(async (bookingId, paymentData) => {
+    try {
+      const updated = await payBalanceBookingService(bookingId, paymentData);
+      if (updated) {
+        setBookings(prev => prev.map(b => (b.bookingId === bookingId || b.id === bookingId || b._id === bookingId) ? { ...b, ...updated } : b));
+      }
+      return updated;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to pay balance.');
+      throw err;
+    }
+  }, []);
+
   // Phase 5: Mark booking as reviewed / acknowledged
   const reviewBooking = useCallback(async (bookingId) => {
     const now = new Date().toISOString();
@@ -497,6 +511,7 @@ export const BookingProvider = ({ children }) => {
     approveBooking,
     rejectBooking,
     markBookingAsPaid,
+    payBookingBalance,
     reviewBooking,
     adminCancelBooking,
     blockSlot,
@@ -535,6 +550,7 @@ export const BookingProvider = ({ children }) => {
     approveBooking,
     rejectBooking,
     markBookingAsPaid,
+    payBookingBalance,
     reviewBooking,
     adminCancelBooking,
     blockSlot,

@@ -172,9 +172,23 @@ export const notifyPaymentReceived = async (booking, paymentDetails = {}) => {
   try {
     const bId = booking.bookingId || booking.id;
     const paymentId = paymentDetails.paymentId || paymentDetails.razorpay_payment_id || 'verified';
-    const isFull = booking.paymentStatus === 'Paid' || paymentDetails.paymentType === 'full' || booking.balanceDue === 0;
-    const notifType = isFull ? NOTIFICATION_TYPES.FULL_PAYMENT_RECEIVED : NOTIFICATION_TYPES.ADVANCE_PAYMENT_RECEIVED;
-    const title = isFull ? 'Payment Completed' : 'Advance Payment Received';
+    const isBalance = paymentDetails.paymentType === 'balance';
+    const isFull = booking.paymentStatus === 'Paid' || booking.paymentStatus === 'Fully Paid' || paymentDetails.paymentType === 'full' || booking.balanceDue === 0;
+    
+    let notifType = NOTIFICATION_TYPES.FULL_PAYMENT_RECEIVED;
+    let customerTitle = 'Payment Completed';
+    let adminTitle = `Payment Verified: #${bId}`;
+
+    if (isBalance) {
+      notifType = NOTIFICATION_TYPES.BALANCE_PAYMENT_UPDATED;
+      customerTitle = 'Balance Payment Received';
+      adminTitle = 'New Balance Payment Received';
+    } else if (!isFull) {
+      notifType = NOTIFICATION_TYPES.ADVANCE_PAYMENT_RECEIVED;
+      customerTitle = 'Advance Payment Received';
+      adminTitle = `Advance Payment Verified: #${bId}`;
+    }
+
     const amount = paymentDetails.amount || (isFull ? booking.totalAmount : (booking.advancePaid || booking.advanceAmount));
     const phone = booking.customerPhone || booking.phone || (booking.customer && (booking.customer.phone || booking.customer.customerPhone)) || null;
     const email = booking.customerEmail || booking.email || (booking.customer && (booking.customer.email || booking.customer.customerEmail)) || null;
@@ -187,15 +201,17 @@ export const notifyPaymentReceived = async (booking, paymentDetails = {}) => {
       recipientPhone: phone,
       recipientEmail: email,
       type: notifType,
-      title,
-      message: `Payment of ₹${amount} for booking #${bId} has been successfully verified.`,
+      title: customerTitle,
+      message: isBalance
+        ? `Balance payment of ₹${amount} for booking #${bId} was successfully verified. Your reservation is now Fully Paid.`
+        : `Payment of ₹${amount} for booking #${bId} has been successfully verified.`,
       bookingId: bId,
       idempotencyKey: `${notifType}:${bId}:${paymentId}:customer`,
       metadata: {
         amount,
         paymentId,
         paymentStatus: booking.paymentStatus,
-        balanceAmount: booking.balanceDue || booking.balanceAmount
+        balanceAmount: booking.balanceDue || 0
       }
     });
 
@@ -204,14 +220,17 @@ export const notifyPaymentReceived = async (booking, paymentDetails = {}) => {
       recipientType: NOTIFICATION_RECIPIENT_TYPE.ADMIN,
       recipientId: 'admin',
       type: notifType,
-      title: `Payment Verified: #${bId}`,
-      message: `Payment of ₹${amount} received for booking #${bId} (${customerName}).`,
+      title: adminTitle,
+      message: isBalance
+        ? `Customer: ${customerName} | Booking ID: #${bId} | Balance Paid: ₹${amount} | Payment Status: Fully Paid`
+        : `Payment of ₹${amount} received for booking #${bId} (${customerName}).`,
       bookingId: bId,
       idempotencyKey: `${notifType}:${bId}:${paymentId}:admin`,
       metadata: {
         amount,
         paymentId,
         bookingId: bId,
+        customerName,
         paymentStatus: booking.paymentStatus
       }
     });

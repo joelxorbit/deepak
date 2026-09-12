@@ -11,7 +11,8 @@ import {
   bookingHistory,
   previewBookingPrice,
   reviewBooking,
-  adminCancelBooking
+  adminCancelBooking,
+  payBookingBalance
 } from '../controllers/bookingController.js';
 import {
   createBookingValidationRules,
@@ -34,6 +35,7 @@ router.post('/track', trackBooking);
 router.get('/track', trackBooking);
 router.post('/cancel', cancelBooking);
 router.get('/slots', getBookedSlots);
+router.post('/:id/pay-balance', requireAnyAuth, payBookingBalance);
 
 // Protected Admin Endpoints
 router.get('/', requireAdmin, getAllBookings);

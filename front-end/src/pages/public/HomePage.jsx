@@ -174,52 +174,60 @@ export const HomePage = () => {
       </section>
 
       {/* EVENT BANNER SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
+      <section className="max-w-7xl xl:max-w-[1380px] 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 -mt-10 sm:-mt-12 md:-mt-14 relative z-20">
         <div 
           onClick={() => navigate(ROUTES.EVENTS)}
-          className="bg-white rounded-3xl shadow-2xl shadow-emerald-900/5 border border-black/5 overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-1 hover:shadow-emerald-900/10"
+          className="bg-white rounded-3xl sm:rounded-[32px] shadow-2xl shadow-emerald-950/8 border border-black/5 overflow-hidden cursor-pointer group transition-all duration-300 hover:-translate-y-1 hover:shadow-emerald-950/15"
         >
           {upcomingEvents.length > 0 ? (
               <div className="flex flex-col md:flex-row items-stretch">
-                <div className="w-full md:w-1/3 h-48 md:h-auto relative overflow-hidden">
+                <div className="w-full md:w-[42%] lg:w-[40%] xl:w-[38%] min-h-[280px] sm:min-h-[320px] md:min-h-[360px] lg:min-h-[400px] relative overflow-hidden flex-shrink-0">
                   <img 
                     src={upcomingEvents[0].image || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'} 
                     alt={upcomingEvents[0].title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'; }}
                   />
-                  <div className="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-lg">
+                  <div className="absolute top-5 left-5 bg-emerald-600/95 backdrop-blur-md text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-lg flex items-center gap-2 z-10">
+                    <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
                     Upcoming Event
                   </div>
                 </div>
-                <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center space-y-4 relative overflow-hidden">
-                  <div className="absolute right-0 top-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-                  <div className="flex items-center gap-3 text-xs font-mono font-bold text-emerald-600 relative z-10">
-                    <span className="material-symbols-outlined text-base">calendar_month</span>
-                    <span>{upcomingEvents[0].date ? upcomingEvents[0].date.split('T')[0] : ''}</span>
+                <div className="flex-1 p-6 sm:p-10 lg:p-12 xl:p-14 flex flex-col justify-center space-y-4 sm:space-y-5 relative overflow-hidden">
+                  <div className="absolute right-0 top-0 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+                  
+                  <div className="flex flex-wrap items-center gap-2.5 text-xs sm:text-sm font-semibold relative z-10">
+                    <span className="inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200/60 font-mono shadow-xs">
+                      <span className="material-symbols-outlined text-base text-emerald-600">calendar_month</span>
+                      <span>{upcomingEvents[0].date ? upcomingEvents[0].date.split('T')[0] : ''}</span>
+                    </span>
                     {upcomingEvents[0].startTime && (
-                      <>
-                        <span className="text-black/20">•</span>
-                        <span className="text-slate-500 font-sans">{upcomingEvents[0].startTime} - {upcomingEvents[0].endTime}</span>
-                      </>
+                      <span className="inline-flex items-center gap-1.5 text-slate-700 bg-slate-100 px-3.5 py-1.5 rounded-full border border-slate-200/60 font-sans shadow-xs">
+                        <span className="material-symbols-outlined text-base text-slate-500">schedule</span>
+                        <span>{upcomingEvents[0].startTime} - {upcomingEvents[0].endTime}</span>
+                      </span>
                     )}
                   </div>
-                  <h3 className="font-extrabold text-2xl sm:text-3xl text-slate-900 group-hover:text-emerald-600 transition-colors relative z-10">
+
+                  <h3 className="font-extrabold text-3xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight leading-[1.15] group-hover:text-emerald-600 transition-colors relative z-10 capitalize">
                     {upcomingEvents[0].title}
                   </h3>
-                  <p className="text-sm text-slate-600 line-clamp-2 max-w-2xl relative z-10">
+
+                  <p className="text-base sm:text-lg text-slate-600 leading-relaxed line-clamp-3 max-w-2xl relative z-10">
                     {upcomingEvents[0].description}
                   </p>
-                  <div className="pt-2 relative z-10">
-                    <span className="inline-flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-wider">
-                      View Event Details <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+
+                  <div className="pt-3 relative z-10">
+                    <span className="inline-flex items-center gap-2.5 text-xs sm:text-sm font-bold text-emerald-600 group-hover:text-emerald-700 uppercase tracking-wider transition-colors">
+                      <span>View Event Details</span>
+                      <span className="material-symbols-outlined text-base sm:text-lg group-hover:translate-x-1.5 transition-transform duration-300">arrow_forward</span>
                     </span>
                   </div>
                 </div>
               </div>
             ) : completedEvents.length > 0 ? (
               <div className="flex flex-col md:flex-row items-stretch">
-                <div className="w-full md:w-1/3 h-48 md:h-auto relative overflow-hidden">
+                <div className="w-full md:w-[42%] lg:w-[40%] xl:w-[38%] min-h-[280px] sm:min-h-[320px] md:min-h-[360px] lg:min-h-[400px] relative overflow-hidden flex-shrink-0">
                   <img 
                     src={completedEvents[currentSlide]?.image || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'} 
                     alt={completedEvents[currentSlide]?.title}
@@ -227,19 +235,21 @@ export const HomePage = () => {
                     key={currentSlide}
                     onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800'; }}
                   />
-                  <div className="absolute top-4 left-4 bg-slate-800 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-lg">
+                  <div className="absolute top-5 left-5 bg-slate-800/90 backdrop-blur-md text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-lg">
                     Past Event Showcase
                   </div>
                 </div>
-                <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center space-y-4 relative overflow-hidden min-h-[200px]">
-                  <div className="flex items-center gap-3 text-xs font-mono font-bold text-slate-500 relative z-10 animate-fade-in" key={`date-${currentSlide}`}>
-                    <span className="material-symbols-outlined text-base">calendar_month</span>
-                    <span>{completedEvents[currentSlide]?.date ? completedEvents[currentSlide]?.date.split('T')[0] : ''}</span>
+                <div className="flex-1 p-6 sm:p-10 lg:p-12 xl:p-14 flex flex-col justify-center space-y-4 sm:space-y-5 relative overflow-hidden min-h-[240px]">
+                  <div className="flex items-center gap-3 text-xs sm:text-sm font-semibold relative z-10 animate-fade-in" key={`date-${currentSlide}`}>
+                    <span className="inline-flex items-center gap-1.5 text-slate-700 bg-slate-100 px-3.5 py-1.5 rounded-full border border-slate-200/60 font-mono shadow-xs">
+                      <span className="material-symbols-outlined text-base text-slate-500">calendar_month</span>
+                      <span>{completedEvents[currentSlide]?.date ? completedEvents[currentSlide]?.date.split('T')[0] : ''}</span>
+                    </span>
                   </div>
-                  <h3 className="font-extrabold text-2xl sm:text-3xl text-slate-900 group-hover:text-emerald-600 transition-colors relative z-10 animate-fade-in" key={`title-${currentSlide}`}>
+                  <h3 className="font-extrabold text-3xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight leading-[1.15] group-hover:text-emerald-600 transition-colors relative z-10 animate-fade-in capitalize" key={`title-${currentSlide}`}>
                     {completedEvents[currentSlide]?.title}
                   </h3>
-                  <p className="text-sm text-slate-600 line-clamp-2 max-w-2xl relative z-10 animate-fade-in" key={`desc-${currentSlide}`}>
+                  <p className="text-base sm:text-lg text-slate-600 leading-relaxed line-clamp-3 max-w-2xl relative z-10 animate-fade-in" key={`desc-${currentSlide}`}>
                     {completedEvents[currentSlide]?.description}
                   </p>
                   
@@ -248,7 +258,7 @@ export const HomePage = () => {
                       {completedEvents.map((_, idx) => (
                         <div 
                           key={idx} 
-                          className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentSlide ? 'w-6 bg-emerald-500' : 'w-1.5 bg-slate-300'}`}
+                          className={`h-2 rounded-full transition-all duration-300 ${idx === currentSlide ? 'w-8 bg-emerald-500' : 'w-2 bg-slate-300'}`}
                         />
                       ))}
                     </div>
@@ -257,21 +267,24 @@ export const HomePage = () => {
               </div>
             ) : (
               <div className="flex flex-col md:flex-row items-stretch bg-slate-900 text-white">
-                <div className="w-full md:w-1/3 h-48 md:h-auto relative overflow-hidden bg-emerald-900">
-                  <div className="w-full h-full flex items-center justify-center opacity-50">
-                    <span className="material-symbols-outlined text-8xl">sports_soccer</span>
-                  </div>
+                <div className="w-full md:w-[42%] lg:w-[40%] xl:w-[38%] min-h-[280px] sm:min-h-[320px] md:min-h-[360px] lg:min-h-[400px] relative overflow-hidden bg-emerald-950 flex items-center justify-center flex-shrink-0">
+                  <span className="material-symbols-outlined text-8xl text-emerald-500/40 group-hover:scale-110 transition-transform duration-500">sports_soccer</span>
                 </div>
-                <div className="flex-1 p-6 sm:p-8 flex flex-col justify-center space-y-4 relative overflow-hidden">
-                  <h3 className="font-extrabold text-2xl sm:text-3xl text-white group-hover:text-emerald-400 transition-colors relative z-10">
+                <div className="flex-1 p-6 sm:p-10 lg:p-12 xl:p-14 flex flex-col justify-center space-y-4 sm:space-y-5 relative overflow-hidden">
+                  <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-full border border-emerald-500/20 w-fit">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Tournaments & Showcases
+                  </div>
+                  <h3 className="font-extrabold text-3xl sm:text-4xl lg:text-5xl text-white tracking-tight leading-[1.15] group-hover:text-emerald-400 transition-colors relative z-10">
                     Arena Events & Leagues
                   </h3>
-                  <p className="text-sm text-slate-300 line-clamp-2 max-w-2xl relative z-10">
+                  <p className="text-base sm:text-lg text-slate-300 leading-relaxed line-clamp-3 max-w-2xl relative z-10">
                     Discover upcoming tournaments, showcases, and open leagues. Click here to explore our event calendar.
                   </p>
-                  <div className="pt-2 relative z-10">
-                    <span className="inline-flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider">
-                      Explore Events <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                  <div className="pt-3 relative z-10">
+                    <span className="inline-flex items-center gap-2.5 text-xs sm:text-sm font-bold text-emerald-400 group-hover:text-emerald-300 uppercase tracking-wider transition-colors">
+                      <span>Explore Events</span>
+                      <span className="material-symbols-outlined text-base sm:text-lg group-hover:translate-x-1.5 transition-transform duration-300">arrow_forward</span>
                     </span>
                   </div>
                 </div>

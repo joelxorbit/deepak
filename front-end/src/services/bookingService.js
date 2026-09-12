@@ -30,6 +30,12 @@ export const markBookingAsPaidService = async (bookingId) => {
   return response.data.data;
 };
 
+// Pay remaining balance on a booking (POST /api/bookings/:id/pay-balance)
+export const payBalanceBookingService = async (bookingId, paymentData) => {
+  const response = await api.post(`/bookings/${bookingId}/pay-balance`, paymentData);
+  return response.data.data;
+};
+
 // Get booked slots for a date (GET /api/bookings/slots?date=YYYY-MM-DD)
 export const getBookedSlotsService = async (dateString, holderId = null) => {
   const response = await api.get('/bookings/slots', { params: { date: dateString, holderId } });

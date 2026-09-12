@@ -9,7 +9,8 @@ import {
   getBookedSlotsService,
   getBookingHistoryService,
   reviewBookingService,
-  adminCancelBookingService
+  adminCancelBookingService,
+  payBalanceBookingService
 } from '../services/bookingService.js';
 import { calculateBookingPrice } from '../services/rateService.js';
 import { sendSuccess } from '../utils/response.js';
@@ -98,6 +99,18 @@ export const markBookingAsPaid = async (req, res, next) => {
     const adminUser = req.admin ? req.admin.username : 'Admin';
     const booking = await markBookingAsPaidService(bookingId, adminUser);
     return sendSuccess(res, `Payment marked as Paid for booking ${booking.bookingId}`, booking);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const payBookingBalance = async (req, res, next) => {
+  try {
+    const bookingId = req.params.id || req.params.bookingId || req.body.bookingId;
+    const paymentData = req.body;
+    const userOrCustomer = req.customer || req.admin || req.user || null;
+    const updatedBooking = await payBalanceBookingService(bookingId, paymentData, userOrCustomer);
+    return sendSuccess(res, 'Balance payment completed and verified successfully', updatedBooking);
   } catch (error) {
     next(error);
   }

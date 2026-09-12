@@ -4,7 +4,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useCustomerAuth } from '../../context/CustomerAuthContext';
 import { getCustomerBookingsApi } from '../../services/authService';
 import { fetchCustomerEnquiriesService } from '../../services/enquiryService';
-import { downloadTicketPdfService } from '../../services/bookingService';
+import { downloadTicketPdfService, payBalanceBookingService } from '../../services/bookingService';
+import { createRazorpayOrder } from '../../services/paymentService';
 import { signInWithGoogle } from '../../config/firebase';
 import { ROUTES } from '../../constants/routes';
 
@@ -53,6 +54,9 @@ export const AccountPage = () => {
   // Booking Details Modal state
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [downloadingPdfId, setDownloadingPdfId] = useState(null);
+  const [payingBalanceId, setPayingBalanceId] = useState(null);
+  const [balancePayError, setBalancePayError] = useState('');
+  const [balancePaySuccess, setBalancePaySuccess] = useState('');
 
   // Lock background body scroll and dismiss on Escape when any modal is open
   useEffect(() => {
@@ -157,8 +161,96 @@ export const AccountPage = () => {
   }, [isAuthenticated, activeTab, fetchBookings]);
 
 
+  const handlePayBalance = async (booking) => {
+    if (!booking) return;
+    const bId = booking.bookingId || booking.id;
+    const balance = Number(booking.balanceDue) || 0;
+    if (balance <= 0) {
+      alert('This booking has no pending balance. It is already fully paid.');
+      return;
+    }
 
-  // Handle Customer Phone Login (Staging / Development)
+    try {
+      setPayingBalanceId(bId);
+      setBalancePayError('');
+      setBalancePaySuccess('');
+
+      // 1. Authoritative order specifically for remaining balance
+      const orderData = await createRazorpayOrder({
+        bookingId: bId,
+        amount: balance,
+        paymentOption: 'FULL',
+        receipt: `rcpt_bal_${Date.now()}`
+      });
+
+      // 2. Simulated dev mode or Razorpay script fallback
+      if (orderData.id?.startsWith('order_dev_') || typeof window.Razorpay === 'undefined') {
+        const devPaymentId = `pay_dev_${Date.now()}`;
+        const updated = await payBalanceBookingService(bId, {
+          razorpay_order_id: orderData.id || `order_dev_${Date.now()}`,
+          razorpay_payment_id: devPaymentId,
+          razorpay_signature: 'dev_signature'
+        });
+
+        setBookings(prev => prev.map(b => (b.bookingId === bId || b.id === bId) ? { ...b, ...updated } : b));
+        if (selectedBooking && (selectedBooking.bookingId === bId || selectedBooking.id === bId)) {
+          setSelectedBooking(prev => ({ ...prev, ...updated }));
+        }
+        setBalancePaySuccess(`Balance payment of ₹${balance} paid and verified!`);
+        fetchBookings(activeTab);
+        setPayingBalanceId(null);
+        return;
+      }
+
+      // 3. Real Razorpay Checkout
+      const options = {
+        key: 'rzp_test_SyHdQL7pK1tlnG',
+        amount: orderData.amount,
+        currency: orderData.currency || 'INR',
+        name: 'Elite Pitch',
+        description: `Pay Balance for Booking #${bId}`,
+        order_id: orderData.id,
+        handler: async (response) => {
+          try {
+            const updated = await payBalanceBookingService(bId, {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+
+            setBookings(prev => prev.map(b => (b.bookingId === bId || b.id === bId) ? { ...b, ...updated } : b));
+            if (selectedBooking && (selectedBooking.bookingId === bId || selectedBooking.id === bId)) {
+              setSelectedBooking(prev => ({ ...prev, ...updated }));
+            }
+            setBalancePaySuccess(`Balance payment of ₹${balance} paid and verified!`);
+            fetchBookings(activeTab);
+          } catch (verificationError) {
+            setBalancePayError(verificationError.response?.data?.message || 'Payment verification failed. Please contact support.');
+          } finally {
+            setPayingBalanceId(null);
+          }
+        },
+        prefill: {
+          name: booking.customerName || customer?.name || '',
+          contact: booking.mobileNumber || booking.customerPhone || customer?.phone || ''
+        },
+        theme: { color: '#059669' },
+        modal: {
+          ondismiss: () => setPayingBalanceId(null)
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        setBalancePayError('Payment failed: ' + (response.error?.description || 'Payment was unsuccessful.'));
+        setPayingBalanceId(null);
+      });
+      rzp.open();
+    } catch (err) {
+      setBalancePayError(err.response?.data?.message || 'Failed to initiate balance payment. Please try again.');
+      setPayingBalanceId(null);
+    }
+  };
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoginError('');
@@ -730,18 +822,37 @@ export const AccountPage = () => {
                 </div>
 
                 {/* Card Action: View Ticket Details & Download PDF */}
-                <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => handleDownloadPdf(booking.bookingId)}
-                    disabled={downloadingPdfId === booking.bookingId}
-                    className="text-xs text-slate-300 hover:text-emerald-400 font-medium inline-flex items-center gap-1 py-1 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-white/5 disabled:opacity-50"
-                    title="Download Official Ticket (PDF)"
-                  >
-                    <span className="material-symbols-outlined text-sm text-emerald-400">
-                      {downloadingPdfId === booking.bookingId ? 'progress_activity' : 'picture_as_pdf'}
-                    </span>
-                    <span>{downloadingPdfId === booking.bookingId ? 'PDF...' : 'PDF'}</span>
-                  </button>
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleDownloadPdf(booking.bookingId)}
+                      disabled={downloadingPdfId === booking.bookingId}
+                      className="text-xs text-slate-300 hover:text-emerald-400 font-medium inline-flex items-center gap-1 py-1 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-white/5 disabled:opacity-50"
+                      title="Download Official Ticket (PDF)"
+                    >
+                      <span className="material-symbols-outlined text-sm text-emerald-400">
+                        {downloadingPdfId === booking.bookingId ? 'progress_activity' : 'picture_as_pdf'}
+                      </span>
+                      <span>{downloadingPdfId === booking.bookingId ? 'PDF...' : 'PDF'}</span>
+                    </button>
+
+                    {booking.balanceDue > 0 && booking.status !== 'Cancelled' && booking.status !== 'Rejected' && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePayBalance(booking);
+                        }}
+                        disabled={payingBalanceId === (booking.bookingId || booking.id)}
+                        className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1 px-2.5 rounded-lg shadow-sm hover:shadow transition-all inline-flex items-center gap-1 disabled:opacity-50"
+                        title="Pay Pending Balance Online"
+                      >
+                        <span className="material-symbols-outlined text-sm">
+                          {payingBalanceId === (booking.bookingId || booking.id) ? 'progress_activity' : 'payments'}
+                        </span>
+                        <span>{payingBalanceId === (booking.bookingId || booking.id) ? 'Paying...' : `Pay Balance (₹${booking.balanceDue})`}</span>
+                      </button>
+                    )}
+                  </div>
 
                   <button
                     onClick={() => setSelectedBooking(booking)}
@@ -973,12 +1084,48 @@ export const AccountPage = () => {
             </div>
 
             {/* Sticky Action Buttons Footer */}
-            <div className="p-4 sm:p-5 border-t border-white/10 bg-slate-900 shrink-0 space-y-2">
+            <div className="p-4 sm:p-5 border-t border-white/10 bg-slate-900 shrink-0 space-y-2.5">
+              {balancePayError && (
+                <div className="p-2.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm">error</span>
+                  <span>{balancePayError}</span>
+                </div>
+              )}
+              {balancePaySuccess && (
+                <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300 text-xs flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm">check_circle</span>
+                  <span>{balancePaySuccess}</span>
+                </div>
+              )}
+
+              {selectedBooking.balanceDue > 0 && selectedBooking.status !== 'Cancelled' && selectedBooking.status !== 'Rejected' ? (
+                <button
+                  type="button"
+                  onClick={() => handlePayBalance(selectedBooking)}
+                  disabled={payingBalanceId === (selectedBooking.bookingId || selectedBooking.id)}
+                  className="w-full py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-base">
+                    {payingBalanceId === (selectedBooking.bookingId || selectedBooking.id) ? 'progress_activity' : 'payments'}
+                  </span>
+                  <span>
+                    {payingBalanceId === (selectedBooking.bookingId || selectedBooking.id)
+                      ? 'Connecting to Razorpay...'
+                      : `Pay Remaining Balance (₹${selectedBooking.balanceDue})`}
+                  </span>
+                </button>
+              ) : (
+                <div className="w-full py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5">
+                  <span className="material-symbols-outlined text-base">verified</span>
+                  <span>Balance Fully Paid</span>
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={() => handleDownloadPdf(selectedBooking.bookingId)}
                 disabled={downloadingPdfId === selectedBooking.bookingId}
-                className="w-full py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-base">
                   {downloadingPdfId === selectedBooking.bookingId ? 'progress_activity' : 'picture_as_pdf'}
@@ -988,8 +1135,12 @@ export const AccountPage = () => {
 
               <button
                 type="button"
-                onClick={() => setSelectedBooking(null)}
-                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl transition-all"
+                onClick={() => {
+                  setSelectedBooking(null);
+                  setBalancePayError('');
+                  setBalancePaySuccess('');
+                }}
+                className="w-full py-2 bg-transparent hover:bg-white/5 text-slate-400 font-semibold text-xs rounded-xl transition-all"
               >
                 Close Ticket
               </button>

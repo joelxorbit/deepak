@@ -27,6 +27,7 @@ import { calculateAvailability } from './availabilityService.js';
 import { calculateBookingPrice } from './rateService.js';
 import { PAYMENT_OPTIONS } from '../utils/constants.js';
 import { notifyBookingCreated, notifyPaymentReceived, notifyAdminCancellation } from './notificationService.js';
+import { verifyPaymentSignatureService } from './paymentService.js';
 
 export const createBookingService = async ({
   customerName,
@@ -451,6 +452,107 @@ export const markBookingAsPaidService = async (bookingId, adminUser) => {
     paymentType: 'full',
     amount: booking.balanceDue || booking.totalAmount
   }).catch(err => logger.warn('Notification payment mark paid warning:', err));
+
+  return updatedBooking;
+};
+
+export const payBalanceBookingService = async (bookingId, paymentData, userOrCustomer) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = paymentData || {};
+
+  if (!bookingId) {
+    const error = new Error('Booking ID is required');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const booking = await findBookingById(bookingId);
+  if (!booking) {
+    const error = new Error('Booking not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (booking.status === BOOKING_STATUS.CANCELLED || booking.status === 'Rejected') {
+    const error = new Error('Cannot pay balance for a cancelled or rejected booking.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const currentBalance = Number(booking.balanceDue) || 0;
+  if (
+    currentBalance <= 0 ||
+    booking.paymentStatus === PAYMENT_STATUS.FULLY_PAID ||
+    booking.paymentStatus === PAYMENT_STATUS.PAID ||
+    booking.paymentStatus === PAYMENT_STATUS.CASH_RECEIVED
+  ) {
+    const error = new Error('This booking has no pending balance. It is already fully paid.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // Cryptographic HMAC-SHA256 signature verification and replay prevention
+  const verification = await verifyPaymentSignatureService({
+    razorpay_order_id,
+    razorpay_payment_id,
+    razorpay_signature,
+    expectedAmount: currentBalance
+  });
+
+  if (!verification || !verification.verified) {
+    const error = new Error('Payment verification failed.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const now = new Date().toISOString();
+  const balancePaidAmount = currentBalance;
+  const initialAdvance = Number(booking.initialAdvancePaid || booking.advancePaid || booking.advanceAmount || 0);
+  const totalAmount = Number(booking.totalAmount || (initialAdvance + balancePaidAmount));
+
+  await getBookingsCollection().doc(booking.id).update({
+    paymentStatus: PAYMENT_STATUS.FULLY_PAID,
+    paymentMethod: PAYMENT_METHODS.FULLY_PAID,
+    balanceDue: 0,
+    advancePaid: totalAmount,
+    initialAdvancePaid: initialAdvance,
+    balancePaid: true,
+    balanceAmountPaid: balancePaidAmount,
+    balancePayment: {
+      isPaid: true,
+      paidAt: now,
+      paymentMethod: 'Online (Razorpay)',
+      razorpay_payment_id,
+      razorpay_order_id,
+      amount: balancePaidAmount,
+      notes: 'Balance payment completed and verified via Razorpay'
+    },
+    razorpay_payment_id: razorpay_payment_id || booking.razorpay_payment_id,
+    paidAt: now,
+    updatedAt: now
+  });
+
+  cacheManager.del('admin_dashboard_stats');
+  logger.info(`[BookingService] Successfully paid balance ₹${balancePaidAmount} for booking ${booking.bookingId}`);
+
+  createAuditLog({
+    action: AUDIT_ACTIONS.BALANCE_PAYMENT_CONFIRM,
+    user: booking.customerName || (userOrCustomer?.name) || 'Customer',
+    details: {
+      bookingId: booking.bookingId,
+      totalAmount,
+      balancePaid: balancePaidAmount,
+      paymentStatus: PAYMENT_STATUS.FULLY_PAID,
+      razorpay_payment_id
+    }
+  }).catch(err => logger.warn('Audit log write warning:', err));
+
+  const updatedBooking = await findBookingById(booking.id);
+
+  notifyPaymentReceived(updatedBooking, {
+    paymentId: razorpay_payment_id,
+    paymentType: 'balance',
+    amount: balancePaidAmount
+  }).catch(err => logger.warn('Notification balance payment warning:', err));
 
   return updatedBooking;
 };

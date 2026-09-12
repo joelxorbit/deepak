@@ -73,10 +73,28 @@ export const createPaymentOrderService = async ({
       error.statusCode = 404;
       throw error;
     }
+
+    if (bookingData.status === 'Cancelled' || bookingData.status === 'Rejected') {
+      const error = new Error('Cannot create payment order for a cancelled or rejected booking.');
+      error.statusCode = 400;
+      throw error;
+    }
+
     if (paymentOption === PAYMENT_OPTIONS.ADVANCE) {
       payableAmount = bookingData.pricingSnapshot?.advanceRequired || 200;
     } else {
-      payableAmount = bookingData.balanceDue > 0 ? bookingData.balanceDue : bookingData.totalAmount;
+      const currentBalance = Number(bookingData.balanceDue);
+      if (
+        (bookingData.balanceDue !== undefined && currentBalance <= 0) ||
+        bookingData.paymentStatus === 'Fully Paid' ||
+        bookingData.paymentStatus === 'Paid' ||
+        bookingData.paymentStatus === 'Cash Received'
+      ) {
+        const error = new Error('This booking has no pending balance. It is already fully paid.');
+        error.statusCode = 400;
+        throw error;
+      }
+      payableAmount = currentBalance > 0 ? currentBalance : (Number(bookingData.totalAmount) || 0);
     }
   } else if (date && Array.isArray(slots) && slots.length > 0) {
     // 2. Authoritative Server-Side Calculation from rate rules and parameters
