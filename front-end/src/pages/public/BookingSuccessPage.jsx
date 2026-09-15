@@ -51,7 +51,7 @@ export const BookingSuccessPage = () => {
     }
     try {
       setDownloading(true);
-      const token = latestBooking.customerToken || latestBooking.token || localStorage.getItem('elite_pitch_customer_token');
+      const token = latestBooking.customerToken || latestBooking.token || localStorage.getItem('alangudi_aadukalam_customer_token');
       await downloadTicketPdfService(publicBookingId, token);
       addToast('Ticket PDF downloaded successfully!', 'success');
     } catch (err) {

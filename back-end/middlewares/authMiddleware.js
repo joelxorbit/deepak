@@ -8,8 +8,8 @@ export const requireAdmin = async (req, res, next) => {
   try {
     let token = null;
 
-    if (req.cookies && req.cookies.elite_pitch_token) {
-      token = req.cookies.elite_pitch_token;
+    if (req.cookies && req.cookies.alangudi_aadukalam_token) {
+      token = req.cookies.alangudi_aadukalam_token;
     } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
       token = req.headers.authorization.split(' ')[1];
     }
@@ -55,10 +55,10 @@ export const requireCustomer = async (req, res, next) => {
   try {
     let token = null;
 
-    if (req.cookies && req.cookies.elite_pitch_customer_token) {
-      token = req.cookies.elite_pitch_customer_token;
-    } else if (req.cookies && req.cookies.elite_pitch_token) {
-      token = req.cookies.elite_pitch_token;
+    if (req.cookies && req.cookies.alangudi_aadukalam_customer_token) {
+      token = req.cookies.alangudi_aadukalam_customer_token;
+    } else if (req.cookies && req.cookies.alangudi_aadukalam_token) {
+      token = req.cookies.alangudi_aadukalam_token;
     } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
       token = req.headers.authorization.split(' ')[1];
     }
@@ -109,24 +109,24 @@ export const requireAnyAuth = async (req, res, next) => {
       token = req.query.token;
     } else if (clientRole === 'customer') {
       // Prioritize customer cookie if customer role is requested
-      if (req.cookies && req.cookies.elite_pitch_customer_token) {
-        token = req.cookies.elite_pitch_customer_token;
-      } else if (req.cookies && req.cookies.elite_pitch_token) {
-        token = req.cookies.elite_pitch_token;
+      if (req.cookies && req.cookies.alangudi_aadukalam_customer_token) {
+        token = req.cookies.alangudi_aadukalam_customer_token;
+      } else if (req.cookies && req.cookies.alangudi_aadukalam_token) {
+        token = req.cookies.alangudi_aadukalam_token;
       }
     } else if (clientRole === 'admin') {
       // Prioritize admin cookie if admin role is requested
-      if (req.cookies && req.cookies.elite_pitch_token) {
-        token = req.cookies.elite_pitch_token;
-      } else if (req.cookies && req.cookies.elite_pitch_customer_token) {
-        token = req.cookies.elite_pitch_customer_token;
+      if (req.cookies && req.cookies.alangudi_aadukalam_token) {
+        token = req.cookies.alangudi_aadukalam_token;
+      } else if (req.cookies && req.cookies.alangudi_aadukalam_customer_token) {
+        token = req.cookies.alangudi_aadukalam_customer_token;
       }
     } else {
       // Default: customer cookie first to prevent accidental admin leak, then admin cookie
-      if (req.cookies && req.cookies.elite_pitch_customer_token) {
-        token = req.cookies.elite_pitch_customer_token;
-      } else if (req.cookies && req.cookies.elite_pitch_token) {
-        token = req.cookies.elite_pitch_token;
+      if (req.cookies && req.cookies.alangudi_aadukalam_customer_token) {
+        token = req.cookies.alangudi_aadukalam_customer_token;
+      } else if (req.cookies && req.cookies.alangudi_aadukalam_token) {
+        token = req.cookies.alangudi_aadukalam_token;
       }
     }
 
@@ -202,10 +202,10 @@ export const optionalAuth = async (req, res, next) => {
   try {
     let token = null;
 
-    if (req.cookies && req.cookies.elite_pitch_token) {
-      token = req.cookies.elite_pitch_token;
-    } else if (req.cookies && req.cookies.elite_pitch_customer_token) {
-      token = req.cookies.elite_pitch_customer_token;
+    if (req.cookies && req.cookies.alangudi_aadukalam_token) {
+      token = req.cookies.alangudi_aadukalam_token;
+    } else if (req.cookies && req.cookies.alangudi_aadukalam_customer_token) {
+      token = req.cookies.alangudi_aadukalam_customer_token;
     } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
       token = req.headers.authorization.split(' ')[1];
     }

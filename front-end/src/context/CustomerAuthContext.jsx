@@ -12,7 +12,7 @@ const CustomerAuthContext = createContext();
 export const CustomerAuthProvider = ({ children }) => {
   const [customer, setCustomer] = useState(() => {
     try {
-      const saved = localStorage.getItem('elite_pitch_customer_profile');
+      const saved = localStorage.getItem('alangudi_aadukalam_customer_profile');
       return saved ? JSON.parse(saved) : null;
     } catch (e) {
       return null;
@@ -20,7 +20,7 @@ export const CustomerAuthProvider = ({ children }) => {
   });
 
   const [token, setToken] = useState(() => {
-    return localStorage.getItem('elite_pitch_customer_token') || null;
+    return localStorage.getItem('alangudi_aadukalam_customer_token') || null;
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -29,24 +29,24 @@ export const CustomerAuthProvider = ({ children }) => {
   // Sync token to localStorage
   useEffect(() => {
     if (token) {
-      localStorage.setItem('elite_pitch_customer_token', token);
+      localStorage.setItem('alangudi_aadukalam_customer_token', token);
     } else {
-      localStorage.removeItem('elite_pitch_customer_token');
+      localStorage.removeItem('alangudi_aadukalam_customer_token');
     }
   }, [token]);
 
   // Sync customer to localStorage
   useEffect(() => {
     if (customer) {
-      localStorage.setItem('elite_pitch_customer_profile', JSON.stringify(customer));
+      localStorage.setItem('alangudi_aadukalam_customer_profile', JSON.stringify(customer));
     } else {
-      localStorage.removeItem('elite_pitch_customer_profile');
+      localStorage.removeItem('alangudi_aadukalam_customer_profile');
     }
   }, [customer]);
 
   // Load verified customer profile on initial mount if token exists
   const loadProfile = useCallback(async () => {
-    const activeToken = localStorage.getItem('elite_pitch_customer_token');
+    const activeToken = localStorage.getItem('alangudi_aadukalam_customer_token');
     if (!activeToken) return null;
 
     try {
@@ -131,8 +131,8 @@ export const CustomerAuthProvider = ({ children }) => {
       setCustomer(null);
       setToken(null);
       setAuthError(null);
-      localStorage.removeItem('elite_pitch_customer_token');
-      localStorage.removeItem('elite_pitch_customer_profile');
+      localStorage.removeItem('alangudi_aadukalam_customer_token');
+      localStorage.removeItem('alangudi_aadukalam_customer_profile');
     }
   }, []);
 

@@ -127,7 +127,7 @@ export const unblockSlotService = async (blockId) => {
 export const downloadTicketPdfService = async (bookingId, token = null) => {
   if (!bookingId) throw new Error('Booking ID is required to download ticket.');
   const cleanId = String(bookingId).trim();
-  const authToken = token || localStorage.getItem('elite_pitch_customer_token') || localStorage.getItem('elite_pitch_admin_token');
+  const authToken = token || localStorage.getItem('alangudi_aadukalam_customer_token') || localStorage.getItem('alangudi_aadukalam_admin_token');
 
   const config = {
     responseType: 'blob',

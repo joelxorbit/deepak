@@ -20,7 +20,7 @@ export const googleLogin = async (req, res, next) => {
       avatar: avatar || profileImage
     });
 
-    res.cookie('elite_pitch_customer_token', authData.token, {
+    res.cookie('alangudi_aadukalam_customer_token', authData.token, {
       httpOnly: true,
       sameSite: 'strict',
       secure: ENV.NODE_ENV === 'production',
@@ -38,7 +38,7 @@ export const login = async (req, res, next) => {
     const { phone, mobileNumber, name, email } = req.body;
     const authData = await loginCustomerService({ phone, mobileNumber, name, email });
 
-    res.cookie('elite_pitch_customer_token', authData.token, {
+    res.cookie('alangudi_aadukalam_customer_token', authData.token, {
       httpOnly: true,
       sameSite: 'strict',
       secure: ENV.NODE_ENV === 'production',
@@ -53,7 +53,7 @@ export const login = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
   try {
-    res.clearCookie('elite_pitch_customer_token', {
+    res.clearCookie('alangudi_aadukalam_customer_token', {
       httpOnly: true,
       sameSite: 'strict',
       secure: ENV.NODE_ENV === 'production'

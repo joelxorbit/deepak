@@ -10,7 +10,7 @@ export const login = async (req, res, next) => {
     const { username, password } = req.body;
     const authData = await loginAdminService(username, password);
 
-    res.cookie('elite_pitch_token', authData.token, {
+    res.cookie('alangudi_aadukalam_token', authData.token, {
       httpOnly: true,
       sameSite: 'strict',
       secure: ENV.NODE_ENV === 'production',
@@ -25,7 +25,7 @@ export const login = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
   try {
-    res.clearCookie('elite_pitch_token', {
+    res.clearCookie('alangudi_aadukalam_token', {
       httpOnly: true,
       sameSite: 'strict',
       secure: ENV.NODE_ENV === 'production'

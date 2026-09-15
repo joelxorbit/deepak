@@ -14,8 +14,8 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
-    const customerToken = localStorage.getItem('elite_pitch_customer_token');
-    const adminToken = localStorage.getItem('elite_pitch_admin_token');
+    const customerToken = localStorage.getItem('alangudi_aadukalam_customer_token');
+    const adminToken = localStorage.getItem('alangudi_aadukalam_admin_token');
 
     let token = null;
     const clientRole = config.headers?.['X-Client-Role'];
@@ -43,7 +43,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('elite_pitch_admin_auth');
+      localStorage.removeItem('alangudi_aadukalam_admin_auth');
       if (window.location.pathname.includes('admin')) {
         window.location.href = '/admin';
       }

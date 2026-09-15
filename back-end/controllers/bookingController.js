@@ -53,7 +53,7 @@ export const createBooking = async (req, res, next) => {
         { expiresIn: ENV.JWT_EXPIRES_IN || '7d' }
       );
 
-      res.cookie('elite_pitch_customer_token', customerToken, {
+      res.cookie('alangudi_aadukalam_customer_token', customerToken, {
         httpOnly: true,
         sameSite: 'lax',
         secure: ENV.NODE_ENV === 'production',

@@ -52,12 +52,12 @@ export const BookingProvider = ({ children }) => {
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
-    return localStorage.getItem('elite_pitch_admin_auth') === 'true';
+    return localStorage.getItem('alangudi_aadukalam_admin_auth') === 'true';
   });
 
   const [latestBooking, setLatestBooking] = useState(() => {
     try {
-      const saved = sessionStorage.getItem('elite_pitch_latest_booking');
+      const saved = sessionStorage.getItem('alangudi_aadukalam_latest_booking');
       return saved ? JSON.parse(saved) : null;
     } catch (e) {
       return null;
@@ -90,7 +90,7 @@ export const BookingProvider = ({ children }) => {
 
   // Sync admin login state to localStorage for session persistence
   useEffect(() => {
-    localStorage.setItem('elite_pitch_admin_auth', isAdminLoggedIn ? 'true' : 'false');
+    localStorage.setItem('alangudi_aadukalam_admin_auth', isAdminLoggedIn ? 'true' : 'false');
   }, [isAdminLoggedIn]);
 
   // Centralized helper to fetch all admin data (dashboard stats, bookings, customers, blocked slots)
@@ -140,10 +140,10 @@ export const BookingProvider = ({ children }) => {
   // Unique session-based holder identifier for temporary checkout slot holds
   const getHolderId = useCallback(() => {
     try {
-      let id = sessionStorage.getItem('elite_pitch_holder_id');
+      let id = sessionStorage.getItem('alangudi_aadukalam_holder_id');
       if (!id) {
         id = 'h_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString(36);
-        sessionStorage.setItem('elite_pitch_holder_id', id);
+        sessionStorage.setItem('alangudi_aadukalam_holder_id', id);
       }
       return id;
     } catch (e) {
@@ -161,15 +161,15 @@ export const BookingProvider = ({ children }) => {
 
       // If customer session token was issued, store it for authenticated requests
       if (newBooking?.customerToken) {
-        localStorage.setItem('elite_pitch_customer_token', newBooking.customerToken);
+        localStorage.setItem('alangudi_aadukalam_customer_token', newBooking.customerToken);
       }
       if (newBooking?.customer) {
-        localStorage.setItem('elite_pitch_customer_profile', JSON.stringify(newBooking.customer));
+        localStorage.setItem('alangudi_aadukalam_customer_profile', JSON.stringify(newBooking.customer));
       }
 
       setLatestBooking(newBooking);
       try {
-        sessionStorage.setItem('elite_pitch_latest_booking', JSON.stringify(newBooking));
+        sessionStorage.setItem('alangudi_aadukalam_latest_booking', JSON.stringify(newBooking));
       } catch (e) {
         // Ignore quota errors
       }
