@@ -49,11 +49,7 @@ export const AdminLoginPage = () => {
           </div>
           <h1 className="font-headline-lg text-headline-lg text-2xl font-extrabold text-on-surface">Admin Portal</h1>
           <p className="text-on-surface-variant font-body-md text-sm mt-1">
-<<<<<<< HEAD
             Alangudi Aadukalam Operations & Management
-=======
-            Alangudi Aadukalam Operations & Management
->>>>>>> e66597c4bc12b3d95eafc5a04a67dd80a6792e74
           </p>
         </div>
 
