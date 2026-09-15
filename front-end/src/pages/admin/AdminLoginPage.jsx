@@ -52,7 +52,7 @@ export const AdminLoginPage = () => {
 <<<<<<< HEAD
             Alangudi Aadukalam Operations & Management
 =======
-            Alangudi Turf Operations & Management
+            Alangudi Aadukalam Operations & Management
 >>>>>>> e66597c4bc12b3d95eafc5a04a67dd80a6792e74
           </p>
         </div>

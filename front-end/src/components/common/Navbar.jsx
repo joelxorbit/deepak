@@ -129,7 +129,7 @@ export const Navbar = () => {
 <<<<<<< HEAD
               alt="Alangudi Aadukalam Logo" 
 =======
-              alt="Alangudi Turf Logo" 
+              alt="Alangudi Aadukalam Logo" 
 >>>>>>> e66597c4bc12b3d95eafc5a04a67dd80a6792e74
               className="h-full w-full object-contain rounded-lg" 
               src={logoImg} 

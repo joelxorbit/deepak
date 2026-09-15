@@ -22,7 +22,7 @@ export const Footer = () => {
 <<<<<<< HEAD
                   alt="Alangudi Aadukalam Logo" 
 =======
-                  alt="Alangudi Turf Logo" 
+                  alt="Alangudi Aadukalam Logo" 
 >>>>>>> e66597c4bc12b3d95eafc5a04a67dd80a6792e74
                   className="h-full w-full object-contain rounded-lg" 
                   src={logoImg} 
@@ -77,7 +77,7 @@ export const Footer = () => {
 <<<<<<< HEAD
           <p>© {new Date().getFullYear()} Alangudi Aadukalam Multi-Sport Arena. All rights reserved.</p>
 =======
-          <p>© {new Date().getFullYear()} Alangudi Turf Multi-Sport Arena. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Alangudi Aadukalam Multi-Sport Arena. All rights reserved.</p>
 >>>>>>> e66597c4bc12b3d95eafc5a04a67dd80a6792e74
           <div className="flex items-center gap-4">
             <span>FIFA Approved Artificial Turf</span>

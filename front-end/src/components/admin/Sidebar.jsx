@@ -32,12 +32,12 @@ export const Sidebar = ({ currentTab, setCurrentTab, navigate }) => {
           <div>
             <span className="font-headline-md text-headline-md tracking-tighter text-white block">ALANGUDI AADUKALAM</span>
 =======
-            alt="Alangudi Turf Logo" 
+            alt="Alangudi Aadukalam Logo" 
             className="h-8 w-8 object-contain rounded-lg" 
             src={logoImg} 
           />
           <div>
-            <span className="font-headline-md text-headline-md tracking-tighter text-white block">ALANGUDI TURF</span>
+            <span className="font-headline-md text-headline-md tracking-tighter text-white block">ALANGUDI Aadukalam</span>
 >>>>>>> e66597c4bc12b3d95eafc5a04a67dd80a6792e74
             <span className="text-[10px] text-primary-fixed uppercase tracking-wider font-bold block">Admin Control</span>
           </div>
