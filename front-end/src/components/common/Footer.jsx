@@ -19,21 +19,13 @@ export const Footer = () => {
             >
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center p-0.5 shadow-md">
                 <img 
-<<<<<<< HEAD
                   alt="Alangudi Aadukalam Logo" 
-=======
-                  alt="Alangudi Aadukalam Logo" 
->>>>>>> e66597c4bc12b3d95eafc5a04a67dd80a6792e74
                   className="h-full w-full object-contain rounded-lg" 
                   src={logoImg} 
                 />
               </div>
               <span className="font-bold text-lg tracking-wider text-white uppercase group-hover:text-emerald-400 transition-colors">
-<<<<<<< HEAD
                 ALANGUDI <span className="text-emerald-500">AADUKALAM</span>
-=======
-                ALANGUDI <span className="text-emerald-500">TURF</span>
->>>>>>> e66597c4bc12b3d95eafc5a04a67dd80a6792e74
               </span>
             </div>
             <p className="text-xs text-slate-400 max-w-md leading-relaxed">
@@ -74,11 +66,7 @@ export const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3 text-[11px] text-slate-500">
-<<<<<<< HEAD
           <p>© {new Date().getFullYear()} Alangudi Aadukalam Multi-Sport Arena. All rights reserved.</p>
-=======
-          <p>© {new Date().getFullYear()} Alangudi Aadukalam Multi-Sport Arena. All rights reserved.</p>
->>>>>>> e66597c4bc12b3d95eafc5a04a67dd80a6792e74
           <div className="flex items-center gap-4">
             <span>FIFA Approved Artificial Turf</span>
             <span>·</span>
