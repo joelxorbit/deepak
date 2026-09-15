@@ -348,7 +348,7 @@ describe('Admin Full Flow Comprehensive Verification Suite', () => {
           date: '2029-08-30',
           startTime: '08:00',
           endTime: '20:00',
-          venue: 'Elite Pitch Main Arena',
+          venue: 'Alangudi Aadukalam Main Arena',
           description: 'Open knockout football tournament for all age groups.',
           contactPhone: '9876543210'
         });

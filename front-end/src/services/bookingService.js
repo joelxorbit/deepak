@@ -147,7 +147,7 @@ export const downloadTicketPdfService = async (bookingId, token = null) => {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `Elite-Pitch-Ticket-${cleanId}.pdf`);
+    link.setAttribute('download', `Alangudi-Aadukalam-Booking-Ticket-${cleanId}.pdf`);
     document.body.appendChild(link);
     link.click();
     link.parentNode.removeChild(link);

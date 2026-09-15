@@ -308,7 +308,7 @@ export const notifyEnquiryReceived = async (enquiry) => {
         recipientEmail: enquiry.email || null,
         type: NOTIFICATION_TYPES.ENQUIRY_RECEIVED,
         title: 'Enquiry Received',
-        message: `Thank you for contacting Elite Turf! We have received your enquiry regarding ${enquiry.eventTitle || enquiry.subject || 'our services'} and will get back to you shortly.`,
+        message: `Thank you for contacting Alangudi Aadukalam! We have received your enquiry regarding ${enquiry.eventTitle || enquiry.subject || 'our services'} and will get back to you shortly.`,
         enquiryId,
         eventId: enquiry.eventId || null,
         idempotencyKey: `ENQUIRY_RECEIVED:${enquiryId}:customer`,

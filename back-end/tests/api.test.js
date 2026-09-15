@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '../app.js';
 import { getDb } from '../config/firebase.js';
 
-describe('Elite Pitch Comprehensive Runtime & API Verification Suite', () => {
+describe('Alangudi Aadukalam Comprehensive Runtime & API Verification Suite', () => {
 
   let adminToken = null;
   let createdBookingId = null;
@@ -17,6 +17,16 @@ describe('Elite Pitch Comprehensive Runtime & API Verification Suite', () => {
   const testDateStr = new Date(Date.now() + randomOffsetDays * 86400000).toISOString().split('T')[0];
 
   beforeAll(async () => {
+    const db = getDb();
+    const existingAdmin = await db.collection('admins').where('username', '==', 'admin').get();
+    if (existingAdmin.empty) {
+      await db.collection('admins').add({
+        username: 'admin',
+        password: 'admin123',
+        role: 'admin'
+      });
+    }
+
     // Authenticate admin to get JWT token for protected admin endpoints
     const loginRes = await request(app)
       .post('/api/admin/login')
@@ -25,7 +35,6 @@ describe('Elite Pitch Comprehensive Runtime & API Verification Suite', () => {
       adminToken = loginRes.body.data.token;
     }
 
-    const db = getDb();
     await db.collection('rates').add({
       sportId: 'football-5v5',
       daysOfWeek: ['ALL'],

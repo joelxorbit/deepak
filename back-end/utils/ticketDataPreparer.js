@@ -18,7 +18,7 @@ export const prepareVerifiedTicketData = (rawBooking, settings = {}) => {
   const normalized = normalizeBookingDocument(rawBooking);
 
   // Authoritative settings resolution without fake invented strings
-  const businessName = settings.businessName || settings.venueName || 'Elite Pitch';
+  const businessName = settings.businessName || settings.venueName || 'Alangudi Aadukalam';
   const venueAddress = settings.venueAddress || settings.address || null;
   const contactPhone = settings.contactPhone || settings.phone || null;
   const contactEmail = settings.contactEmail || settings.email || null;

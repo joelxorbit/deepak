@@ -750,7 +750,7 @@ export const ReportsPage = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Elite_Pitch_Booking_Insights_${dateFilter}_${todayStr}.csv`);
+    link.setAttribute("download", `Alangudi_Aadukalam_Booking_Insights_${dateFilter}_${todayStr}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

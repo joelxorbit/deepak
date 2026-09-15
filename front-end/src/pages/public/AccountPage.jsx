@@ -207,7 +207,7 @@ export const AccountPage = () => {
         key: 'rzp_test_SyHdQL7pK1tlnG',
         amount: orderData.amount,
         currency: orderData.currency || 'INR',
-        name: 'Elite Pitch',
+        name: 'Alangudi Aadukalam',
         description: `Pay Balance for Booking #${bId}`,
         order_id: orderData.id,
         handler: async (response) => {

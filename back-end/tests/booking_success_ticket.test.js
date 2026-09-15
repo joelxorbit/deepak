@@ -75,7 +75,7 @@ describe('Booking Success Flow & Ticket PDF Download Test Suite', () => {
 
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toBe('application/pdf');
-    expect(res.headers['content-disposition']).toContain(`Elite-Pitch-Ticket-${createdBookingId}.pdf`);
+    expect(res.headers['content-disposition']).toContain(`Alangudi-Aadukalam-Booking-Ticket-${createdBookingId}.pdf`);
 
     // Verify PDF header bytes
     const pdfHeader = res.body.slice(0, 5).toString('ascii');

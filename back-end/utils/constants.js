@@ -1,3 +1,7 @@
+export const BUSINESS_NAME = 'Alangudi Aadukalam';
+export const ARENA_NAME = 'Alangudi Aadukalam Multi-Sport Arena';
+export const TICKET_FILENAME_PREFIX = 'Alangudi-Aadukalam-Booking-Ticket';
+
 export const BOOKING_STATUS = {
   PENDING: 'Pending',
   CONFIRMED: 'Confirmed',

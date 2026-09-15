@@ -81,7 +81,7 @@ const healthCheckHandler = async (req, res) => {
   }
 
   const memoryUsage = process.memoryUsage();
-  return sendSuccess(res, 'Elite Pitch API Foundation is operational.', {
+  return sendSuccess(res, 'Alangudi Aadukalam API Foundation is operational.', {
     status: firestoreStatus === 'connected' ? 'healthy' : 'degraded',
     version: '1.0.0',
     uptime: `${Math.floor(process.uptime())}s`,

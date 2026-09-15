@@ -88,7 +88,7 @@ describe('Phase 8: Secure Server-Side Ticket PDF Generation & Download Console S
 
     // 2. Seed Authoritative General Settings
     await db.collection('settings').doc('general').set({
-      businessName: 'Elite Pitch Arena Stadium',
+      businessName: 'Alangudi Aadukalam Stadium',
       venueAddress: 'Plot 42, International Sports City',
       contactPhone: '9876543210',
       contactEmail: 'arena@eliteturf.com',
@@ -261,7 +261,7 @@ describe('Phase 8: Secure Server-Side Ticket PDF Generation & Download Console S
 
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toBe('application/pdf');
-      expect(res.headers['content-disposition']).toContain(`Elite-Pitch-Ticket-${publicBooking1Id}.pdf`);
+      expect(res.headers['content-disposition']).toContain(`Alangudi-Aadukalam-Booking-Ticket-${publicBooking1Id}.pdf`);
       expect(res.headers['cache-control']).toMatch(/private|no-cache/i);
 
       // Verify valid PDF binary signature (%PDF-1.)

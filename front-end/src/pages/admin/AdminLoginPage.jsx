@@ -49,7 +49,7 @@ export const AdminLoginPage = () => {
           </div>
           <h1 className="font-headline-lg text-headline-lg text-2xl font-extrabold text-on-surface">Admin Portal</h1>
           <p className="text-on-surface-variant font-body-md text-sm mt-1">
-            Elite Pitch Operations & Management
+            Alangudi Aadukalam Operations & Management
           </p>
         </div>
 

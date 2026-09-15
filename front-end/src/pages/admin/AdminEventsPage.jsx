@@ -37,7 +37,7 @@ export const AdminEventsPage = () => {
     date: new Date().toISOString().split('T')[0],
     startTime: '09:00',
     endTime: '18:00',
-    venue: 'Elite Turf Main Arena',
+    venue: 'Alangudi Aadukalam Main Arena',
     description: '',
     image: '',
     currentParticipants: 0,
@@ -72,7 +72,7 @@ export const AdminEventsPage = () => {
       date: todayStr,
       startTime: '09:00',
       endTime: '18:00',
-      venue: 'Elite Turf Main Arena',
+      venue: 'Alangudi Aadukalam Main Arena',
       description: '',
       image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=1200',
       currentParticipants: 0,
@@ -92,7 +92,7 @@ export const AdminEventsPage = () => {
       date: evt.date ? evt.date.split('T')[0] : '',
       startTime: evt.startTime || '09:00',
       endTime: evt.endTime || '18:00',
-      venue: evt.venue || 'Elite Turf Main Arena',
+      venue: evt.venue || 'Alangudi Aadukalam Main Arena',
       description: evt.description || '',
       image: evt.image || '',
       currentParticipants: evt.currentParticipants || 0,
@@ -436,7 +436,7 @@ export const AdminEventsPage = () => {
                     required
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="e.g. Elite Monsoon 5v5 Championship"
+                    placeholder="e.g. Alangudi Aadukalam Monsoon 5v5 Championship"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-primary"
                   />
                 </div>

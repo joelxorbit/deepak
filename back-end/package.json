@@ -1,7 +1,7 @@
 {
   "name": "elite-pitch-server",
   "version": "1.0.0",
-  "description": "Enterprise Backend for Elite Pitch Football Turf Booking System powered by Firebase Cloud Firestore",
+  "description": "Enterprise Backend for Alangudi Aadukalam Football Turf Booking System powered by Firebase Cloud Firestore",
   "main": "server.js",
   "type": "module",
   "scripts": {

@@ -5,9 +5,9 @@ export const SettingsPage = () => {
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState('General');
 
-  const [businessName, setBusinessName] = useState('Elite Pitch Turf Arena');
+  const [businessName, setBusinessName] = useState('Alangudi Aadukalam');
   const [phone, setPhone] = useState('+91 98765 43210');
-  const [email, setEmail] = useState('support@elitepitch.com');
+  const [email, setEmail] = useState('support@alangudiaadukalam.com');
   const [address, setAddress] = useState('123 Sports Complex Way, Stadium District, Metro City, 400001');
 
   const [slotRate, setSlotRate] = useState(300);

@@ -1,4 +1,4 @@
-// Initial Mock Data for Elite Pitch
+// Initial Mock Data for Alangudi Aadukalam
 
 export const INITIAL_COMPLETED_EVENTS = [
   {

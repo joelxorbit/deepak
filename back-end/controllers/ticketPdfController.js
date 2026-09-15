@@ -83,7 +83,7 @@ export const downloadBookingTicketPdf = async (req, res, next) => {
     const pdfBuffer = await generateTicketPdfBuffer(ticketData);
 
     // 7. Sanitize filename and set HTTP response headers
-    const safeFilename = `Elite-Pitch-Ticket-${ticketData.bookingId.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+    const safeFilename = `Alangudi-Aadukalam-Booking-Ticket-${ticketData.bookingId.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);

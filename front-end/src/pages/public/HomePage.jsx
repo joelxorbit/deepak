@@ -138,7 +138,7 @@ export const HomePage = () => {
           
           <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-label-bold text-xs uppercase tracking-widest backdrop-blur-md shadow-lg shadow-emerald-500/10">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            ELITE PITCH SPORTS ARENA
+            ALANGUDI AADUKALAM SPORTS ARENA
           </div>
           
           <h1 className="font-extrabold text-4xl sm:text-6xl md:text-7xl lg:text-[80px] leading-[1.05] text-white tracking-tight uppercase drop-shadow-2xl">
@@ -355,7 +355,7 @@ export const HomePage = () => {
               PRO FACILITIES
             </span>
             <h2 className="font-extrabold text-3xl sm:text-4xl uppercase tracking-tight">WORLD-CLASS AMENITIES</h2>
-            <p className="text-slate-400 max-w-xl mx-auto text-sm sm:text-base">Built to provide an elite playing environment 24 hours a day</p>
+            <p className="text-slate-400 max-w-xl mx-auto text-sm sm:text-base">Built to provide a premier playing environment 24 hours a day</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

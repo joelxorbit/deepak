@@ -141,7 +141,7 @@ export const AboutPage = () => {
             <span className="text-xs font-bold uppercase tracking-widest text-emerald-600">ENGINEERED CUSHIONING</span>
             <h2 className="font-extrabold text-3xl uppercase tracking-tight">HIGH-DENSITY SHOCK PAD TURF</h2>
             <p className="text-on-surface-variant text-sm sm:text-base leading-relaxed">
-              Elite Pitch features top-tier 50mm monofilament artificial grass with silica sand and rubber granule infill, engineered for superior ball roll speed and maximum knee shock absorption.
+              Alangudi Aadukalam features top-tier 50mm monofilament artificial grass with silica sand and rubber granule infill, engineered for superior ball roll speed and maximum knee shock absorption.
             </p>
             <p className="text-on-surface-variant text-sm sm:text-base leading-relaxed">
               Whether you are scheduling a midnight 5v5 friendly or organizing a corporate weekend tournament, our surface maintains consistent traction and zero bounce irregularities.
@@ -170,7 +170,7 @@ export const AboutPage = () => {
             <span className="text-xs font-bold uppercase tracking-widest text-emerald-600">STADIUM EXPERIENCE</span>
             <h2 className="font-extrabold text-3xl uppercase tracking-tight">PRO NIGHT LIGHTING & LOUNGES</h2>
             <p className="text-on-surface-variant text-sm sm:text-base leading-relaxed">
-              Equipped with 500-lux pro LED floodlights, shaded player dugouts, and air-conditioned changing facilities, Elite Pitch turns every casual match into a stadium experience.
+              Equipped with 500-lux pro LED floodlights, shaded player dugouts, and air-conditioned changing facilities, Alangudi Aadukalam turns every casual match into a stadium experience.
             </p>
             <button 
               onClick={() => navigate(ROUTES.BOOKING)}

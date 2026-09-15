@@ -41,11 +41,11 @@ export const AdminLayout = ({ children }) => {
           className="flex items-center gap-2.5 cursor-pointer"
         >
           <img 
-            alt="Elite Pitch Logo" 
+            alt="Alangudi Aadukalam Logo" 
             className="h-8 w-8 object-contain" 
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXnn5j3ELBZ9E2oyXq7qVWS0omnWwwyx3mBUA-2Ha4NtH7XlYxquD3RJLMlekQTnQS4uDXN_WPV1hcTgxiMP_aS92iQ4YnL84t-VSTKNhr3rPaSh0zcezJ2w-d0XqZnXRLeL0ES12I5VjJ8yhgdsVMHpJXmtYZEQ_mvhAoUMiVyQtB3WgjpjfTCRMkedijOmZgePzLVidC1pBP7jq2Jn-2wwTVrzPlwRGCHILynwUzfZZPYNGiL2T-DQ" 
           />
-          <span className="font-display-lg text-lg tracking-tight text-white font-bold">ELITE PITCH</span>
+          <span className="font-display-lg text-lg tracking-tight text-white font-bold">ALANGUDI AADUKALAM</span>
         </div>
 
         <div className="flex items-center gap-2.5">
@@ -81,11 +81,11 @@ export const AdminLayout = ({ children }) => {
           <div className="flex items-center justify-between pb-6 mb-6 border-b border-white/10">
             <div className="flex items-center gap-3">
               <img 
-                alt="Elite Pitch Logo" 
+                alt="Alangudi Aadukalam Logo" 
                 className="h-8 w-8 object-contain" 
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXnn5j3ELBZ9E2oyXq7qVWS0omnWwwyx3mBUA-2Ha4NtH7XlYxquD3RJLMlekQTnQS4uDXN_WPV1hcTgxiMP_aS92iQ4YnL84t-VSTKNhr3rPaSh0zcezJ2w-d0XqZnXRLeL0ES12I5VjJ8yhgdsVMHpJXmtYZEQ_mvhAoUMiVyQtB3WgjpjfTCRMkedijOmZgePzLVidC1pBP7jq2Jn-2wwTVrzPlwRGCHILynwUzfZZPYNGiL2T-DQ" 
               />
-              <span className="font-display-lg text-lg tracking-tight text-white font-bold block">ELITE PITCH</span>
+              <span className="font-display-lg text-lg tracking-tight text-white font-bold block">ALANGUDI AADUKALAM</span>
             </div>
             <button 
               onClick={() => setIsMobileDrawerOpen(false)}
@@ -142,12 +142,12 @@ export const AdminLayout = ({ children }) => {
             className="flex items-center gap-3 mb-6 cursor-pointer px-2 py-2 rounded-xl hover:bg-white/5 transition-colors overflow-hidden"
           >
             <img 
-              alt="Elite Pitch Logo" 
+              alt="Alangudi Aadukalam Logo" 
               className="h-10 w-10 shrink-0 object-contain" 
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXnn5j3ELBZ9E2oyXq7qVWS0omnWwwyx3mBUA-2Ha4NtH7XlYxquD3RJLMlekQTnQS4uDXN_WPV1hcTgxiMP_aS92iQ4YnL84t-VSTKNhr3rPaSh0zcezJ2w-d0XqZnXRLeL0ES12I5VjJ8yhgdsVMHpJXmtYZEQ_mvhAoUMiVyQtB3WgjpjfTCRMkedijOmZgePzLVidC1pBP7jq2Jn-2wwTVrzPlwRGCHILynwUzfZZPYNGiL2T-DQ" 
             />
             <div className={`transition-opacity duration-300 whitespace-nowrap ${isHovered ? 'opacity-100' : 'opacity-0 w-0 pointer-events-none'}`}>
-              <span className="font-display-lg text-lg tracking-tight font-bold text-white block">ELITE PITCH</span>
+              <span className="font-display-lg text-lg tracking-tight font-bold text-white block">ALANGUDI AADUKALAM</span>
             </div>
           </div>
 
@@ -219,7 +219,7 @@ export const AdminLayout = ({ children }) => {
               </div>
               <div className="text-left hidden lg:block">
                 <p className="text-xs font-extrabold text-slate-800 leading-tight">Admin</p>
-                <p className="text-[10px] text-slate-400 font-medium leading-tight">Elite Turf</p>
+                <p className="text-[10px] text-slate-400 font-medium leading-tight">Alangudi Aadukalam</p>
               </div>
             </div>
           </div>

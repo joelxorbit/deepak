@@ -23,12 +23,12 @@ export const Sidebar = ({ currentTab, setCurrentTab, navigate }) => {
       <div>
         <div className="flex items-center gap-3 mb-10 pb-4 border-b border-white/10">
           <img 
-            alt="Elite Pitch Logo" 
+            alt="Alangudi Aadukalam Logo" 
             className="h-8 w-8 brightness-0 invert" 
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXnn5j3ELBZ9E2oyXq7qVWS0omnWwwyx3mBUA-2Ha4NtH7XlYxquD3RJLMlekQTnQS4uDXN_WPV1hcTgxiMP_aS92iQ4YnL84t-VSTKNhr3rPaSh0zcezJ2w-d0XqZnXRLeL0ES12I5VjJ8yhgdsVMHpJXmtYZEQ_mvhAoUMiVyQtB3WgjpjfTCRMkedijOmZgePzLVidC1pBP7jq2Jn-2wwTVrzPlwRGCHILynwUzfZZPYNGiL2T-DQ" 
           />
           <div>
-            <span className="font-headline-md text-headline-md tracking-tighter text-white block">ELITE PITCH</span>
+            <span className="font-headline-md text-headline-md tracking-tighter text-white block">ALANGUDI AADUKALAM</span>
             <span className="text-[10px] text-primary-fixed uppercase tracking-wider font-bold block">Admin Control</span>
           </div>
         </div>

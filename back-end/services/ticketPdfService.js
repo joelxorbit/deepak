@@ -21,8 +21,8 @@ export const generateTicketPdfBuffer = async (ticketData) => {
         size: 'A4',
         margin: 40,
         info: {
-          Title: `Elite Pitch Ticket - ${ticketData.bookingId}`,
-          Author: ticketData.venue?.businessName || 'Elite Pitch',
+          Title: `Alangudi Aadukalam Ticket - ${ticketData.bookingId}`,
+          Author: ticketData.venue?.businessName || 'Alangudi Aadukalam',
           Subject: 'Official Arena Booking Confirmation Pass'
         }
       });
@@ -56,7 +56,7 @@ export const generateTicketPdfBuffer = async (ticketData) => {
       doc.fillColor('#ffffff')
         .font('Helvetica-Bold')
         .fontSize(18)
-        .text(ticketData.venue?.businessName || 'ELITE PITCH SPORTS ARENA', 55, y + 14);
+        .text(ticketData.venue?.businessName || 'ALANGUDI AADUKALAM', 55, y + 14);
 
       doc.fillColor('#34d399') // Emerald 400
         .font('Helvetica-Bold')
@@ -300,7 +300,7 @@ export const generateTicketPdfBuffer = async (ticketData) => {
       doc.fillColor('#94a3b8')
         .font('Helvetica')
         .fontSize(7.5)
-        .text('This is an authentic, server-verified digital booking pass. Generated securely by Elite Pitch.', 40, footerY, {
+        .text('This is an authentic, server-verified digital booking pass. Generated securely by Alangudi Aadukalam.', 40, footerY, {
           width: pageWidth,
           align: 'center'
         });

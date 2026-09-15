@@ -56,7 +56,7 @@ export const InvoiceModal = ({ booking, onClose }) => {
           {/* Company & Invoice Header */}
           <div className="flex justify-between items-start border-b border-black/10 pb-6">
             <div>
-              <h1 className="font-display-lg text-xl font-extrabold text-primary">ELITE PITCH ARENA</h1>
+              <h1 className="font-display-lg text-xl font-extrabold text-primary">ALANGUDI AADUKALAM</h1>
               <p className="text-xs text-on-surface-variant mt-0.5">123 Sports Complex Way, Metro City, 400001</p>
               <p className="text-xs text-on-surface-variant">Phone: +91 98765 43210</p>
             </div>
@@ -135,7 +135,7 @@ export const InvoiceModal = ({ booking, onClose }) => {
 
           {/* Terms Footer */}
           <div className="text-[10px] text-on-surface-variant pt-4 border-t border-black/5 text-center space-y-1">
-            <p>Thank you for choosing Elite Pitch Turf Arena! Please arrive 15 minutes before your slot time.</p>
+            <p>Thank you for choosing Alangudi Aadukalam! Please arrive 15 minutes before your slot time.</p>
             <p>Cancellations are subject to arena rules (minimum 2 hours advance notice required).</p>
           </div>
         </div>

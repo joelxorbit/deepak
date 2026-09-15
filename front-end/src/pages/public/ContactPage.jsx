@@ -53,7 +53,7 @@ export const ContactPage = () => {
             CONNECT WITH US
           </span>
           <h1 className="font-bold text-3xl sm:text-5xl uppercase tracking-tight">
-            CONTACT <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">ELITE PITCH</span>
+            CONTACT <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">ALANGUDI AADUKALAM</span>
           </h1>
           <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-xl mx-auto font-normal">
             Have questions regarding slot reservations, tournament hosting, or corporate events? Get in touch with our team.

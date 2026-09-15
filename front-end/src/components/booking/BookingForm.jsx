@@ -346,7 +346,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
           key: 'rzp_test_SyHdQL7pK1tlnG',
           amount: orderData.amount,
           currency: orderData.currency || 'INR',
-          name: 'Elite Pitch',
+          name: 'Alangudi Aadukalam',
           description: paymentOption === 'ADVANCE' ? `Fixed ₹${serverPricing.fixedAdvanceAmount} Advance Turf Booking` : 'Full Turf Booking Payment',
           order_id: orderData.id,
           handler: async (response) => {

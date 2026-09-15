@@ -121,7 +121,7 @@ describe('Phase 7: Upcoming Events Console & Dynamic Rate Management Suite', () 
         date: '2029-07-20',
         startTime: '08:00 AM',
         endTime: '08:00 PM',
-        venue: 'Elite Turf Main Arena',
+        venue: 'Alangudi Aadukalam Main Arena',
         description: 'Annual monsoon 5-a-side championship with 16 premier teams.',
         image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018',
         registrationStatus: 'OPEN',

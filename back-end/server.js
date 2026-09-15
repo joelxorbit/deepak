@@ -21,7 +21,7 @@ const startServer = async () => {
     // 4. Start HTTP Server
     const PORT = ENV.PORT;
     server = app.listen(PORT, () => {
-      logger.info(`[Server] Elite Pitch Backend running on port ${PORT} (${ENV.NODE_ENV})`);
+      logger.info(`[Server] Alangudi Aadukalam Backend running on port ${PORT} (${ENV.NODE_ENV})`);
     });
   } catch (error) {
     logger.error(`[Server Fatal Initialization Failure] ${error.message}`);

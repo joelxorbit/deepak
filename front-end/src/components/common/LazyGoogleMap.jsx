@@ -84,7 +84,7 @@ export const LazyGoogleMap = memo(() => {
         {/* Lazy Loaded Map Iframe */}
         {isVisible && (
           <iframe
-            title="Elite Pitch Arena Location"
+            title="Alangudi Aadukalam Location"
             src={GOOGLE_MAPS_URL}
             width="100%"
             height="100%"
