@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Firebase Client SDK Configuration
  * ─────────────────────────────────
  * Set VITE_FIREBASE_* variables in your Vercel project settings.
@@ -7,6 +7,7 @@
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDWt3_QiLG5L429S-Ob5h9X4cNSTlNflhs",
@@ -21,6 +22,7 @@ const firebaseConfig = {
 const firebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(firebaseApp);
+export const db = getFirestore(firebaseApp);
 export const googleProvider = new GoogleAuthProvider();
 
 // Request profile + email scopes

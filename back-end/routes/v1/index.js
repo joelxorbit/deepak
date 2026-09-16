@@ -10,6 +10,7 @@ import paymentRoutes from '../paymentRoutes.js';
 import notificationRoutes from '../notificationRoutes.js';
 import rateRoutes from '../rateRoutes.js';
 import couponRoutes from '../couponRoutes.js';
+import sportRoutes from '../sportRoutes.js';
 
 const router = express.Router();
 
@@ -24,5 +25,6 @@ router.use('/payments', paymentRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/rates', rateRoutes);
 router.use('/coupons', couponRoutes);
+router.use('/sports', sportRoutes);
 
 export default router;

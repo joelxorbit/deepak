@@ -23,6 +23,7 @@ import authRoutes from './routes/authRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import rateRoutes from './routes/rateRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
+import sportRoutes from './routes/sportRoutes.js';
 import v1Routes from './routes/v1/index.js';
 
 const app = express();
@@ -111,6 +112,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/rates', rateRoutes);
 app.use('/api/coupons', couponRoutes);
+app.use('/api/sports', sportRoutes);
 
 // Register Versioned Routes (/api/v1)
 app.use('/api/v1', v1Routes);

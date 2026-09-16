@@ -1,12 +1,47 @@
 import { api } from '../utils/api';
+import { db } from '../config/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 
 /**
  * Get public events (GET /api/events)
  * Returns published upcoming events and completed showcase events
+ * Priority: Backend API -> Direct Firebase Firestore
  */
 export const getPublicEventsService = async () => {
-  const response = await api.get('/events');
-  return response.data.data;
+  // Layer 1: Attempt Backend API
+  try {
+    const response = await api.get('/events');
+    const data = response.data?.data;
+    if (Array.isArray(data) && data.length > 0) {
+      return data;
+    }
+  } catch (apiErr) {
+    console.debug('[EventService] Backend API not reachable or empty, querying Firebase Firestore directly...', apiErr.message);
+  }
+
+  // Layer 2: Direct Firebase Cloud Firestore Client fallback
+  try {
+    const snapshot = await getDocs(collection(db, 'events'));
+    if (!snapshot.empty) {
+      const events = snapshot.docs
+        .map(doc => ({ id: doc.id, _id: doc.id, ...doc.data() }))
+        .filter(event => {
+          if (event.isDeleted) return false;
+          if (event.isArchived || event.status === 'Archived') return false;
+          if (event.status === 'Completed') return true;
+          return Boolean(event.isPublished === true || event.status === 'Published' || event.status === 'Upcoming');
+        })
+        .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
+
+      if (events.length > 0) {
+        return events;
+      }
+    }
+  } catch (firestoreErr) {
+    console.warn('[EventService] Firestore direct read error:', firestoreErr.message);
+  }
+
+  return [];
 };
 
 // Backward-compatible alias for existing consumers

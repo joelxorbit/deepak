@@ -79,6 +79,7 @@ export const FIRESTORE_COLLECTIONS = {
   BOOKINGS: 'bookings',
   CUSTOMERS: 'customers',
   EVENTS: 'events',
+  SPORTS: 'sports',
   COUNTERS: 'counters',
   AUDIT_LOGS: 'audit_logs',
   IDEMPOTENCY_KEYS: 'idempotency_keys',

@@ -45,6 +45,7 @@ export class MockDb {
         if (!parsed.customers) parsed.customers = [];
         if (!parsed.enquiries) parsed.enquiries = [];
         if (!parsed.events) parsed.events = [];
+        if (!parsed.sports) parsed.sports = [];
         if (!parsed.counters) parsed.counters = [{ id: '1', count: 1 }];
         if (!parsed.slot_holds) parsed.slot_holds = [];
         if (!parsed.blocked_slots) parsed.blocked_slots = [];
@@ -61,6 +62,7 @@ export class MockDb {
       customers: [],
       enquiries: [],
       events: [],
+      sports: [],
       admins: [{ id: 'admin1', username: 'admin', password: '.60OEmt/9qcwXO5Urwn5YP856QdJwKzeaRi', role: 'admin' }],
       counters: [{ id: '1', count: 1 }],
       slot_holds: [],
