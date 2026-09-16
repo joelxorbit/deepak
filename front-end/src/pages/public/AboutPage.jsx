@@ -17,22 +17,22 @@ export const AboutPage = () => {
     {
       icon: 'schedule',
       title: 'ARRIVE 10 MINUTES EARLY',
-      description: 'Booking slot-க்கு குறைந்தது 10 minutes முன்னதாக வர வேண்டும்.'
+      description: 'Please arrive at the arena at least 10 minutes prior to your booked slot.'
     },
     {
       icon: 'timer',
       title: 'BE ON TIME',
-      description: 'Book செய்த நேரத்தை சரியாக follow செய்ய வேண்டும்; slot முடிந்ததும் வெளியேற வேண்டும்.'
+      description: 'Strictly follow your scheduled time slot and vacate the turf promptly when your session ends.'
     },
     {
       icon: 'event_busy',
       title: 'CANCELLATIONS',
-      description: 'Cancellation குறைந்தது 2 hours before செய்ய வேண்டும். 2 hours-க்குள் cancellation ஏற்றுக்கொள்ளப்படாது.'
+      description: 'Cancellations must be made at least 2 hours prior to the slot. Cancellations within 2 hours are not accepted.'
     },
     {
       icon: 'payments',
       title: 'ADVANCE PAYMENT NOT REFUNDABLE',
-      description: 'Booking செய்யும்போது செலுத்தப்படும் advance payment non-refundable.'
+      description: 'The advance payment made during booking is strictly non-refundable.'
     }
   ];
 
