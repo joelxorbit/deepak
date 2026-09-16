@@ -8,7 +8,7 @@
  */
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, collection, doc, setDoc, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDWt3_QiLG5L429S-Ob5h9X4cNSTlNflhs",
@@ -24,69 +24,69 @@ const db = getFirestore(app);
 
 export const SPORTS_DATA = [
   {
-    id: "sport-football",
-    title: "5-a-Side & 7-a-Side Football",
-    icon: "sports_soccer",
-    tag: "FIFA Approved Turf",
-    image: "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=800&q=80",
-    description: "High-density 50mm FIFA artificial turf with shock-pad underlay designed for maximum traction and knee protection.",
-    order: 1,
-    category: "Football",
-    isActive: true
-  },
-  {
-    id: "sport-box-cricket",
-    title: "High-Speed Box Cricket",
+    id: "sport-cricket",
+    title: "Cricket",
     icon: "sports_cricket",
     tag: "Enclosed Arena",
     image: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=800&q=80",
-    description: "High-netting enclosed pitch with bounce-controlled turf for competitive box cricket matches and night tournaments.",
-    order: 2,
+    description: "High-netting enclosed pitch with bounce-controlled turf for competitive box cricket matches, tournaments, and practice.",
+    order: 1,
     category: "Cricket",
     isActive: true
   },
   {
-    id: "sport-futsal",
-    title: "Fast-Paced Futsal",
-    icon: "sports_football",
-    tag: "Pro Boundary",
-    image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80",
-    description: "Compact, boundary-enclosed setup optimized for technical dribbling, quick passes, and high-intensity scrimmage.",
+    id: "sport-football",
+    title: "Football",
+    icon: "sports_soccer",
+    tag: "FIFA Approved Turf",
+    image: "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=800&q=80",
+    description: "High-density 50mm FIFA artificial turf with shock-pad underlay designed for maximum traction and knee protection.",
+    order: 2,
+    category: "Football",
+    isActive: true
+  },
+  {
+    id: "sport-throwball",
+    title: "Throwball",
+    icon: "sports_volleyball",
+    tag: "Multi-Sport Pitch",
+    image: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=800&q=80",
+    description: "Dedicated court markings and high-tension boundary netting optimized for high-energy throwball matches and practice sessions.",
     order: 3,
-    category: "Futsal",
+    category: "Throwball",
     isActive: true
   },
   {
-    id: "sport-turf-hockey",
-    title: "Turf Hockey & Practice",
-    icon: "sports_hockey",
-    tag: "Precision Surface",
-    image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80",
-    description: "Consistent ball-roll surface for field hockey practice sessions, passing drills, and mini tournament matches.",
-    order: 4,
-    category: "Hockey",
-    isActive: true
-  },
-  {
-    id: "sport-coaching-academies",
-    title: "Coaching & Academies",
-    icon: "sports",
-    tag: "Morning & Evening",
-    image: "https://images.unsplash.com/photo-1517649763962-0c623266010b?auto=format&fit=crop&w=800&q=80",
-    description: "Dedicated slot reservations for youth football academies, sports academies, and professional fitness bootcamps.",
-    order: 5,
-    category: "Coaching",
-    isActive: true
-  },
-  {
-    id: "sport-private-matches-events",
-    title: "Private Matches & Events",
+    id: "sport-birthday-parties",
+    title: "Birthday Parties",
     icon: "celebration",
-    tag: "Lounge Reserved",
+    tag: "Celebration Zone",
+    image: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=800&q=80",
+    description: "Celebrate action-packed birthdays with mini tournaments, customized turf party games, and full arena access.",
+    order: 4,
+    category: "Parties",
+    isActive: true
+  },
+  {
+    id: "sport-corporate-events",
+    title: "Corporate Events",
+    icon: "groups",
+    tag: "Team Building",
     image: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
-    description: "Private arena reservations featuring changing lounge access, team seating, and tournament scorekeeping setup.",
+    description: "Ideal venue for corporate leagues, annual sports meets, team-building activities, and employee engagement tournaments.",
+    order: 5,
+    category: "Corporate",
+    isActive: true
+  },
+  {
+    id: "sport-kindergarten-graduations",
+    title: "Kindergarten Graduations",
+    icon: "school",
+    tag: "School Celebrations",
+    image: "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80",
+    description: "A safe, spacious, and open arena for kindergarten convocation ceremonies, family celebrations, and memorable photo shoots.",
     order: 6,
-    category: "Private Events",
+    category: "School Events",
     isActive: true
   }
 ];
@@ -213,6 +213,12 @@ export const seedFirebase = async () => {
 
   // 1. Seed Sports collection (SPORTS & EVENTS WE HOST)
   console.log('\n📦 Seeding "sports" collection...');
+  const oldSports = await getDocs(collection(db, 'sports'));
+  for (const docSnap of oldSports.docs) {
+    await deleteDoc(doc(db, 'sports', docSnap.id));
+    console.log(`  - Cleared old sport doc: ${docSnap.id}`);
+  }
+
   for (const sport of SPORTS_DATA) {
     const docRef = doc(db, 'sports', sport.id);
     const payload = {

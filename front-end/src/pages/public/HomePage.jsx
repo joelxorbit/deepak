@@ -65,24 +65,24 @@ export const HomePage = () => {
 
   const amenities = [
     {
-      icon: 'sports_soccer',
-      title: '50mm FIFA Turf Grade',
-      description: 'High-density artificial grass with rubber infill and shock-pad underlay for optimal ball bounce and joint protection.'
+      icon: 'wb_sunny',
+      title: 'Professional LED Floodlights',
+      description: 'Bright, high-quality LED lighting for clear visibility and comfortable night play.'
     },
     {
-      icon: 'wb_sunny',
-      title: '500-Lux Stadium LEDs',
-      description: 'Uniform glare-free pro illumination providing shadow-free visibility for high-intensity night matches.'
+      icon: 'sports_cricket',
+      title: 'Sports Equipment Provided',
+      description: 'Essential sports equipment including bats, balls, and other game accessories provided for players.'
     },
     {
       icon: 'local_parking',
-      title: 'Locker & Free Parking',
-      description: 'Air-conditioned player changing rooms, clean shower facilities, and dedicated parking space for players.'
+      title: 'Free Parking & Drinking Water',
+      description: 'Convenient free parking and clean drinking water available for players and guests.'
     },
     {
       icon: 'schedule',
       title: '24/7 Availability',
-      description: 'Round-the-clock slot reservations under pro floodlights with instant online booking confirmation.'
+      description: 'Book your preferred slot anytime with flexible day and night availability.'
     }
   ];
 
@@ -116,14 +116,14 @@ export const HomePage = () => {
           </div>
 
           <h1 className="font-extrabold text-4xl sm:text-6xl md:text-7xl lg:text-[80px] leading-[1.05] text-white tracking-tight uppercase drop-shadow-2xl">
-            THE ULTIMATE <br className="hidden sm:inline" />
+            ALANGUDI’S FIRST <br className="hidden sm:inline" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500">
               MULTI-SPORT
-            </span> TURF EXPERIENCE
+            </span> ARENA
           </h1>
 
           <p className="text-slate-300 text-base sm:text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-normal">
-            Book top-tier Football, Box Cricket, Futsal, and Private Events with 500-lux pro LED floodlights and instant online slot confirmation.
+            One Arena. Every Game. All Year Round
           </p>
 
           {/* Unified Motion Action Buttons */}
@@ -271,11 +271,11 @@ export const HomePage = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center space-y-3 mb-16">
           <span className="text-xs font-bold uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/20">
-            VERSATILE ARENA
+            ALANGUDI’S FIRST MULTI-SPORT ARENA
           </span>
           <h2 className="font-extrabold text-3xl sm:text-4xl text-on-surface uppercase tracking-tight">SPORTS & EVENTS WE HOST</h2>
           <p className="text-on-surface-variant max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
-            From high-intensity 5v5 matches to corporate leagues, academies, and private events.
+            Sports, celebrations, and events — all in one arena.
           </p>
         </div>
 
@@ -296,7 +296,6 @@ export const HomePage = () => {
                     <div className="h-3 w-full bg-slate-200 rounded" />
                     <div className="h-3 w-4/5 bg-slate-200 rounded" />
                   </div>
-                  <div className="h-10 w-full bg-slate-200 rounded-2xl mt-4" />
                 </div>
               </div>
             ))
@@ -333,14 +332,6 @@ export const HomePage = () => {
                       {sport.description}
                     </p>
                   </div>
-
-                  <button
-                    onClick={() => navigate(ROUTES.BOOKING)}
-                    className="w-full mt-4 bg-surface-container-low border border-black/10 text-on-surface font-bold text-xs uppercase tracking-wider py-3 rounded-2xl hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all flex items-center justify-center gap-1.5 group/btn"
-                  >
-                    <span>Book Slot</span>
-                    <span className="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                  </button>
                 </div>
               </div>
             ))
@@ -354,19 +345,19 @@ export const HomePage = () => {
 
           <div className="text-center space-y-3">
             <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/20">
-              PRO FACILITIES
+              PREMIUM FACILITIES
             </span>
             <h2 className="font-extrabold text-3xl sm:text-4xl uppercase tracking-tight">WORLD-CLASS AMENITIES</h2>
-            <p className="text-slate-400 max-w-xl mx-auto text-sm sm:text-base">Built to provide a premier playing environment 24 hours a day</p>
+            <p className="text-slate-400 max-w-xl mx-auto text-sm sm:text-base">Everything you need for a complete sports experience.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {amenities.map((item, idx) => (
               <div
                 key={idx}
-                className="bg-slate-900/60 p-6 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-slate-900 transition-all duration-300 space-y-4 group"
+                className="bg-slate-900/60 p-6 sm:p-7 rounded-2xl border border-white/5 hover:border-emerald-500/40 hover:bg-slate-900 transition-all duration-300 space-y-4 group flex flex-col items-center text-center justify-start"
               >
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 transition-transform">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 transition-transform shadow-inner shadow-emerald-500/10">
                   <span className="material-symbols-outlined text-2xl">{item.icon}</span>
                 </div>
                 <h3 className="font-bold text-base text-white">{item.title}</h3>
