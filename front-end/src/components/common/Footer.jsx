@@ -29,14 +29,11 @@ export const Footer = () => {
               </span>
             </div>
             <p className="text-xs text-slate-400 max-w-md leading-relaxed">
-              FIFA-grade 50mm artificial grass turf arena with 500-lux LED stadium floodlights, AC changing lounges, and instant 24/7 online slot confirmation.
+              A complete multi-sport arena for sports, celebrations, and events in Alangudi.
             </p>
             <div className="flex items-center gap-3 pt-1">
               <span className="bg-emerald-500/10 text-emerald-400 text-[11px] font-medium px-3 py-1 rounded-full border border-emerald-500/20">
-                FIFA Standard Turf
-              </span>
-              <span className="bg-slate-900 text-slate-300 text-[11px] font-medium px-3 py-1 rounded-full border border-white/5">
-                24/7 Match Access
+                24/7 Availability
               </span>
             </div>
           </div>
@@ -44,12 +41,12 @@ export const Footer = () => {
           {/* Location & Contact Information (5 Columns) */}
           <div className="md:col-span-5 space-y-3 text-xs">
             <h4 className="font-semibold uppercase tracking-wider text-white border-l-2 border-emerald-500 pl-2.5">
-              Arena Location & Info
+              TURF LOCATION
             </h4>
             <div className="space-y-2.5 text-slate-400">
               <div className="flex items-start gap-2.5">
                 <span className="material-symbols-outlined text-emerald-400 text-base mt-0.5">location_on</span>
-                <span>123 Sports Complex Way, Stadium District, Metro City</span>
+                <span>Opposite Guru Raghavendra Mahal, Keelalangudi, Alangudi – 622301</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-emerald-400 text-base">schedule</span>
@@ -57,7 +54,7 @@ export const Footer = () => {
               </div>
               <div className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-emerald-400 text-base">phone</span>
-                <span className="font-mono text-slate-200 font-medium">+91 98765 43210</span>
+                <a href="tel:7010299365" className="font-mono text-slate-200 font-medium hover:text-emerald-400 transition-colors">70102 99365</a>
               </div>
             </div>
           </div>
@@ -68,9 +65,7 @@ export const Footer = () => {
         <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3 text-[11px] text-slate-500">
           <p>© {new Date().getFullYear()} Alangudi Aadukalam Multi-Sport Arena. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <span>FIFA Approved Artificial Turf</span>
-            <span>·</span>
-            <span>Commercial SaaS Platform</span>
+            <span className="text-slate-400">Developed by Deepak & Team</span>
           </div>
         </div>
       </div>
