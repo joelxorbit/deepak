@@ -66,7 +66,7 @@ export const SettingsPage = () => {
 
       <div className="bg-white p-6 rounded-3xl border border-black/5 shadow-sm space-y-6">
         <div className="flex gap-2 border-b border-black/5 pb-4 overflow-x-auto">
-          {['General', 'Booking & Pricing', 'Payment Options', 'Audit Logs'].map((tab) => (
+          {['General', 'Payment Options', 'Audit Logs'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -137,43 +137,7 @@ export const SettingsPage = () => {
           </form>
         )}
 
-        {activeTab === 'Booking & Pricing' && (
-          <form onSubmit={handleSaveSettings} className="space-y-6 max-w-2xl">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-label-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Base Rate Per Hour (₹) *</label>
-                <input
-                  type="number"
-                  required
-                  value={slotRate}
-                  onChange={(e) => setSlotRate(Number(e.target.value))}
-                  className="w-full bg-surface-container-low border border-outline-variant rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-primary"
-                />
-              </div>
 
-              <div>
-                <label className="block text-xs font-label-bold uppercase tracking-wider text-on-surface-variant mb-1.5">Cancellation Restriction Window (Hours) *</label>
-                <input
-                  type="number"
-                  required
-                  value={cancelWindowHours}
-                  onChange={(e) => setCancelWindowHours(Number(e.target.value))}
-                  className="w-full bg-surface-container-low border border-outline-variant rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-primary"
-                />
-                <span className="text-[11px] text-on-surface-variant mt-1 block">
-                  Bookings starting within this number of hours cannot be cancelled by customers.
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="min-h-[44px] px-6 py-3 bg-primary text-white font-label-bold text-xs rounded-2xl shadow-lg shadow-primary/25 hover:bg-primary-dark hover:scale-[1.02] transition-all"
-            >
-              Save Pricing Rules
-            </button>
-          </form>
-        )}
 
         {activeTab === 'Payment Options' && (
           <form onSubmit={handleSavePaymentSettings} className="space-y-6 max-w-2xl">

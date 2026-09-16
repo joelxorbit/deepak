@@ -26,7 +26,7 @@ export const TimeSlotPicker = memo(({ bookedSlots = [], heldSlots = [], blockedS
           <span>Selected</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded bg-rose-100 border border-rose-200"></span>
+          <span className="w-2.5 h-2.5 rounded bg-slate-100 border border-slate-200"></span>
           <span>Booked</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -61,7 +61,7 @@ export const TimeSlotPicker = memo(({ bookedSlots = [], heldSlots = [], blockedS
                   : isFrozen
                   ? 'bg-amber-50 text-amber-700 border-amber-300 cursor-not-allowed opacity-90'
                   : isBooked
-                  ? 'bg-rose-50 text-rose-800 border-rose-200 cursor-not-allowed opacity-75'
+                  ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through opacity-60'
                   : isSelected
                   ? 'bg-emerald-600 text-white border-emerald-600 font-semibold shadow-sm scale-[1.01]'
                   : 'bg-white text-on-surface border-black/10 hover:border-emerald-500 hover:bg-emerald-50/50'
@@ -75,7 +75,7 @@ export const TimeSlotPicker = memo(({ bookedSlots = [], heldSlots = [], blockedS
                   <span className="material-symbols-outlined text-[10px]">lock</span> Frozen
                 </span>
               ) : isBooked ? (
-                <span className="text-[9px] uppercase font-semibold text-rose-600">Booked</span>
+                <span className="text-[9px] uppercase font-semibold text-slate-400">Booked</span>
               ) : isSelected ? (
                 <span className="text-[9px] uppercase font-semibold text-emerald-100 flex items-center gap-0.5">
                   <span className="material-symbols-outlined text-[11px]">check_circle</span> Selected
