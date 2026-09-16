@@ -90,7 +90,7 @@ export const HomePage = () => {
     <div className="space-y-24 pb-20">
 
       {/* 1. FULL-BLEED CINEMATIC HERO SECTION */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-slate-1000 -mt-20 pt-20">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-slate-1000 pt-20">
 
         {/* Full-bleed background video with cinematic gradient vignette */}
         <div className="absolute inset-0 z-0">

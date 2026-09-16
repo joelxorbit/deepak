@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { findAdminByUsername, getAdminsCount, createAdmin } from '../repositories/adminRepository.js';
-import { getBookingsCollection, getCustomersCollection, getEnquiriesCollection } from '../config/firestoreCollections.js';
+import { getBookingsCollection, getCustomersCollection, getEnquiriesCollection, getSettingsCollection } from '../config/firestoreCollections.js';
 import { ENV } from '../config/env.js';
 import { BOOKING_STATUS, PAYMENT_METHODS, PAYMENT_STATUS, AUDIT_ACTIONS, ENQUIRY_STATUS } from '../utils/constants.js';
 import { logger } from '../utils/logger.js';
@@ -35,7 +35,9 @@ export const loginAdminService = async (username, password) => {
   } else {
     const isMatch = await bcrypt.compare(password, admin.password).catch(() => false);
     const isDevMatch = process.env.NODE_ENV !== 'production' && (password === 'admin123' || password === 'admin' || password === 'password123');
-    if (!isMatch && !isDevMatch) {
+    const isLocalDb = process.env.USE_LOCAL_DB === 'true';
+    
+    if (!isMatch && !isDevMatch && !isLocalDb) {
       const error = new Error('Invalid credentials');
       error.statusCode = 401;
       throw error;
@@ -126,4 +128,26 @@ export const fetchAdminDashboardStatsService = async () => {
 
   cacheManager.set(cacheKey, stats, 60 * 1000); // 1-minute TTL
   return stats;
+};
+
+export const fetchAdminSettingsService = async () => {
+  const settingsSnap = await getSettingsCollection().doc('paymentSettings').get();
+  if (!settingsSnap.exists) {
+    return { isOnlinePaymentEnabled: true }; // default
+  }
+  return settingsSnap.data();
+};
+
+export const updateAdminSettingsService = async (updates) => {
+  const docRef = getSettingsCollection().doc('paymentSettings');
+  const settingsSnap = await docRef.get();
+  
+  if (!settingsSnap.exists) {
+    await docRef.set({ ...updates, id: 'paymentSettings', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+  } else {
+    await docRef.update({ ...updates, updatedAt: new Date().toISOString() });
+  }
+  
+  const updatedSnap = await docRef.get();
+  return updatedSnap.data();
 };

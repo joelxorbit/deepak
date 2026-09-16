@@ -1,6 +1,8 @@
 import {
   loginAdminService,
-  fetchAdminDashboardStatsService
+  fetchAdminDashboardStatsService,
+  fetchAdminSettingsService,
+  updateAdminSettingsService
 } from '../services/adminService.js';
 import { ENV } from '../config/env.js';
 import { sendSuccess } from '../utils/response.js';
@@ -40,6 +42,24 @@ export const dashboard = async (req, res, next) => {
   try {
     const stats = await fetchAdminDashboardStatsService();
     return sendSuccess(res, 'Dashboard statistics retrieved successfully', stats);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getSettings = async (req, res, next) => {
+  try {
+    const settings = await fetchAdminSettingsService();
+    return sendSuccess(res, 'Settings retrieved successfully', settings);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateSettings = async (req, res, next) => {
+  try {
+    const settings = await updateAdminSettingsService(req.body);
+    return sendSuccess(res, 'Settings updated successfully', settings);
   } catch (error) {
     next(error);
   }

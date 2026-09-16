@@ -60,3 +60,20 @@ export const previewPricingController = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getPaymentSettings = async (req, res, next) => {
+  try {
+    const { getSettingsCollection } = await import('../config/firestoreCollections.js');
+    const settingsSnap = await getSettingsCollection().doc('paymentSettings').get();
+    let isOnlinePaymentEnabled = true;
+    if (settingsSnap.exists) {
+      const data = settingsSnap.data();
+      if (typeof data.isOnlinePaymentEnabled === 'boolean') {
+        isOnlinePaymentEnabled = data.isOnlinePaymentEnabled;
+      }
+    }
+    return sendSuccess(res, 'Payment settings retrieved successfully', { isOnlinePaymentEnabled });
+  } catch (error) {
+    next(error);
+  }
+};

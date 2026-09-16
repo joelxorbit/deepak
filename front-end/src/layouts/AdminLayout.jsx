@@ -27,6 +27,7 @@ export const AdminLayout = ({ children }) => {
     { id: 'coupons', path: ROUTES.ADMIN_COUPONS, label: 'Coupons', icon: 'confirmation_number' },
     { id: 'events', path: ROUTES.ADMIN_EVENTS, label: 'Events Console', icon: 'event' },
     { id: 'reports', path: ROUTES.ADMIN_REPORTS, label: 'Reports & Analytics', icon: 'analytics' },
+    { id: 'settings', path: ROUTES.ADMIN_SETTINGS, label: 'Payment Option Control', icon: 'payments' },
   ];
 
   const currentNavItem = navItems.find(item => location.pathname === item.path || location.pathname.startsWith(item.path + '/')) || navItems[0];

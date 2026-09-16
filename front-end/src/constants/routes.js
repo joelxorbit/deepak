@@ -20,6 +20,7 @@ export const ROUTES = {
   ADMIN_REPORTS: '/admin/reports',
 
   ADMIN_FREEZE: '/admin/freeze',
+  ADMIN_SETTINGS: '/admin/settings',
 
   NOT_FOUND: '*'
 };

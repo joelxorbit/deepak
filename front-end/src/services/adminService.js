@@ -18,6 +18,18 @@ export const fetchAdminDashboardStatsService = async () => {
   return response.data.data;
 };
 
+// Admin Settings (GET /api/admin/settings)
+export const fetchAdminSettingsService = async () => {
+  const response = await api.get('/admin/settings');
+  return response.data.data;
+};
+
+// Admin Settings (PATCH /api/admin/settings)
+export const updateAdminSettingsService = async (settings) => {
+  const response = await api.patch('/admin/settings', settings);
+  return response.data.data;
+};
+
 // Customers List (GET /api/customers)
 export const fetchCustomersService = async (search = '') => {
   const response = await api.get('/customers', { params: { search } });

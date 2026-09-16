@@ -15,6 +15,7 @@ const CouponsPage = lazy(() => import('../pages/admin/CouponsPage').then(m => ({
 const EnquiriesPage = lazy(() => import('../pages/admin/EnquiriesPage').then(m => ({ default: m.EnquiriesPage })));
 const ReportsPage = lazy(() => import('../pages/admin/ReportsPage').then(m => ({ default: m.ReportsPage })));
 const FreezePage = lazy(() => import('../pages/admin/FreezePage').then(m => ({ default: m.FreezePage })));
+const SettingsPage = lazy(() => import('../pages/admin/SettingsPage').then(m => ({ default: m.SettingsPage })));
 
 const AdminPageFallback = () => (
   <div className="space-y-8 animate-pulse p-6">
@@ -53,6 +54,7 @@ export const AdminRoutes = () => {
             <Route path="enquiries" element={<EnquiriesPage />} />
             <Route path="events" element={<AdminEventsPage />} />
             <Route path="freeze" element={<FreezePage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to={ROUTES.ADMIN_DASHBOARD} replace />} />

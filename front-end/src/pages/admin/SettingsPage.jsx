@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '../../context/ToastContext';
+import { fetchAdminSettingsService, updateAdminSettingsService } from '../../services/adminService';
 
 export const SettingsPage = () => {
   const { addToast } = useToast();
@@ -13,9 +14,38 @@ export const SettingsPage = () => {
   const [slotRate, setSlotRate] = useState(300);
   const [cancelWindowHours, setCancelWindowHours] = useState(2);
 
+  const [isOnlinePaymentEnabled, setIsOnlinePaymentEnabled] = useState(true);
+  const [isSettingsLoading, setIsSettingsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await fetchAdminSettingsService();
+        if (settings && typeof settings.isOnlinePaymentEnabled === 'boolean') {
+          setIsOnlinePaymentEnabled(settings.isOnlinePaymentEnabled);
+        }
+      } catch (error) {
+        console.warn('Failed to load settings', error);
+      } finally {
+        setIsSettingsLoading(false);
+      }
+    };
+    loadSettings();
+  }, []);
+
   const handleSaveSettings = (e) => {
     e.preventDefault();
     addToast('Enterprise settings updated successfully.', 'success');
+  };
+
+  const handleSavePaymentSettings = async (e) => {
+    e.preventDefault();
+    try {
+      await updateAdminSettingsService({ isOnlinePaymentEnabled });
+      addToast('Payment settings updated successfully.', 'success');
+    } catch (error) {
+      addToast('Failed to update payment settings.', 'error');
+    }
   };
 
   const mockAuditLogs = [
@@ -36,7 +66,7 @@ export const SettingsPage = () => {
 
       <div className="bg-white p-6 rounded-3xl border border-black/5 shadow-sm space-y-6">
         <div className="flex gap-2 border-b border-black/5 pb-4 overflow-x-auto">
-          {['General', 'Booking & Pricing', 'Audit Logs'].map((tab) => (
+          {['General', 'Booking & Pricing', 'Payment Options', 'Audit Logs'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -141,6 +171,56 @@ export const SettingsPage = () => {
               className="min-h-[44px] px-6 py-3 bg-primary text-white font-label-bold text-xs rounded-2xl shadow-lg shadow-primary/25 hover:bg-primary-dark hover:scale-[1.02] transition-all"
             >
               Save Pricing Rules
+            </button>
+          </form>
+        )}
+
+        {activeTab === 'Payment Options' && (
+          <form onSubmit={handleSavePaymentSettings} className="space-y-6 max-w-2xl">
+            <div className="space-y-4">
+              {isSettingsLoading ? (
+                <div className="animate-pulse h-10 w-full bg-surface-container-low rounded-xl"></div>
+              ) : (
+                <div className="space-y-3">
+                  <label className="block text-sm font-bold text-on-surface mb-2">Select Payment Mode</label>
+                  
+                  <label className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-colors ${isOnlinePaymentEnabled ? 'bg-primary/5 border-primary' : 'bg-surface-container-low border-outline-variant hover:bg-surface-variant'}`}>
+                    <input 
+                      type="radio" 
+                      name="paymentMode" 
+                      className="w-5 h-5 accent-primary" 
+                      checked={isOnlinePaymentEnabled === true} 
+                      onChange={() => setIsOnlinePaymentEnabled(true)} 
+                    />
+                    <div>
+                      <div className="font-bold text-sm text-on-surface">Online Payment Enabled</div>
+                      <div className="text-xs text-on-surface-variant mt-0.5">Customers will be redirected to Razorpay to pay online.</div>
+                    </div>
+                  </label>
+
+                  <label className={`flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-colors ${!isOnlinePaymentEnabled ? 'bg-primary/5 border-primary' : 'bg-surface-container-low border-outline-variant hover:bg-surface-variant'}`}>
+                    <input 
+                      type="radio" 
+                      name="paymentMode" 
+                      className="w-5 h-5 accent-primary" 
+                      checked={isOnlinePaymentEnabled === false} 
+                      onChange={() => setIsOnlinePaymentEnabled(false)} 
+                    />
+                    <div>
+                      <div className="font-bold text-sm text-on-surface">Offline Payment Enabled</div>
+                      <div className="text-xs text-on-surface-variant mt-0.5">Customers bypass Razorpay. Slot is booked immediately (Pay at Spot).</div>
+                    </div>
+                  </label>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSettingsLoading}
+              className="min-h-[44px] px-6 py-3 bg-primary text-white font-label-bold text-xs rounded-2xl shadow-lg shadow-primary/25 hover:bg-primary-dark hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Save Payment Settings
             </button>
           </form>
         )}

@@ -6,7 +6,7 @@ import { TIME_SLOTS, areSlotsConsecutive } from '../../utils/bookingUtils';
 import { getTodayString } from '../../utils/dateUtils';
 import { ROUTES } from '../../constants/routes';
 import { TimeSlotPicker } from './TimeSlotPicker';
-import { createRazorpayOrder, verifyRazorpayPayment } from '../../services/paymentService';
+import { createRazorpayOrder, verifyRazorpayPayment, fetchPaymentSettingsService } from '../../services/paymentService';
 import { previewBookingPriceService } from '../../services/bookingService';
 import { validateCouponService } from '../../services/couponService';
 
@@ -37,6 +37,21 @@ export const BookingForm = ({ navigate: navigateProp }) => {
   const [paymentOption, setPaymentOption] = useState('ADVANCE');
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOnlinePaymentEnabled, setIsOnlinePaymentEnabled] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const settings = await fetchPaymentSettingsService();
+        if (settings && typeof settings.isOnlinePaymentEnabled === 'boolean') {
+          setIsOnlinePaymentEnabled(settings.isOnlinePaymentEnabled);
+        }
+      } catch (err) {
+        console.warn('Failed to load payment settings', err);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   // Server-authoritative live pricing state
   const [serverPricing, setServerPricing] = useState(null);
@@ -286,7 +301,7 @@ export const BookingForm = ({ navigate: navigateProp }) => {
       return;
     }
 
-    const isOnline = paymentOption === 'ADVANCE' || paymentOption === 'FULL';
+    const isOnline = isOnlinePaymentEnabled && (paymentOption === 'ADVANCE' || paymentOption === 'FULL');
     const isAdvance = paymentOption === 'ADVANCE';
     const resolvedPaymentStatus = isAdvance ? 'Advance Paid' : (paymentOption === 'FULL' ? 'Fully Paid' : 'Cash Pending');
     const advanceAmount = isAdvance ? (serverPricing.payableNow || 200) : (paymentOption === 'FULL' ? serverPricing.totalAmount : 0);
@@ -707,7 +722,9 @@ export const BookingForm = ({ navigate: navigateProp }) => {
                 ? 'Processing Reservation...' 
                 : (isPricingLoading 
                     ? 'Evaluating Pricing...' 
-                    : `Pay & Confirm Booking (${selectedSlots.length > 0 && serverPricing ? `₹${pricing.payableNow || pricing.totalAmount}` : 'Select Slot'})`)}
+                    : (!isOnlinePaymentEnabled 
+                        ? 'Confirm Booking (Pay at Spot)' 
+                        : `Pay & Confirm Booking (${selectedSlots.length > 0 && serverPricing ? `₹${pricing.payableNow || pricing.totalAmount}` : 'Select Slot'})`))}
             </button>
 
             {/* Secondary, Tertiary, & Danger Controls */}

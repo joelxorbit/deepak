@@ -2,7 +2,9 @@ import express from 'express';
 import {
   login,
   logout,
-  dashboard
+  dashboard,
+  getSettings,
+  updateSettings
 } from '../controllers/adminController.js';
 import { adminLoginValidationRules } from '../validators/adminValidator.js';
 import { validateRequest } from '../middlewares/validateRequest.js';
@@ -15,5 +17,8 @@ const router = express.Router();
 router.post('/login', loginRateLimiter, adminLoginValidationRules, validateRequest, login);
 router.post('/logout', requireAdmin, logout);
 router.get('/dashboard', requireAdmin, dashboard);
+
+router.get('/settings', requireAdmin, getSettings);
+router.patch('/settings', requireAdmin, updateSettings);
 
 export default router;

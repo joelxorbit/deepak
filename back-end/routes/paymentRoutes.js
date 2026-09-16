@@ -1,9 +1,12 @@
 import express from 'express';
-import { createOrder, verifyPayment, previewPricingController } from '../controllers/paymentController.js';
+import { createOrder, verifyPayment, previewPricingController, getPaymentSettings } from '../controllers/paymentController.js';
 import { payBookingBalance } from '../controllers/bookingController.js';
 import { requireAnyAuth } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
+
+// GET /api/payments/settings
+router.get('/settings', getPaymentSettings);
 
 // POST /api/payments/create-order
 router.post('/create-order', createOrder);
