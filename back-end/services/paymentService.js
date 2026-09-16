@@ -246,3 +246,99 @@ export const verifyPaymentSignatureService = async ({
     orderId: razorpay_order_id
   };
 };
+
+/**
+ * Processes refunds for cancelled bookings via Razorpay.
+ *
+ * @param {object} booking - The booking document data
+ * @returns {Promise<object>} Refund details { status: string, refunds: array, totalRefunded: number }
+ */
+export const processRefundService = async (booking) => {
+  if (!booking) {
+    throw new Error('Booking object is required for refund processing.');
+  }
+
+  const refundsToProcess = [];
+
+  // Check initial payment
+  if (booking.razorpay_payment_id && booking.advancePaid > 0) {
+    const amount = Number(booking.initialAdvancePaid || booking.advancePaid || booking.totalAmount);
+    if (amount > 0) {
+      refundsToProcess.push({
+        paymentId: booking.razorpay_payment_id,
+        amountInPaise: Math.round(amount * 100),
+        amountInRupees: amount
+      });
+    }
+  }
+
+  // Check balance payment if any
+  if (
+    booking.balancePayment?.razorpay_payment_id &&
+    booking.balancePayment.razorpay_payment_id !== booking.razorpay_payment_id &&
+    booking.balancePayment.amount > 0
+  ) {
+    refundsToProcess.push({
+      paymentId: booking.balancePayment.razorpay_payment_id,
+      amountInPaise: Math.round(booking.balancePayment.amount * 100),
+      amountInRupees: booking.balancePayment.amount
+    });
+  }
+
+  if (refundsToProcess.length === 0) {
+    logger.info(`[PaymentService] No online payments found to refund for booking ${booking.bookingId}`);
+    return { status: 'Not Required', refunds: [], totalRefunded: 0 };
+  }
+
+  const processedRefunds = [];
+  let totalRefunded = 0;
+
+  for (const item of refundsToProcess) {
+    try {
+      // Mock / Local dev refund
+      if (item.paymentId.startsWith('pay_dev_') || !ENV.RAZORPAY_KEY_ID) {
+        logger.info(`[PaymentService] Simulated refund for mock payment ${item.paymentId} (Amount: ₹${item.amountInRupees})`);
+        processedRefunds.push({
+          id: `rfnd_dev_${Date.now()}`,
+          payment_id: item.paymentId,
+          amount: item.amountInRupees,
+          status: 'processed_simulated'
+        });
+        totalRefunded += item.amountInRupees;
+        continue;
+      }
+
+      // Actual Razorpay API call
+      const rzp = getRazorpayInstance();
+      const refundObj = await rzp.payments.refund(item.paymentId, {
+        amount: item.amountInPaise,
+        speed: 'optimum'
+      });
+      
+      logger.info(`[PaymentService] Successfully refunded ${item.paymentId}. Refund ID: ${refundObj.id}`);
+      processedRefunds.push({
+        id: refundObj.id,
+        payment_id: item.paymentId,
+        amount: item.amountInRupees,
+        status: refundObj.status || 'processed'
+      });
+      totalRefunded += item.amountInRupees;
+
+    } catch (err) {
+      logger.error(`[PaymentService Error] Failed to refund payment ${item.paymentId} for booking ${booking.bookingId}`, err);
+      // We don't throw here to allow cancellation to proceed, but we log the failure.
+      processedRefunds.push({
+        payment_id: item.paymentId,
+        amount: item.amountInRupees,
+        status: 'failed',
+        error: err.message
+      });
+    }
+  }
+
+  return {
+    status: processedRefunds.some(r => r.status === 'failed') ? 'Partial/Failed' : 'Processed',
+    refunds: processedRefunds,
+    totalRefunded
+  };
+};

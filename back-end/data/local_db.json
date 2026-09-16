@@ -75,6 +75,133 @@
       },
       "createdAt": "2026-09-09T15:58:28.584Z",
       "updatedAt": "2026-09-09T15:58:28.584Z"
+    },
+    {
+      "id": "doc_zjgvxwxz2mu48w32x",
+      "_id": "doc_zjgvxwxz2mu48w32x",
+      "bookingId": "BK-20260916-0001",
+      "customerId": "doc_obiyxujlumu47ln5i",
+      "customerName": "LEO JOEL ROYS",
+      "customerPhone": "8838343971",
+      "customerEmail": "",
+      "sportId": "football-5v5",
+      "sportType": "Football Turf (Main Arena)",
+      "date": "2026-09-16T00:00:00.000Z",
+      "dateStr": "2026-09-16",
+      "timeSlots": [
+        "09:00 PM - 10:00 PM"
+      ],
+      "slots": [
+        "09:00 PM - 10:00 PM"
+      ],
+      "paymentMethod": "Advance Paid",
+      "paymentOption": "ADVANCE",
+      "paymentStatus": "Advance Paid",
+      "paidAt": "2026-09-16T15:17:58.790Z",
+      "paymentCollectedBy": "Online Payment (Advance)",
+      "razorpay_payment_id": "pay_TckrRUySbrFhFp",
+      "slotPrice": 800,
+      "slotCount": 1,
+      "subtotal": 800,
+      "discountAmount": 0,
+      "couponCode": null,
+      "totalAmount": 800,
+      "advancePaid": 200,
+      "balanceDue": 600,
+      "pricingSnapshot": {
+        "rateRuleId": "rate_standard",
+        "ratePerHour": 800,
+        "slotPrice": 800,
+        "slotCount": 1,
+        "subtotal": 800,
+        "discountAmount": 0,
+        "couponCode": null,
+        "totalAmount": 800,
+        "fixedAdvanceAmount": 200,
+        "advanceRequired": 200,
+        "balanceDue": 600,
+        "currency": "INR",
+        "hasPeak": true,
+        "calculatedAt": "2026-09-16T15:17:58.788Z"
+      },
+      "slotBreakdowns": [
+        {
+          "slot": "09:00 PM - 10:00 PM",
+          "ratePerHour": 800,
+          "isPeak": true,
+          "ruleType": "SPECIFIC_DATE"
+        }
+      ],
+      "balancePayment": {
+        "isPaid": false,
+        "paidAt": null,
+        "paymentMethod": null,
+        "collectedBy": null,
+        "notes": null
+      },
+      "status": "Confirmed",
+      "isReviewed": false,
+      "reviewedBy": null,
+      "reviewedAt": null,
+      "cancellation": {
+        "isCancelled": false,
+        "cancelledBy": null,
+        "reason": null,
+        "cancelledAt": null,
+        "adminId": null
+      },
+      "isDeleted": false,
+      "searchTokens": [
+        "bk-20260916-0001",
+        "b",
+        "bk",
+        "bk-",
+        "bk-2",
+        "bk-20",
+        "bk-202",
+        "bk-2026",
+        "bk-20260",
+        "bk-202609",
+        "bk-2026091",
+        "bk-20260916",
+        "bk-20260916-",
+        "bk-20260916-0",
+        "bk-20260916-00",
+        "bk-20260916-000",
+        "leo joel roys",
+        "l",
+        "le",
+        "leo",
+        "leo ",
+        "leo j",
+        "leo jo",
+        "leo joe",
+        "leo joel",
+        "leo joel ",
+        "leo joel r",
+        "leo joel ro",
+        "leo joel roy",
+        "joel",
+        "j",
+        "jo",
+        "joe",
+        "roys",
+        "r",
+        "ro",
+        "roy",
+        "8838343971",
+        "8",
+        "88",
+        "883",
+        "8838",
+        "88383",
+        "883834",
+        "8838343",
+        "88383439",
+        "883834397"
+      ],
+      "createdAt": "2026-09-16T15:17:58.790Z",
+      "updatedAt": "2026-09-16T15:17:58.790Z"
     }
   ],
   "customers": [
@@ -104,7 +231,9 @@
       "email": "joelroys637@gmail.com",
       "googleId": "gid_1789569851076",
       "avatar": "https://lh3.googleusercontent.com/a-/ALV-UjXVcu3kGvstpWeAJCkLLtIu1X7pd0UrdciSegWslvppslHDx8C2Pwv7AphpxBQ9dp2esZwO0SnUn_C1uQjLlv-yrtyKdYkPyHh9Qgrya2MsebCRoCB8yIeoTVa4oqZb_slUNwoc8lAFDUVjOTe2o_NIZEofGGWzhVWP5s9Ndvr-9FcSBJxbPPOIwY6vMNist2LHPLY9kEGgC8DXMFMrN_chOG6HP2X1YEEUxEZqfW894eTboe7dqXDD0l_-gp596oGXczeb2_XZooWwSRq4HXR4-57K4NggvLIW7isfCjgscXX7gD9iBBe6xEOzMzJvRMOlBASRevDWH0CPr8QuGEJUzLYTvDujTuM17IPo_K_ZjcQbG5n8293qs7Rsq-3hwNjdKjqVIqsETAuqO_EDKCWYDUGUKPxhsvA94DQqf1fR0pyczC1AluL1SKD8610NoVXTIqlGrwZQ6mfgwc1idRdaGjuO7q-O8CI2vqM78ma_zVCXIBjwz3Rl8Y4C6PgTrtyHGEC5NoethdNBCfmLVZnFzLinHo2IlAecL0l9EgGin5w4WR71_9sab-hxN9r0MYm7bvUrgffPvC93fHjc8u9XQ6eCmAfj6YpkRj0bfEiuyYlJ0DMxOQbG-5VHK0m5_kt5d6JkY6uNkaknaEtv66JZb9R3z-7cOQUgL0Lc90Lhr3A06Fhk3TIvOQdq7lMB4-QRQGDoSww6nXEotjtsfcnuukC-y3h8hNS51AmOGQVp_sVqF6KRcT_lWpbxqeX5FQL5q8KvX7_6en9qODceXtQA27NF-XWS_OcIxXiHaSyoNZjrcgokg11KB1eoib9B7cWIT6MEeSvMvM60ggibWJF4m4B09T8qXcV8WDDkUpMHZt3zf6bDTSBRcrAXmA82AynJogIGLkagggs_lWpGzHCwVVzXByt-lClcNv_XNXzHRG9R0kSMd8bDr_HiTY6rEVKmuzFdPinYDThnu0z0UVjNsXG2bXderZuWG6aNNojfg02C8rRxGWjYVvz8BhaJuyndixjKxttteEzKiiy5vlqe9Hl5DCCY4k-L6fADhCRSbKeGmglEbXqhXLo=s96-c",
-      "bookingHistory": [],
+      "bookingHistory": [
+        "doc_zjgvxwxz2mu48w32x"
+      ],
       "searchTokens": [
         "leo joel roys",
         "l",
@@ -139,7 +268,7 @@
         "883834397"
       ],
       "createdAt": "2026-09-16T14:41:51.989Z",
-      "updatedAt": "2026-09-16T14:44:11.079Z",
+      "updatedAt": "2026-09-16T15:17:58.790Z",
       "lastLoginAt": "2026-09-16T14:44:11.079Z"
     }
   ],
@@ -355,6 +484,13 @@
       "seq": 2,
       "createdAt": "2026-09-09T15:58:09.270Z",
       "updatedAt": "2026-09-09T15:58:09.415Z"
+    },
+    {
+      "id": "booking_20260916",
+      "_id": "booking_20260916",
+      "seq": 1,
+      "createdAt": "2026-09-16T15:17:58.790Z",
+      "updatedAt": "2026-09-16T15:17:58.790Z"
     }
   ],
   "slot_holds": [],
@@ -420,6 +556,22 @@
         "eventId": "doc_ay24cktkxmtua978p"
       },
       "timestamp": "2026-09-09T15:58:28.606Z"
+    },
+    {
+      "id": "doc_mup3meqjfmu48w33m",
+      "_id": "doc_mup3meqjfmu48w33m",
+      "action": "BOOKING_CREATE",
+      "user": "LEO JOEL ROYS",
+      "details": {
+        "bookingId": "BK-20260916-0001",
+        "date": "2026-09-16",
+        "slots": [
+          "09:00 PM - 10:00 PM"
+        ],
+        "totalAmount": 800,
+        "paymentStatus": "Advance Paid"
+      },
+      "timestamp": "2026-09-16T15:17:58.834Z"
     }
   ],
   "idempotency_keys": [],
@@ -472,6 +624,112 @@
       "readAt": null,
       "createdAt": "2026-09-09T15:58:28.612Z",
       "updatedAt": "2026-09-09T15:58:28.612Z"
+    },
+    {
+      "id": "doc_1vxfcw5nnmu48w33t",
+      "_id": "doc_1vxfcw5nnmu48w33t",
+      "recipientType": "customer",
+      "recipientId": "doc_obiyxujlumu47ln5i",
+      "recipientPhone": "8838343971",
+      "recipientEmail": null,
+      "type": "BOOKING_CREATED",
+      "title": "Booking Confirmed",
+      "message": "Your booking #BK-20260916-0001 for Football Turf (Main Arena) on 2026-09-16 (09:00 PM - 10:00 PM) has been received.",
+      "bookingId": "BK-20260916-0001",
+      "enquiryId": null,
+      "eventId": null,
+      "metadata": {
+        "sport": "Football Turf (Main Arena)",
+        "date": "2026-09-16",
+        "slots": [
+          "09:00 PM - 10:00 PM"
+        ],
+        "totalAmount": 800,
+        "advanceAmount": 200,
+        "balanceAmount": 600
+      },
+      "idempotencyKey": "BOOKING_CREATED:BK-20260916-0001:customer",
+      "isRead": false,
+      "readAt": null,
+      "createdAt": "2026-09-16T15:17:58.841Z",
+      "updatedAt": "2026-09-16T15:17:58.841Z"
+    },
+    {
+      "id": "doc_zzbi2g2apmu48w33w",
+      "_id": "doc_zzbi2g2apmu48w33w",
+      "recipientType": "customer",
+      "recipientId": "doc_obiyxujlumu47ln5i",
+      "recipientPhone": "8838343971",
+      "recipientEmail": null,
+      "type": "ADVANCE_PAYMENT_RECEIVED",
+      "title": "Advance Payment Received",
+      "message": "Payment of ₹200 for booking #BK-20260916-0001 has been successfully verified.",
+      "bookingId": "BK-20260916-0001",
+      "enquiryId": null,
+      "eventId": null,
+      "metadata": {
+        "amount": 200,
+        "paymentId": "pay_TckrRUySbrFhFp",
+        "paymentStatus": "Advance Paid",
+        "balanceAmount": 600
+      },
+      "idempotencyKey": "ADVANCE_PAYMENT_RECEIVED:BK-20260916-0001:pay_TckrRUySbrFhFp:customer",
+      "isRead": false,
+      "readAt": null,
+      "createdAt": "2026-09-16T15:17:58.844Z",
+      "updatedAt": "2026-09-16T15:17:58.844Z"
+    },
+    {
+      "id": "doc_u5x55diwkmu48w34g",
+      "_id": "doc_u5x55diwkmu48w34g",
+      "recipientType": "admin",
+      "recipientId": "admin",
+      "recipientPhone": null,
+      "recipientEmail": null,
+      "type": "BOOKING_CREATED",
+      "title": "New Booking Received",
+      "message": "New booking #BK-20260916-0001 for Football Turf (Main Arena) on 2026-09-16 by LEO JOEL ROYS.",
+      "bookingId": "BK-20260916-0001",
+      "enquiryId": null,
+      "eventId": null,
+      "metadata": {
+        "customerName": "LEO JOEL ROYS",
+        "phone": "8838343971",
+        "sport": "Football Turf (Main Arena)",
+        "date": "2026-09-16",
+        "totalAmount": 800
+      },
+      "idempotencyKey": "BOOKING_CREATED:BK-20260916-0001:admin",
+      "isRead": false,
+      "readAt": null,
+      "createdAt": "2026-09-16T15:17:58.864Z",
+      "updatedAt": "2026-09-16T15:17:58.864Z"
+    },
+    {
+      "id": "doc_xluvft63kmu48w34j",
+      "_id": "doc_xluvft63kmu48w34j",
+      "recipientType": "admin",
+      "recipientId": "admin",
+      "recipientPhone": null,
+      "recipientEmail": null,
+      "type": "ADVANCE_PAYMENT_RECEIVED",
+      "title": "Advance Payment Verified: #BK-20260916-0001",
+      "message": "Payment of ₹200 received for booking #BK-20260916-0001 (LEO JOEL ROYS).",
+      "bookingId": "BK-20260916-0001",
+      "enquiryId": null,
+      "eventId": null,
+      "metadata": {
+        "amount": 200,
+        "paymentId": "pay_TckrRUySbrFhFp",
+        "bookingId": "BK-20260916-0001",
+        "customerName": "LEO JOEL ROYS",
+        "paymentStatus": "Advance Paid"
+      },
+      "idempotencyKey": "ADVANCE_PAYMENT_RECEIVED:BK-20260916-0001:pay_TckrRUySbrFhFp:admin",
+      "isRead": false,
+      "readAt": null,
+      "createdAt": "2026-09-16T15:17:58.867Z",
+      "updatedAt": "2026-09-16T15:17:58.867Z"
     }
   ],
   "admin": [],

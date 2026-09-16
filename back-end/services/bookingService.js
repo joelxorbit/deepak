@@ -27,7 +27,7 @@ import { calculateAvailability } from './availabilityService.js';
 import { calculateBookingPrice } from './rateService.js';
 import { PAYMENT_OPTIONS } from '../utils/constants.js';
 import { notifyBookingCreated, notifyPaymentReceived, notifyAdminCancellation } from './notificationService.js';
-import { verifyPaymentSignatureService } from './paymentService.js';
+import { verifyPaymentSignatureService, processRefundService } from './paymentService.js';
 
 export const createBookingService = async ({
   customerName,
@@ -379,10 +379,15 @@ export const cancelBookingService = async (bookingId) => {
     }
   }
 
+  // Process Refund if online payment exists
+  const refundResult = await processRefundService(booking);
+
   const now = new Date().toISOString();
   await getBookingsCollection().doc(booking.id).update({
     status: BOOKING_STATUS.CANCELLED,
     cancelledAt: now,
+    refundStatus: refundResult.status,
+    refundDetails: refundResult,
     updatedAt: now
   });
 
@@ -645,10 +650,15 @@ export const adminCancelBookingService = async (bookingId, adminUser, reason) =>
     adminId
   };
 
+  // Process Refund if online payment exists
+  const refundResult = await processRefundService(booking);
+
   await getBookingsCollection().doc(booking.id).update({
     status: BOOKING_STATUS.CANCELLED,
     cancellation: cancellationData,
     cancelledAt: now,
+    refundStatus: refundResult.status,
+    refundDetails: refundResult,
     updatedAt: now
   });
 
